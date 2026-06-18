@@ -1,0 +1,105 @@
+\documentclass[a4paper,11pt]{ctexart} % 使用 ctexart 完美支持中文
+
+% ==========================================
+% 1. 宏包配置
+% ==========================================
+\usepackage[margin=1in]{geometry}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{caption}
+\usepackage{pifont} 
+
+\title{Debug: Syntax-Aware Query Abstraction}
+\author{Morph Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Approach}
+
+\subsection{Syntax-Aware Query Abstraction}
+\label{sec:abstraction}
+
+% ============================================================
+% 算法 2：规则引导的递归方言实例化
+% ============================================================
+\begin{algorithm}[htbp]
+\small
+\caption{规则引导的递归方言实例化}
+\label{alg:translation}
+
+% 仅将标签换成中文，保留控制流关键字为英文
+\SetKwInOut{Input}{输入}
+\SetKwInOut{Output}{输出}
+
+\Input{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$；目标方言 $D_t$；混合知识库 $HKB$；阈值 $\delta$}
+\Output{兼容的目标查询种子 $Q_{target}$}
+
+$Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow \emptyset$ \label{line:alg2:sort} \tcp*{自底向上的拓扑排序}
+\ForEach{$id$ \textbf{in} $Order$}{
+    $S \leftarrow \textsc{GetSegment}(\mathcal{T}, id)$\;
+    \ForEach{$c$ \textbf{in} $\mathcal{G}.children(id)$}{
+        $S \leftarrow \textsc{Substitute}(S, c, Fragments[c])$ \label{line:alg2:substitute_start} \tcp*{替换子查询占位符}
+    } \label{line:alg2:substitute_end}
+    \ForEach{$\tau$ \textbf{in} $\textsc{AbstractTokens}(S)$}{
+        $(rule, conf) \leftarrow \textsc{Retrieve}(HKB, \tau, D_t)$ \label{line:alg2:retrieve} \tcp*{查询混合知识库}
+        \If{$conf < \delta$}{
+            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \tcp*{调用 LLM 生成转换规则}
+            $HKB.\textsc{Cache}(\tau, rule)$\;
+        }
+        $frag \leftarrow \textsc{Translator}(\tau, rule, \mathcal{D})$ \label{line:alg2:translate} \tcp*{实例化 Token}
+        \While{$err \leftarrow \textsc{Parse}(frag, D_t)$}{
+            $frag \leftarrow \textsc{Fixer}(frag, err)$ \label{line:alg2:fix} \tcp*{错误修复循环}
+        }
+        $S \leftarrow \textsc{Replace}(S, \tau, frag)$\;
+    }
+    $Fragments[id] \leftarrow S$ \label{line:alg2:cache} \tcp*{缓存已实例化的片段}
+}
+\Return $Fragments[\textsc{Root}(\mathcal{G})]$ \label{line:alg2:assemble} \tcp*{组装并返回最终查询}
+\end{algorithm}
+
+
+% ============================================================
+% 算法 2：规则引导的递归方言实例化
+% ============================================================
+\begin{algorithm}[htbp]
+\small
+\caption{规则引导的递归方言实例化}
+\label{alg:translation}
+
+% 仅将标签换成中文，保留控制流关键字为英文
+\SetKwInOut{Input}{输入}
+\SetKwInOut{Output}{输出}
+
+\Input{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$；目标方言 $D_t$；混合知识库 $HKB$；阈值 $\delta$}
+\Output{兼容的目标查询种子 $Q_{target}$}
+
+$Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow \emptyset$ \label{line:alg2:sort} \tcp*{自底向上的拓扑排序}
+\ForEach{$id$ \textbf{in} $Order$}{
+    $S \leftarrow \textsc{GetSegment}(\mathcal{T}, id)$\;
+    \ForEach{$c$ \textbf{in} $\mathcal{G}.children(id)$}{
+        $S \leftarrow \textsc{Substitute}(S, c, Fragments[c])$ \label{line:alg2:substitute_start} \tcp*{替换子查询占位符}
+    } \label{line:alg2:substitute_end}
+    \ForEach{$\tau$ \textbf{in} $\textsc{AbstractTokens}(S)$}{
+        $(rule, conf) \leftarrow \textsc{Retrieve}(HKB, \tau, D_t)$ \label{line:alg2:retrieve} \tcp*{查询混合知识库}
+        \If{$conf < \delta$}{
+            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \tcp*{调用 LLM 生成转换规则}
+            $HKB.\textsc{Cache}(\tau, rule)$\;
+        }
+        $frag \leftarrow \textsc{Translator}(\tau, rule, \mathcal{D})$ \label{line:alg2:translate} \tcp*{实例化 Token}
+        \While{$err \leftarrow \textsc{Parse}(frag, D_t)$}{
+            $frag \leftarrow \textsc{Fixer}(frag, err)$ \label{line:alg2:fix} \tcp*{错误修复循环}
+        }
+        $S \leftarrow \textsc{Replace}(S, \tau, frag)$\;
+    }
+    $Fragments[id] \leftarrow S$ \label{line:alg2:cache} \tcp*{缓存已实例化的片段}
+}
+\Return $Fragments[\textsc{Root}(\mathcal{G})]$ \label{line:alg2:assemble} \tcp*{组装并返回最终查询}
+\end{algorithm}
+
+\end{document}

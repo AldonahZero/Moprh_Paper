@@ -1,0 +1,234 @@
+\documentclass[tikz, border=10pt]{standalone}
+\usepackage{mathptmx}
+\usepackage{pifont}
+\usepackage{graphicx}
+\usepackage{fontawesome5}
+\usepackage{tikz}
+\usetikzlibrary{calc, positioning}
+\usetikzlibrary{shapes, arrows.meta, positioning, calc, shadows, trees, backgrounds, fit, decorations.pathreplacing, shapes.geometric}
+
+% ==========================================
+% 1. Color Definitions
+% ==========================================
+\definecolor{sedarRed}{RGB}{80, 80, 80}
+\definecolor{procOrange}{RGB}{80, 80, 80}
+\definecolor{ruleYellow}{RGB}{240, 240, 240}
+\definecolor{noteBg}{RGB}{250, 250, 250}
+\definecolor{softBlue}{RGB}{245, 245, 245}
+\definecolor{borderBlue}{RGB}{70, 130, 180} % Keep for highlights
+\definecolor{morphGreen}{RGB}{80, 80, 80}
+\definecolor{codeGray}{RGB}{245, 245, 245}
+\definecolor{highlightBlue}{RGB}{70, 130, 180}
+
+\newcommand{\cmark}{\textcolor{highlightBlue}{\ding{51}}}
+\newcommand{\xmark}{\textcolor{black}{\ding{55}}}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    font=\small,
+    node distance=1.5cm,
+    % --- Styles ---
+    box/.style={
+        rectangle, rounded corners=3pt, align=center, drop shadow={opacity=0.1}
+    },
+    aqtStyle/.style={
+        rectangle, draw=black!40, dashed, fill=white, 
+        rounded corners=4pt, align=center, inner sep=6pt
+    },
+    plannerBox/.style={
+        rectangle, draw=black!40, fill=white, top color=white, bottom color=gray!10,
+        rounded corners=4pt, drop shadow={opacity=0.15}, align=center, inner sep=6pt
+    },
+    % LLM 容器
+    llmBox/.style={
+        rectangle, draw=black!60, fill=white, rounded corners=6pt, 
+        drop shadow={opacity=0.2}, align=center, 
+        minimum width=7.5cm, minimum height=4.2cm
+    },
+    kbBox/.style={
+        cylinder, shape border rotate=90, aspect=0.25,
+        draw=black!40, top color=gray!5, bottom color=gray!10,
+        align=center, minimum height=2.0cm, minimum width=2.5cm,
+        drop shadow={opacity=0.15}
+    },
+    skillCapsule/.style={
+        rectangle, rounded corners=8pt, 
+        draw=black!60, fill=white, 
+        font=\scriptsize\bfseries, 
+        inner sep=3pt, align=center,
+        drop shadow={opacity=0.05}, 
+        text=black,
+        minimum height=0.9cm, 
+        text width=2.1cm
+    },
+    codeSnippet/.style={
+        rectangle, draw=gray!30, fill=codeGray, rounded corners=2pt, 
+        font=\scriptsize\ttfamily, align=left, inner sep=4pt
+    },
+    flowLine/.style={-stealth, line width=1.2pt, color=black!70, rounded corners=5pt},
+    ragLine/.style={-stealth, line width=1.2pt, color=highlightBlue, dashed}
+]
+
+% ============================================================
+% 1. Task Planner (Top Left)
+% ============================================================
+% Use a coordinate or relative positioning for the Planner
+% Let's place it left of center
+\node[plannerBox, text width=4.5cm, align=center] (planner) at (-2.5, 0) {
+    {\small\textbf{\textsf{Task Planner}}}\\[1pt]
+    \scriptsize
+    \textcolor{highlightBlue}{Reverse Graph $\mathcal{G}$:}\\
+    Start with \textbf{Sub-query}\\[2pt]
+    % 简化后的示意图
+    \begin{tikzpicture}[scale=0.6, baseline=(center.base)]
+        % Original: 1 -> 2
+        \node[circle, draw=black!60, inner sep=1pt, font=\tiny] (u1) at (0,0) {1};
+        \node[circle, draw=black!60, inner sep=1pt, font=\tiny] (u2) at (1.2,0) {2};
+        \draw[-latex, black!60, thick] (u1) -- (u2);
+        
+        % Transition Arrow
+        \node[font=\tiny, color=highlightBlue] (arrow) at (2.0, 0) {$\Rightarrow$};
+        
+        % Reversed: 2 -> 1
+        \node[circle, draw=black!60, inner sep=1pt, font=\tiny] (v2) at (2.8,0) {2};
+        \node[circle, draw=black!60, inner sep=1pt, font=\tiny] (v1) at (4.0,0) {1};
+        \draw[-latex, black!60, thick] (v2) -- (v1);
+        
+        \coordinate (center) at (2.0, 0); 
+    \end{tikzpicture}\\[1pt]
+    \footnotesize $\Rightarrow$ \textbf{Order}: $[id_2 \to id_1]$
+};
+
+% ============================================================
+% 4. Hybrid KB (Top Right)
+% ============================================================
+\node[kbBox, right=1.0cm of planner, anchor=west] (kb) {
+    \textbf{\textsf{Hybrid KB}}\\[2pt]
+    \scriptsize
+    \begin{tabular}{c}
+        \textcolor{highlightBlue}{Vector Index} \\ 
+        \tiny (Docs, Funcs) \\ \hline
+        \textcolor{highlightBlue}{Pattern Store} \\
+        \tiny (SQL Skeletons)
+    \end{tabular}
+};
+
+% ============================================================
+% 2. LLM Dynamic Skill Executor (Center)
+% ============================================================
+% 增加 text width 确保宽度一致，设置 align=center
+\tikzset{
+    skillCapsule/.style={
+        draw, rounded corners=3pt, fill=white, 
+        text width=2.4cm, align=center, % 统一宽度
+        minimum height=1cm,
+        inner sep=2pt, font=\scriptsize
+    }
+}
+
+% Calculate centered position and total width of top row
+\path let \p1 = ($(kb.east) - (planner.west)$),
+          \n1 = {veclen(\x1,\y1)} in
+      coordinate (topCenter) at ($(planner.west)!0.5!(kb.east)$);
+
+% Position LLM centrally below the top row with matching width
+\path let \p1 = ($(kb.east) - (planner.west)$),
+          \n1 = {veclen(\x1,\y1)} in
+      node[llmBox, below=1.7cm of topCenter, anchor=north, minimum width=\n1, minimum height=4.5cm] (llm) {};
+
+% LLM 标题
+\node[below=0.2cm of llm.north, font=\small\bfseries\sffamily] (llmTitle) {
+    \faBrain \quad LLM Dynamic Skill Executor
+};
+
+% Skills Arrangement (Triangle)
+% 1. Generator (Top Center)
+\node[skillCapsule] (generator) at ($(llm.north) + (0, -1.2)$) {
+    {\small\color{black!70}\faMagic} \\ Rule Generator\\
+    \tiny (Zero-shot Reasoning)\\
+};
+
+% 2. Translator (Bottom Left)
+\node[skillCapsule] (translator) at ($(llm.south) + (-2.2, 1.0)$) {
+    {\small\color{black!70}\faCode} \\ SQL Translator\\
+    \tiny (Index-Guided Fusion)
+};
+
+% 3. Fixer (Bottom Right)
+\node[skillCapsule] (fixer) at ($(llm.south) + (2.2, 1.0)$) {
+    {\small\color{black!70}\faTools} \\ Error Fixer\\
+    \tiny (Iterative Repair)
+};
+
+% Internal Flow Arrows
+% 1. Generator -> Translator (New Rule) - From Left-South
+\draw[-latex, thick, black!60] (generator.225) -- (translator.north) 
+    node[midway, left, font=\tiny, xshift=-2pt] {New Rule};
+
+% 2. Translator -> Fixer (Draft Fragment)
+\draw[-latex, thick, black!60] (translator.east) -- (fixer.west) 
+    node[midway, below, font=\tiny] {Draft Fragment};
+
+% 3. Fixer -> Generator (Parser Feedback)
+\draw[-latex, thick, black!60, dashed] (fixer.105) -- (generator.315) 
+    node[midway, right, font=\tiny, xshift=1pt] {Feedback};
+
+% 底部副标题
+\node[above=0.15cm of llm.south, font=\tiny\itshape\color{gray}] (subtitle) {
+    Adaptive Agent Reasoning Loop
+};
+
+% ============================================================
+% 3. Input Context (Left)
+% ============================================================
+% Calculate height spanning from Planner Top to LLM Bottom
+\path let \p1=(planner.north), \p2=(llm.south), \n1={\y1-\y2} in
+    node[aqtStyle, anchor=north east, minimum height=\n1, text width=3.5cm, inner sep=5pt] (aqtInput) at ($(planner.north west) + (-0.8, 0)$) {
+    {\small\textbf{\textsf{Input}}}\\[4pt]
+    \scriptsize 
+    \textbf{1. AQT Tuple $\mathcal{T}$} \\
+    \includegraphics[width=3.5cm]{aqt_right.png} \\
+    \textbf{2. Segments ($S_{seg}$)}
+    \par
+    \textbf{Source Seed (PostgreSQL):}\\
+};
+
+
+
+% ============================================================
+% 5. Output (Right)
+% ============================================================
+% Calculate height spanning from Planner Top to LLM Bottom (Align with Input/Planner)
+\path let \p1=(planner.north), \p2=(llm.south), \n1={\y1-\y2} in
+    node[aqtStyle, anchor=north west, minimum height=\n1, text width=4.0cm, inner sep=5pt] (output) at ($(kb.east |- planner.north) + (0.8, 0)$) {
+    {\small\textbf{\textsf{Compatible Seeds}}}\\[4pt]
+    \scriptsize 
+    \textbf{1. Dialect Aligned} \\
+    \textbf{2. Semantically Valid}
+    \par
+    \vspace{4pt}  
+};
+
+% ============================================================
+% 6. Connections
+% ============================================================
+
+% Input -> Planner (即使Input位置变了，tikz会自动计算最佳路径)
+% Input -> Planner (即使Input位置变了，tikz会自动计算最佳路径)
+% 使用 |- 语法：先垂直向上，再水平向右
+\draw[flowLine] (aqtInput.east |- planner.west) -- (planner.west) node[pos=0.5, above, font=\scriptsize] {Graph $\mathcal{G}$};
+
+% Planner -> LLM: Vertical line
+\draw[flowLine] (planner.south) -- (planner.south |- llm.north);
+
+% RAG Loop
+% Symmetric Angles: Query (Up-Right), Retrieval (Left-Down)
+\draw[ragLine] ($(llm.north) + (2.2, 0)$) to[out=90, in=200] node[right, font=\tiny, color=highlightBlue] {Query} (kb.240);
+\draw[ragLine] (kb.210) to[out=190, in=90] node[above, font=\tiny, color=highlightBlue] {Retrieval} ($(llm.north) + (1.2, 0)$);
+
+% LLM -> Output
+\draw[flowLine] (llm.east) -- (output.west |- llm.east);
+
+\end{tikzpicture}
+\end{document}

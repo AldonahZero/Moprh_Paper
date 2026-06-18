@@ -1,0 +1,36 @@
+% The first difficulty lies in extracting generic logical templates from tightly coupled source dialect code. 
+% Existing SQL statements often intertwine logical intent (e.g., data flow) with dialect-specific syntax details. 
+% To achieve the abstraction paradigm, the system must employ static analysis to precisely strip away dialect-specific noise while preserving the query's topology and context dependencies to prevent logic loss during abstraction~\cite{lin2024sqless, zmigrod2024translating}.
+% SQL statements often tightly couple logical intent (e.g., data flow) with dialect-specific syntax. Universal conversion requires decoupling this noise to extract generic execution logic while preserving the topological structure and contextual dependencies, thereby preventing data loss during translation.
+% SQL statements often tightly combine core query logic, such as data filtering, joins, and aggregations, with dialect-specific syntax. 
+% To enable reliable cross-dialect translation, it is necessary to separate these syntax differences and extract the underlying generic execution logic. At the same time, the overall structure of the query and its contextual dependencies—such as table relationships, joins, and nested query layers—must be preserved to prevent behavioral inconsistencies or loss of testing value during translation.
+
+
+% \textit{Challenge 2: Semantic Integrity in Recursive Subtree Substitution.} 
+% The second challenge is eliminating LLM semantic hallucinations during recursive substitution using contextual constraints. 
+% Simple lexical replacement cannot bridge the semantic gap between dialects (e.g., operator behaviors or implicit type conversions). 
+% The system requires a mechanism to strictly constrain the LLM's output space within recursive AST generation, ensuring that every subtree substitution is semantically aligned with the target dialect~\cite{mundler2025type, lin2024sqless}.
+
+
+% Without constraints, LLMs may introduce semantic deviations, causing migrated queries to behave incorrectly. 
+% A mechanism is needed to ensure each subtree replacement preserves semantics and aligns with the target dialect.
+
+
+% In cross-dialect SQL migration, simple lexical or node-level replacements cannot guarantee semantic consistency. For example, operator behavior, function implementation, or implicit type conversions may differ across dialects. Without proper constraints during recursive AST subtree replacement, LLMs can introduce semantic deviations or hallucinations, causing the migrated queries to behave inconsistently with the target DBMS. Therefore, a mechanism is required to strictly constrain each subtree replacement, ensuring that the generated queries remain semantically aligned with the target dialect and eliminating potential hallucinations.
+
+% \textit{Challenge 3: Non-Destructive Adaptation to Rigid Fuzzer Grammars.} 
+% Advanced features of target DBMSs (e.g., Table Engines in ClickHouse\TODO{}) often exceed the grammar support of generic fuzzers like Squirrel~\cite{zhong2020squirrel}. 
+% Existing methods handle this by deleting the features (destructive sanitization), which causes logic loss. 
+% The final challenge is non-destructively adapting to these advanced features without modifying the fuzzer's source code. This requires designing an \textit{Agentic Adaptation} mechanism capable of automatically converting \textit{unparsable} constructs into equivalent forms understandable by the fuzzer or performing valid encapsulation, thereby preserving the test logic while ensuring parsability.
+
+
+
+
+% What did you propose and what have you done? (1-2 paragraphs)
+%  we propose Morph, a structure-aware cross-dialect SQL transfer framework designed for constructing high-quality initial seeds for DBMS fuzzing. We find that decoupling invariant query structure
+% and semantics from dialect-specific syntax facilitates cross-dialect SQL transfer, rather than directly translating
+% SQL text across DBMSs. TODO(What is the challenge.) Based on that, Morph follows a three-step workflow.
+% First, Morph extracts dialect-independent structure to build an abstract query template (AQT) preserving
+% query shape and semantics. Second, Morph instantiates the AQT into a target DBMS query with verified dialect
+% rules and fuzzer-supported grammar. Finally, Morph uses parser feedback to fix remaining incompatibilities,
+% ensuring queries are fuzzer-parsable and mutable

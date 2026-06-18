@@ -1,0 +1,323 @@
+% Useful macros etc for paper.
+
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+	\node[shape=circle,draw,inner sep=0.2pt] (char) {#1};}}
+%\newcommand{\circled}[1]{\textcircled{\scriptsize{#1}}}
+
+% \newcommand{\n}{CollabFuzz\xspace}
+\def\Plus{\texttt{+}}
+% \newcommand{\tool}{\textsc{Clotho}\xspace}
+\newcommand{\tool}{\textsc{Morph}\xspace}
+
+\newcommand{\tooldisfuzzer}{\tool{}$_{direct}$\xspace}
+\newcommand{\sedar}{\textsc{Sedar}\xspace}
+
+\newcommand{\bugcnt}{28\xspace}
+\newcommand{\bugconfirmcnt}{20\xspace}
+\newcommand{\bugfixcnt}{14\xspace}
+\newcommand{\translateratio}{100\%--272\% \xspace}
+\newcommand{\synatxratio}{5\%--19\% \xspace}
+
+
+
+
+
+% \newcommand{\dsquirrel}{\textsc{Squirrel$^D$}\xspace}
+% \newcommand{\rsquirrel}{\textsc{Squirrel$^R$}\xspace}
+% \newcommand{\sqlancer}{\textsc{Sqlancer$^R$}\xspace}
+
+\newcommand{\seedOrigin}{$S^{-}$\xspace}
+\newcommand{\seedCompat}{$S$\xspace}
+\newcommand{\seedMutable}{$S^{+}$\xspace}
+
+% \newcommand{\sedarsquirrel}{\tool{}-\squirrel{}\xspace}
+% \newcommand{\sedargriffin}{\tool{}-\griffin{}\xspace}
+% \newcommand{\othersquirrel}{\squirrel{}$^{P}$\xspace}
+% \newcommand{\othergriffin}{\griffin{}$^{P}$\xspace}
+% \newcommand{\defaultsquirrel}{\squirrel{}\xspace}
+% \newcommand{\defaultgriffin}{\griffin{}\xspace}
+% \newcommand{\nativesquirrel}{\tool{}-\squirrel{}$^{N-}$\xspace}
+% \newcommand{\nativegriffin}{\tool{}-\griffin{}$^{N-}$\xspace}
+% \newcommand{\sedarnativesquirrel}{\tool{}-\squirrel{}$^{N}$\xspace}
+% \newcommand{\sedarnativegriffin}{\tool{}-\griffin{}$^{N}$\xspace}
+
+\newcommand{\gtool}{\textsc{\toolo$^G$}\xspace}
+\newcommand{\itool}{\textsc{\toolo$^I$}\xspace}
+
+\newcommand{\noseqtool}{\textsc{\toolo$^{synthesis-}$}\xspace}
+\newcommand{\noanalyzetool}{\textsc{\toolo$^{analysis-}$}\xspace}
+\newcommand{\nodeduptool}{\textsc{\toolo$^{dedup-}$}\xspace}
+\newcommand{\nominetool}{\textsc{\toolo$^{mine-}$}\xspace}
+
+\newcommand{\nextended}{\textsc{DynCollabExt}\xspace}
+\newcommand{\pname}{\n}
+\newcommand{\seeds}{queries\xspace}
+\newcommand{\seed}{query\xspace}
+\newcommand{\query}{query\xspace}
+
+
+
+
+\newif\ifshowtoAF
+\showtoAFtrue  % toggle (red colored) toAF
+\newif\ifshowtodos
+\showtodostrue 
+
+\def\UrlBreaks{\do\/\do-\do\.\do\:\do\_\do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D\do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N\do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X\do\Y\do\Z\do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9}
+
+%\newcommand{\threatmodel}[1]{{\textcolor{blue}{#1}}}
+%\newcommand{\overhead}[1]{{\textcolor{red}{#1}}}
+%\newcommand{\crash}[1]{{\textcolor{Orange}{#1}}}
+%\definecolor{darkgreen}{RGB}{20,80,20}
+%\newcommand{\automation}[1]{{\textcolor{darkgreen}{#1}}}
+%\newcommand{\applywork}[1]{{\textcolor{violet}{#1}}}
+\newcommand{\TODO}[1]{\ifshowtodos {\textcolor{red}{TODO(#1)}} \fi}
+\newcommand{\lqf}[1]{{\textcolor{blue}{#1}}}
+\newcommand{\EXPTODO}[1]{\ifshowtodos {\red{EXPTODO(#1)}} \fi}
+\newcommand{\EXPDONE}[1]{\ifshowtodos {\textcolor{blue}{#1}}\fi}
+\newcommand{\COMMENT}[1]{\ifshowtodos {\textcolor{violet}{COMMENT(#1)}} \fi}
+% \newcommand{\recheck}[1]{{\textcolor{orange}{READ:#1}}}
+\newcommand{\inlineTODO}[1]{\ifshowtodos {\textcolor{red}{TODO(#1)}} \fi}
+\newcommand{\STUDYDONE}[1]{\ifshowtodos {#1}\fi}
+% \newcommand{\STUDYDONE}[1]{\ifshowtodos {\textcolor{blue}{#1}}\fi}
+\newcommand{\STUDYTODO}[1]{\ifshowtodos {\textcolor{red}{#1}}\fi}
+%Data
+
+
+
+
+
+%\newcommand{\kafl}{KAFL\xspace}
+\newcommand{\antifuzz}{\textsc{AntiFuzz}\xspace}
+\newcommand{\obb}{{\tt obb}\xspace}
+\newcommand{\smt}{SMT\xspace}
+\newcommand{\cpl}{{\tt CPL}\xspace}
+\newcommand{\tbb}{{\tt tbb}\xspace}
+\newcommand{\afl}{\textsc{AFL}\xspace}
+\newcommand{\entropic}{\textsc{Entropic}\xspace}
+\newcommand{\aflgo}{\textsc{AFLGo}\xspace}
+\newcommand{\aflpp}{\textsc{AFL++}\xspace}
+\newcommand{\symcc}{\textsc{SymCC}\xspace}
+\newcommand{\winafl}{\textsc{WinAFL}\xspace}
+\newcommand{\fexm}{\textsc{FExM}\xspace}
+\newcommand{\lafintel}{\textsc{lafIntel}\xspace}
+\newcommand{\aflfast}{\textsc{AFLFast}\xspace}
+\newcommand{\ossfuzz}{\textsc{OSS-Fuzz}\xspace}
+\newcommand{\grr}{\textsc{GRR}\xspace}
+\newcommand{\vuzzer}{\textsc{VUzzer}\xspace}
+\newcommand{\tigress}{\textsc{Tigress}\xspace}
+\newcommand{\radamsa}{\textsc{radamsa}\xspace}
+\newcommand{\libfuzzer}{\textsc{libFuzzer}\xspace}
+\newcommand{\buzzfuzz}{\textsc{BuzzFuzz}\xspace}
+\newcommand{\trailofbits}{\textsc{Trail of Bits}\xspace}
+\newcommand{\driller}{\textsc{Driller}\xspace}
+\newcommand{\steelix}{\textsc{steelix}\xspace}
+\newcommand{\angora}{\textsc{Angora}\xspace}
+\newcommand{\tfuzz}{\textsc{T-Fuzz}\xspace}
+\newcommand{\collafl}{\textsc{CollAFL}\xspace}
+\newcommand{\flayer}{\textsc{flayer}\xspace}
+\newcommand{\honggfuzz}{\textsc{Honggfuzz}\xspace}
+\newcommand{\mopt}{\textsc{MOpt}\xspace}
+\newcommand{\fairfuzz}{\textsc{FairFuzz}\xspace}
+\newcommand{\zzuf}{\textsc{zzuf}\xspace}
+\newcommand{\peach}{\textsc{Peach}\xspace}
+\newcommand{\miasm}{\textsc{miasm}\xspace}
+\newcommand{\angr}{{\textsc{angr}}\xspace}
+\newcommand{\triton}{{\textsc{Triton}}\xspace}
+\newcommand{\instrim}{{\textsc{InsTrim}}\xspace}
+\newcommand{\klee}{{\textsc{Klee}}\xspace}
+\newcommand{\qsym}{{\textsc{QSYM}}\xspace}
+\newcommand{\kafl}{\textsc{kAFL}\xspace}
+\newcommand{\pafl}{\textsc{PAFL}\xspace}
+\newcommand{\hypercube}{\textsc{Hyper-Cube}\xspace}
+\newcommand{\pin}{{\textsc{PIN}}\xspace}
+\newcommand{\dynamorio}{{\textsc{DynamoRIO}}\xspace}
+\newcommand{\dyninst}{{\textsc{Dyninst}}\xspace}
+\newcommand{\lavam}{\textsc{Lava-M}\xspace}
+\newcommand{\magma}{\textsc{Magma}\xspace}
+\newcommand{\gfts}{fuzzer-test-suite\xspace}
+\newcommand{\coreutils}{\textsc{coreutils}\xspace}
+\newcommand{\cgc}{{\textsc{CGC}}\xspace}
+\newcommand{\darpa}{{\textsc{DARPA}}\xspace}
+\newcommand{\ipc}{{\textsc{IPC}}\xspace}
+\newcommand{\decree}{{\textsc{DECREE}}\xspace}
+\newcommand{\LLVM}{{\textsc{LLVM}}\xspace}
+\newcommand{\qemu}{\textsc{QEMU}\xspace}
+\newcommand{\redqueen}{\textsc{Redqueen}\xspace}
+\newcommand{\nautilus}{\textsc{Nautilus}\xspace}
+\newcommand{\taintscope}{\textsc{Taintscope}\xspace}
+\newcommand{\clang}{{\textsc{clang}}\xspace}
+\newcommand{\kvm}{{\textsc{KVM}}\xspace}
+\newcommand{\kvmpt}{{\textsc{KVM-PT}}\xspace}
+\newcommand{\qemupt}{{\textsc{QEMU-PT}}\xspace}
+\newcommand{\vmi}{{\textsc{VMI}}\xspace}
+\newcommand{\vm}{{\textsc{VM}}\xspace}
+\newcommand{\os}{\textsc{OS}\xspace}
+\newcommand{\windows}{Windows\xspace}
+\newcommand{\osx}{mac OSX\xspace}
+\newcommand{\oss}{OSs\xspace}
+\newcommand{\binutils}{{\textsc{binutils}}\xspace}
+\newcommand{\squirrel}{\textsc{Squirrel}\xspace}
+\newcommand{\apollo}{\textsc{Apollo}\xspace}
+\newcommand{\sqlsmith}{SQLsmith\xspace}
+\newcommand{\sqlright}{SQLRight\xspace}
+\newcommand{\sqlancer}{SQLancer\xspace}
+\newcommand{\iotdb}{IoTDB\xspace}
+\newcommand{\rags}{RAGS\xspace}
+\newcommand{\ratel}{\textsc{Ratel}\xspace}
+\newcommand{\moonshine}{Moonshine\xspace}
+\newcommand{\safl}{SAFL\xspace}
+\newcommand{\lego}{\textsc{Lego}\xspace}
+\newcommand{\griffin}{\textsc{Griffin}\xspace}
+
+\newcommand{\enfuzz}{\textsc{EnFuzz}\xspace}
+\newcommand{\enfuzzq}{\textsc{EnFuzz-Q}\xspace}
+\newcommand{\cupid}{\textsc{Cupid}\xspace}
+
+\newcommand{\costbenefit}{Cost-Benefit}
+\newcommand{\benefit}{Benefit}
+
+\newcommand{\tifftops}{{\tt tiff2ps}\xspace}
+\newcommand{\jhead}{{\tt jhead}\xspace}
+\newcommand{\objectdump}{{\tt objectdump}\xspace}
+\newcommand{\ubuntu}{{\tt Ubuntu}\xspace}
+\newcommand{\wine}{{\tt wine}\xspace}
+
+\newcommand{\libtiff}{{\tt libtiff}\xspace}
+\newcommand{\imagemagik}{{\tt imagemagick}\xspace}
+% TODO: you might want to use https://www.namsu.de/Extra/pakete/Acronym.html
+\newcommand{\oob}{out of bounds\xspace}
+\newcommand{\privlevel}{privilege level\xspace}
+\newcommand{\privlevels}{privilege levels\xspace}
+\newcommand{\Cpp}{{\tt C++}\xspace}
+%\newcommand{\C}{{\tt C}\xspace}
+\newcommand{\DynamoRio}{{\textsc{DynamoRio}}\xspace}
+\newcommand{\ruby}{{\tt ruby}\xspace}
+\newcommand{\SVCov}{{\tt SVCov}\xspace}
+\newcommand{\libxml}{{\tt libxml2}\xspace}
+\newcommand{\DARPA}{{\tt DARPA}\xspace}
+\newcommand{\archintel}{x86\xspace}
+\newcommand{\intelpt}{Intel-PT\xspace}
+\newcommand{\lastbranchrecord}{Last Branch Record\xspace}
+\newcommand{\amd}{{\tt AMD}\xspace}
+\newcommand{\api}{API\xspace}
+\newcommand{\gnu}{GNU\xspace}
+\newcommand{\extfour}{ext4\xspace}
+\newcommand{\keymgmt}{keymgmt\xspace}
+\newcommand{\elfloader}{Elf loader\xspace}
+\newcommand{\ringthree}{Ring 3\xspace}
+\newcommand{\ringzero}{Ring 0\xspace}
+\newcommand{\kb}{KB\xspace}
+\newcommand{\crc}{CRC-32\xspace}
+\newcommand{\adler}{ADLER-32\xspace}
+\newcommand{\png}{PNG\xspace}
+\newcommand{\idat}{IDAT\xspace}
+\newcommand{\zlib}{\texttt{zlib}\xspace}
+\newcommand{\gzip}{gzip\xspace}
+\newcommand{\rar}{rar\xspace}
+\newcommand{\elf}{elf\xspace}
+\newcommand{\gnuar}{gnu-ar\xspace}
+\newcommand{\mpeg}{mpeg\xspace}
+\newcommand{\sqlite}{SQLite\xspace}
+\newcommand{\mysql}{MySQL\xspace}
+\newcommand{\mysqlrewriter}{\mysql{} Rewrite Plugin\xspace}
+\newcommand{\pg}{PostgreSQL\xspace}
+\newcommand{\mariadb}{MariaDB\xspace}
+\newcommand{\comdb}{Comdb2\xspace}
+\newcommand{\virtuoso}{Virtuoso\xspace}
+\newcommand{\monetdb}{MonetDB\xspace}
+\newcommand{\duckdb}{DuckDB\xspace}
+\newcommand{\ob}{OceanBase\xspace}
+\newcommand{\og}{openGauss\xspace}
+\newcommand{\gaussdb}{GaussDB\xspace}
+\newcommand{\clickhouse}{ClickHouse\xspace}
+\newcommand{\amoeba}{\textsc{Amoeba}\xspace}
+\newcommand{\tensilefuzz}{\textsc{Tensilefuzz}\xspace}
+\newcommand{\polardb}{PolarDB\xspace}
+
+\newcommand{\flac}{flac\xspace}
+\newcommand{\SHA}{SHA\xspace}
+\newcommand{\GB}{GB\xspace}
+\newcommand{\KB}{KB\xspace}
+\newcommand{\ram}{RAM\xspace}
+\newcommand{\cots}{Common-Off-The-Shelves\xspace}
+\newcommand{\inlinecode}[1]{{\tt #1}}
+\newcommand{\cmpres}[2]{\texttt{<#1 $\mapsto$ #2>}}
+\newcommand{\bug}[1]{{Bug #1}}
+\newcommand{\mpat}{{\tt pattern}\xspace}
+\newcommand{\mrepl}{{\tt repl}\xspace}
+\newcommand{\hexd}[1]{\char`\\x#1}
+\newcommand{\hexz}{\char`\\0\xspace}
+\newcommand{\cstr}[1]{\enquote{{\tt #1}}}
+\newcommand{\researchquestion}[1]{\textbf{RQ~#1.}\xspace}
+\newcommand{\mtrue}{\operatorname{true}\xspace}
+\newcommand{\mfalse}{\operatorname{false}\xspace}
+\newcommand{\true}{$\mtrue{}$\xspace}
+\newcommand{\false}{$\mfalse{}$\xspace}
+\newcommand{\objdump}{{\tt objdump}\xspace}
+\newcommand{\lodepng}{{\tt lodepng}\xspace}
+\newcommand{\crccheck}{{\tt CRC32}\xspace}
+\newcommand{\adlercheck}{{\tt Adler-32}\xspace}
+\newcommand*\elide{\textup{[\,\dots]}}
+
+\newcommand{\mcmcauthors}{mcmc et.Al.\xspace}
+\newcommand{\grammarauthors}{grammar et.Al.\xspace}
+\newcommand{\mabauthors}{mab et.Al.\xspace}
+\newtheorem{lemmaenv}{Lemma}
+\newtheorem{defenv}{Definition}
+\newtheorem{exampleenv}{Example}
+
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+\newcommand{\mytilde}{\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}
+
+\newcommand{\example}[1]{\begin{exampleenv}#1\end{exampleenv}}
+
+% TODO: You might want to use http://tug.ctan.org/macros/latex/contrib/cleveref/cleveref.pdf
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newcommand{\lstref}[1]{Listing~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+%%\newcommand{\definition}[2]{\begin{defenv}[#1]#2\end{defenv}}
+%%\newcommand{\lemma}[2]{\begin{lemmaenv}[#1]#2\end{lemmaenv}}
+%%
+%%
+\newcommand{\pafig}[3]{ % image, label, caption
+\begin{figure}[h!]
+  \centering
+      \includegraphics[width=0.4\textwidth]{#1}
+  \caption{#3}
+	\label{#2}
+\end{figure}
+} 
+\newcommand{\widepafig}[3]{ % image, label, caption
+\begin{figure}[h!]
+  \centering
+      \includegraphics[width=0.5\textwidth]{#1}
+  \caption{#3}
+	\label{#2}
+\end{figure}
+} 
+\newcommand{\widepafigvspace}[5]{ % image, label, caption
+\begin{figure}[h!]
+    \vspace{#4}
+  \centering
+      \includegraphics[width=0.5\textwidth]{#1}
+  \caption{#3}
+	\label{#2}
+    \vspace{#5}
+\end{figure}
+} 
+
+\newcommand{\hexnr}[1]{\texttt{#1}}
+
+\definecolor{trolleygrey}{rgb}{0.38, 0.38, 0.38}
+
+
+\definecolor{darkgreen}{RGB}{30,180,30}
+
+\newcommand{\yes}{{\ttfamily \color{ForestGreen}\checkmark}}
+\newcommand{\no}{{\ttfamily \color{BrickRed}\ding{55}}}
+\newcommand{\notavail}{{\ttfamily \rule[.5ex]{.75em}{0.25pt}}}
+
+

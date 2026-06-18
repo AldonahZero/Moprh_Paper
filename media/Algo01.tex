@@ -1,0 +1,206 @@
+\documentclass[a4paper,11pt]{article}
+
+% ==========================================
+% 1. 宏包配置 (全部移到这里)
+% ==========================================
+\usepackage[margin=1in]{geometry}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{caption}
+% 修复 Unicode 符号问题的包
+\usepackage{pifont} 
+
+% --- TikZ 绘图设置 ---
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows.meta, positioning, calc, shadows, trees, decorations.pathreplacing, patterns}
+
+% ==========================================
+% 2. 自定义设置
+% ==========================================
+% 颜色定义
+\definecolor{sedarRed}{RGB}{220, 53, 69}
+\definecolor{morphGreen}{RGB}{25, 135, 84}
+\definecolor{codeBg}{RGB}{248, 249, 250}
+\definecolor{noteBg}{RGB}{255, 248, 225}
+\definecolor{procOrange}{RGB}{253, 126, 20}
+
+% 方便引用的命令
+\newcommand{\Morph}{\textsc{Morph}}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+% 定义带圈数字 (替代 Unicode 字符)
+\newcommand{\cnum}[1]{\ding{\numexpr171+#1}}
+
+\title{Debug: Syntax-Aware Query Abstraction}
+\author{Morph Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Approach}
+
+\subsection{Syntax-Aware Query Abstraction}
+\label{sec:abstraction}
+
+The primary objective of this stage is to decouple the \textit{logical intent} of a test case from its \textit{dialect-specific representation}. To achieve this, we introduce a core data structure termed the \textbf{Abstract Query Template (AQT)}.
+
+\paragraph{Definition 3.1 (Abstract Query Template).} An AQT is a generalized Abstract Syntax Tree (AST) $\mathcal{T}_{abs}$ derived from a source query $Q_{src}$. In $\mathcal{T}_{abs}$, dialect-specific nodes (e.g., proprietary functions $f_{spec}$) are replaced by high-level abstract tokens $\tau \in \Sigma_{abs}$ (e.g., \texttt{<TimeDiff>}), while the invariant relational algebra structure (e.g., \texttt{JOIN}, \texttt{WHERE}) and data flow dependencies are strictly preserved.
+
+\subsubsection{Abstraction Process}
+As depicted in Figure~\ref{fig:aqt_trans}, the abstraction process transforms a concrete PostgreSQL AST into a dialect-agnostic AQT. Unlike simple regex replacement, this is a structural analysis governed by our static analysis engine.
+
+% ============================================================
+% Figure: Abstraction Engine Visualization
+% ============================================================
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+    level distance=1.2cm,
+    sibling distance=2.2cm,
+    font=\footnotesize\ttfamily,
+    edge from parent/.style={draw, -latex, gray, thick},
+    % --- 样式定义 ---
+    concrete/.style={rectangle, draw=blue!50, fill=blue!5, rounded corners, minimum height=0.6cm, align=center},
+    abstract/.style={rectangle, draw=morphGreen!50, fill=morphGreen!5, rounded corners, dashed, minimum height=0.6cm, text=morphGreen, font=\bfseries},
+    boundary/.style={rectangle, draw=sedarRed!80, fill=sedarRed!10, rounded corners, thick, minimum height=0.6cm, align=center, drop shadow={opacity=0.2, color=sedarRed}},
+    engineBox/.style={rectangle, draw=procOrange!60, top color=procOrange!10, bottom color=procOrange!20, rounded corners=6pt, font=\sffamily\bfseries\small, align=center, minimum height=1.8cm, minimum width=2.8cm, drop shadow={opacity=0.2, color=procOrange}, inner sep=8pt},
+    discarded/.style={rectangle, draw=gray!30, fill=gray!10, rounded corners=2pt, font=\tiny\ttfamily, text=gray!60, inner sep=2pt},
+    dialogBox/.style={rectangle, draw=gray!40, fill=noteBg, rounded corners=3pt, font=\scriptsize\sffamily, align=left, inner sep=5pt, drop shadow={opacity=0.1}, text width=3.8cm},
+    % 修复箭头参数错误: radius -> width/length
+    pointer/.style={-{Circle[open, width=3pt, length=3pt]}, thick, gray!50, shorten >=2pt, dashed}
+]
+
+% 1. Left Tree: Source AST
+\begin{scope}[local bounding box=srcTree]
+    \node[concrete] (root) {SELECT}
+        child { node[concrete] {WHERE}
+            child[sibling distance=3cm] { node[concrete] (op) {>}
+                child { node[concrete] {u.created\_at} }
+                child { 
+                    node[boundary] (subRoot) {(SUBQUERY\\ROOT)} 
+                    child[level distance=1cm] { node[concrete, font=\scriptsize, fill=white, opacity=0.7] (subContent) {SELECT MIN(...) ...} }
+                }
+            }
+        };
+    \node[above=0.3cm of root, font=\sffamily\bfseries] {Source AST (Concrete)};
+\end{scope}
+
+% 2. Right Tree: AQT Skeleton (加大间距到13cm)
+\begin{scope}[xshift=13cm, local bounding box=tgtTree]
+    \node[concrete] (root2) {SELECT}
+        child { node[concrete] {WHERE}
+            child[sibling distance=3cm] { node[concrete] {>}
+                child { node[concrete] {u.created\_at} }
+                child { node[abstract] (abstractToken) {<SubQuery>} }
+            }
+        };
+    \node[above=0.3cm of root2, font=\sffamily\bfseries] {AQT Skeleton (Normalized)};
+\end{scope}
+
+% 3. Middle: Abstraction Engine (绝对坐标定位)
+\path let \p1 = (root), \p2 = (root2) in 
+    node[engineBox] (engine) at ({(\x1+\x2)/2}, -3.5) {
+    Abstraction\\Engine
+    \vspace{0.2em}
+    \begin{tikzpicture}[scale=0.25, baseline=-3pt, rotate=15]
+        \foreach \a in {0,45,...,315} \fill[procOrange!70] (\a:1) -- (\a+12:1.2) -- (\a+24:1) -- cycle;
+        \fill[procOrange!70] (0,0) circle (1); \fill[white] (0,0) circle (0.4);
+    \end{tikzpicture}
+};
+
+% Arrows
+\draw[-{Latex[width=3mm]}, line width=1.5pt, gray!50] (srcTree.east |- engine) -- (engine.west);
+\draw[-{Latex[width=3mm]}, line width=1.5pt, morphGreen!60] (engine.east) -- (tgtTree.west |- engine) 
+    node[midway, above=-2pt, font=\scriptsize\sffamily\bfseries, text=morphGreen] {Extract Structure};
+\draw[-{Latex[width=2mm]}, line width=1pt, gray!40, dashed] (engine.south) -- ++(0, -0.8) 
+    node[midway, right, font=\scriptsize\sffamily, text=gray] {Discard Details};
+
+% Discarded bits
+\node[discarded, below=0.2cm of engine.south, xshift=-0.5cm, rotate=-10] {SELECT MIN...};
+\node[discarded, below=0.5cm of engine.south, xshift=0.4cm, rotate=5] {::INTERVAL};
+\node[discarded, below=0.35cm of engine.south, xshift=0cm, rotate=15] {AGE()};
+
+% 4. Explanation Dialogs
+% 修复 Unicode 字符，使用 \cnum{}
+\node[dialogBox, below=2.8cm of srcTree.south west, anchor=north west, xshift=0.5cm] (step1) {
+    \textbf{\textcolor{sedarRed}{\cnum{1} Boundary Detection}}\\
+    Traverser hits a structural boundary (e.g., subquery root). The algorithm recognizes this requires special handling.
+};
+\draw[pointer, sedarRed] (step1.north) to[out=90, in=220] (subRoot.south west);
+
+\node[dialogBox, right=0.5cm of step1] (step2) {
+    \textbf{\cnum{2} Process \& Filter}\\
+    The engine separates invariant structure from dialect-specific details. Concrete subtrees are pruned and discarded.
+};
+\draw[pointer, procOrange] (step2.north) to[out=90, in=250] (engine.south west);
+\node[font=\Huge, text=sedarRed, opacity=0.8] at (subContent) {$\times$};
+
+\node[dialogBox, right=0.5cm of step2] (step3) {
+    \textbf{\textcolor{morphGreen}{\cnum{3} Normalized Result}}\\
+    A generic placeholder (\texttt{<SubQuery>}) is injected. The skeleton preserves the logical "shape" for reuse.
+};
+\draw[pointer, morphGreen] (step3.north) to[out=90, in=320] (abstractToken.south east);
+
+\end{tikzpicture}
+\caption{\textbf{Visualization of the Abstraction Engine.} The engine identifies complex structural boundaries (\cnum{1}), filters out dialect-specific subtrees (\cnum{2}), and injects generic tokens to produce a normalized skeleton (\cnum{3}).}
+\label{fig:aqt_trans}
+\end{figure}
+
+The extraction logic is formalized in \textbf{Algorithm~\ref{alg:aqt_extraction}}. The algorithm operates in two phases to transform the raw AST into a structured AQT tuple.
+
+\textbf{Phase 1: Structure Decomposition (Lines 7-15).}
+The function \textsc{Traverse} recursively explores the AST. Unlike traditional flat translation, it employs a structure-aware strategy: whenever it encounters a structural boundary (e.g., a subquery or CTE, checked by \textsc{IsBoundary}), it halts the linear traversal. Instead of processing the internal details of the subquery, it creates a new segment edge in the Structure Graph $\mathcal{G}$ and replaces the entire subtree with a structural tag \texttt{<SubQuery>} (Line 10).
+
+\textbf{Phase 2: Dialect Normalization (Lines 11-13).}
+For non-boundary nodes, the algorithm consults the rule set $\mathcal{R}$. If a node matches a dialect-specific feature (e.g., `AGE()`), it is abstracted into a dialect-agnostic token (e.g., `<TimeDiff>`). Standard SQL keywords remain unchanged. This ensures the resulting $S_{norm}$ retains the precise logical "shape" without carrying over the syntactic noise of the source dialect.
+
+% ============================================================
+% Algorithm 1: Structure-Aware AQT Generation (Compact)
+% ============================================================
+% \vspace{-0.5cm}
+\begin{algorithm}[ht]
+\small
+\caption{Structure-Aware AQT Generation}
+\label{alg:aqt_extraction}
+
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\SetKwProg{Fn}{Function}{:}{}
+
+\Input{Source query $Q_{src}$; Schema $\mathcal{S}$; Abstraction rules $\mathcal{R}$}
+\Output{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$}
+
+$\mathcal{G} \leftarrow \emptyset$; $Segs \leftarrow \emptyset$ \tcp*{Structure graph; segment storage}
+$AST \leftarrow \textsc{Parse}(Q_{src}, \mathcal{S})$ \tcp*{Build AST with schema binding} \label{line:alg1:parse}
+$root \leftarrow \textsc{Traverse}(AST.root, \textsc{Null})$ \tcp*{Recursive decomposition}
+$S_{norm} \leftarrow \textsc{Normalize}(Segs[root])$ \tcp*{Normalized skeleton} \label{line:alg1:norm}
+$\mathcal{H} \leftarrow \textsc{SHA256}(S_{norm})$; $\mathcal{C} \leftarrow \textsc{Complexity}(AST)$ \tcp*{Hash; score}
+$\mathcal{D} \leftarrow \textsc{ExtractSchema}(\mathcal{S}, Q_{src})$ \tcp*{Schema context}
+\Return $\langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$\; \label{line:alg1:return}
+
+\hrulefill
+
+\Fn{\textsc{Traverse}($node$, $pid$)}{ \label{line:alg1:traverse_start}
+    $id \leftarrow \textsc{NewID}()$; $tokens \leftarrow [\,]$\;
+    \lIf{$pid \neq \textsc{Null}$}{$\mathcal{G}.\textsc{AddEdge}(pid \to id)$} \label{line:alg1:addedge}
+    \ForEach{$c$ \textbf{in} $node.children$}{
+        \uIf{\textsc{IsBoundary}($c$)}{ \label{line:alg1:boundary_start}
+            $cid \leftarrow \textsc{Traverse}(c, id)$ \tcp*{Recurse into subquery/CTE}
+            $tokens.\textsc{Append}(\texttt{<SubQuery:}cid\texttt{>})$\; \label{line:alg1:boundary_end}
+        }
+        \uElseIf{$r \leftarrow \textsc{MatchRule}(c, \mathcal{R})$}{ \label{line:alg1:rule_start}
+            $tokens.\textsc{Append}(r.abstract)$ \tcp*{e.g., AGE()$\to$<TimeDiff>} \label{line:alg1:rule_end}
+        }
+        \lElse{$tokens.\textsc{Append}(c.text)$} \label{line:alg1:else}
+    }
+    $Segs[id] \leftarrow tokens$; \Return $id$\; \label{line:alg1:segs}
+} \label{line:alg1:traverse_end}
+\end{algorithm}
+
+\end{document}

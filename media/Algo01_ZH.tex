@@ -1,0 +1,73 @@
+\documentclass[a4paper,11pt]{ctexart} % 使用 ctexart 完美支持中文
+
+% ==========================================
+% 1. 宏包配置
+% ==========================================
+\usepackage[margin=1in]{geometry}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xcolor}
+% algorithm2e 的中文适配：需要在加载时明确某些关键字
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{caption}
+\usepackage{pifont} 
+
+\title{Debug: Syntax-Aware Query Abstraction}
+\author{Morph Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Approach}
+
+\subsection{Syntax-Aware Query Abstraction}
+\label{sec:abstraction}
+
+% ============================================================
+% Algorithm 1: Structure-Aware AQT Generation (中文版)
+% ============================================================
+\begin{algorithm}[ht]
+\small
+\caption{感知结构的 AQT 生成算法}
+\label{alg:aqt_extraction}
+
+% 重定义关键字为中文
+\SetKwInOut{Input}{输入}
+\SetKwInOut{Output}{输出}
+\SetKwProg{Fn}{Funtion }{:}{}
+\SetAlgorithmName{算法}{算法}{算法列表}
+
+\Input{源查询 $Q_{src}$；模式 (Schema) $\mathcal{S}$；抽象规则 $\mathcal{R}$}
+\Output{抽象查询树 AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$}
+
+$\mathcal{G} \leftarrow \emptyset$; $Segs \leftarrow \emptyset$ \tcp*{结构图；分段存储}
+$AST \leftarrow \textsc{Parse}(Q_{src}, \mathcal{S})$ \tcp*{基于模式绑定构建抽象语法树} \label{line:alg1:parse}
+$root \leftarrow \textsc{Traverse}(AST.root, \textsc{Null})$ \tcp*{递归分解}
+$S_{norm} \leftarrow \textsc{Normalize}(Segs[root])$ \tcp*{标准化骨架} \label{line:alg1:norm}
+$\mathcal{H} \leftarrow \textsc{SHA256}(S_{norm})$; $\mathcal{C} \leftarrow \textsc{Complexity}(AST)$ \tcp*{哈希值；复杂度评分}
+$\mathcal{D} \leftarrow \textsc{ExtractSchema}(\mathcal{S}, Q_{src})$ \tcp*{模式上下文}
+\Return $\langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$\; \label{line:alg1:return}
+
+\hrulefill
+
+\Fn{\textsc{Traverse}($node$, $pid$)}{ \label{line:alg1:traverse_start}
+    $id \leftarrow \textsc{NewID}()$; $tokens \leftarrow [\,]$\;
+    \lIf{$pid \neq \textsc{Null}$}{$\mathcal{G}.\textsc{AddEdge}(pid \to id)$} \label{line:alg1:addedge}
+    \ForEach{$c$ \textbf{在} $node.children$ \textbf{中}}{
+        \uIf{\textsc{IsBoundary}($c$)}{ \label{line:alg1:boundary_start}
+            $cid \leftarrow \textsc{Traverse}(c, id)$ \tcp*{递归处理子查询/CTE}
+            $tokens.\textsc{Append}(\texttt{<SubQuery:}cid\texttt{>})$\; \label{line:alg1:boundary_end}
+        }
+        \uElseIf{$r \leftarrow \textsc{MatchRule}(c, \mathcal{R})$}{ \label{line:alg1:rule_start}
+            $tokens.\textsc{Append}(r.abstract)$ \tcp*{例：AGE() $\to$ <TimeDiff>} \label{line:alg1:rule_end}
+        }
+        \lElse{$tokens.\textsc{Append}(c.text)$} \label{line:alg1:else}
+    }
+    $Segs[id] \leftarrow tokens$; \Return $id$\; \label{line:alg1:segs}
+} \label{line:alg1:traverse_end}
+\end{algorithm}
+
+\end{document}
