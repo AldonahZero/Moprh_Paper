@@ -553,15 +553,14 @@ They are defined as follows:
 \item
     \vspace{-0.5cm}
     \begin{definition} [Abstract Query Template] \label{def:aqt}
-    An AQT is defined as a 5-tuple:
-    $$\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{C}, H  \rangle$$
+    An AQT is defined as a 4-tuple:
+    $$\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H} \rangle$$
     \begin{itemize}
         \item $S_{norm}$ denotes a \textit{Normalized SQL Skeleton} that masks dialect-specific literals and identifiers with abstract placeholders while preserving standard SQL keywords.
         \item $\mathcal{D}$ represents the \textit{Schema Context}, containing table and column definitions required.
         % to validate the query.
-        \item $\mathcal{G} = (V, E, \lambda)$ is the \textit{Structure Graph}, a directed acyclic graph where nodes $V$ represent logical segments, edges $E$ represent nesting dependencies, and $\lambda\colon V \rightarrow \mathit{Tokens}^{*}$ maps each node to its normalized token sequence. Note that $S_{norm}$ is technically derivable from $\mathcal{G}$ as $\lambda(\mathit{root}(\mathcal{G}))$; we retain it explicitly in the tuple for operational convenience, as it is used directly for hash computation ($H$) and as input to Algorithm~\ref{alg:translation}.
-        \item $\mathcal{C}$ is the \textit{Complexity Score}, a weighted metric derived from AST depth, join count, and segment count, used to prioritize seeds during fuzzing scheduling.
-        \item $H$ is a unique identifier for deduplication in RAG retrieval, calculated by hash function.  
+        \item $\mathcal{G} = (V, E, \lambda)$ is the \textit{Structure Graph}, a directed acyclic graph where nodes $V$ represent logical segments, edges $E$ represent nesting dependencies, and $\lambda\colon V \rightarrow \mathit{Tokens}^{*}$ maps each node to its normalized token sequence. Note that $S_{norm}$ is technically derivable from $\mathcal{G}$ as $\lambda(\mathit{root}(\mathcal{G}))$; we retain it explicitly in the tuple for operational convenience, as it is used directly for hash computation ($\mathcal{H}$) and as input to Algorithm~\ref{alg:translation}.
+        \item $\mathcal{H}$ is a unique identifier for deduplication in RAG retrieval, calculated by hash function.  
         % the \textit{Structural Hash Fingerprint}, computed as $\mathcal{H} = \text{SHA256}(\|_{i \in V} S_{norm}^{(i)})$. It serves as a unique identifier for deduplication in our RAG retrieval.
         
     \end{itemize}
@@ -573,15 +572,13 @@ They are defined as follows:
 
 % add 超链接标号
 % \subsubsection{Semantic-Aware Abstraction Process}%+algorithm display + real case
-% The abstraction process transforms a concrete SQL query into this structured tuple. To extract high-level structural semantics while abstracting away dialect-specific details, \tool{} generates the AQT five-tuple using Algorithm~\ref{alg:aqt_extraction}. Specifically, \tool{} first parses the source query $Q_{src}$ into a schema-bound AST (Line~\ref{line:alg1:parse}). It then performs a recursive decomposition via the \textsc{Traverse} function (Lines~\ref{line:alg1:traverse_start}--\ref{line:alg1:traverse_end}), which identifies logical boundaries (Lines~\ref{line:alg1:boundary_start}--\ref{line:alg1:boundary_end}) and applies abstraction rules $\mathcal{R}$ to simplify complex expressions (Lines~\ref{line:alg1:rule_start}--\ref{line:alg1:rule_end}), while preserving standard tokens otherwise (Line~\ref{line:alg1:else}). During this traversal, \tool{} constructs a structural graph $\mathcal{G}$ to capture nesting dependencies (Line~\ref{line:alg1:addedge}) and stores the resulting query segments in $Segs$ (Line~\ref{line:alg1:segs}). Finally, \tool{} computes a normalized skeleton $S_{norm}$, a structural hash $\mathcal{H}$, a complexity score $\mathcal{C}$, and the schema context $\mathcal{D}$ to assemble the complete AQT (Lines~\ref{line:alg1:norm}--\ref{line:alg1:return}). This structured representation allows \tool{} to treat queries as manipulable graph objects rather than flat strings.
 \textbf{Structure-Aware AQT Generation.} 
 The abstraction process transforms a concrete SQL query into a structured AQT tuple using Algorithm~\ref{alg:aqt_extraction}. 
-\tool{} first parses the source query $Q_{src}$ into a schema-bound AST (Line~\ref{line:alg1:parse}).
-It then recursively traverses the AST via the \textsc{Traverse} function (Lines~\ref{line:alg1:traverse_start}--\ref{line:alg1:traverse_end}), where each subquery is decomposed into logical segments by identifying structural boundaries (Lines~\ref{line:alg1:boundary_start}--\ref{line:alg1:boundary_end}).
+\tool{} first parses the source query $Q_{src}$ into a schema-bound AST (Line~\ref{line:alg1:parse}); a boundary is an AST node whose subtree has an independent SQL scope, such as a CTE body, nested subquery (e.g., \texttt{IN (SELECT ...)}), or standalone query block.
+During \textsc{Traverse}, \textsc{IsBoundary} extracts each such subtree as a separate AQT unit, inserts a pointer in the parent segment, and records the edge $(pid,id)$ in $\mathcal{G}$, preserving the original scope and nesting relation (Lines~\ref{line:alg1:addedge}--\ref{line:alg1:boundary_end}).
 During this process, abstraction rules $\mathcal{R}$ are applied to replace dialect-specific constructs with generic representations, while standard tokens are preserved when no rule applies (Lines~\ref{line:alg1:rule_start}--\ref{line:alg1:else}).
-Meanwhile, a structural graph $\mathcal{G}$ is constructed to capture nesting dependencies between query components (Line~\ref{line:alg1:addedge}), and all extracted segments are recorded in $Segs$ (Line~\ref{line:alg1:segs}). Finally, \tool{} computes a normalized skeleton $S_{norm}$, a structural hash $\mathcal{H}$, a complexity score $\mathcal{C}$, and schema context $\mathcal{D}$ to assemble the AQT (Lines~\ref{line:alg1:norm}--\ref{line:alg1:return}). This representation enables SQL queries to be manipulated as structured graph-based objects rather than flat strings.
+All extracted segments are recorded in $Segs$ (Line~\ref{line:alg1:segs}). Finally, \tool{} computes a normalized skeleton $S_{norm}$, a structural hash $\mathcal{H}$, and schema context $\mathcal{D}$ to assemble the AQT (Lines~\ref{line:alg1:norm}--\ref{line:alg1:return}). This representation enables SQL queries to be manipulated as structured graph-based objects rather than flat strings.
 
-% \tool{} first parses the source query $Q_{src}$ into a schema-bound AST (Line~\ref{line:alg1:parse}) and recursively decomposes it via the \textsc{Traverse} function (Lines~\ref{line:alg1:traverse_start}--\ref{line:alg1:traverse_end}), identifying logical boundaries (Lines~\ref{line:alg1:boundary_start}--\ref{line:alg1:boundary_end}) and applying abstraction rules $\mathcal{R}$ (Lines~\ref{line:alg1:rule_start}--\ref{line:alg1:rule_end}) while preserving standard tokens otherwise (Line~\ref{line:alg1:else}). During traversal, a structural graph $\mathcal{G}$ captures nesting dependencies (Line~\ref{line:alg1:addedge}) and query segments are stored in $Segs$ (Line~\ref{line:alg1:segs}). Finally, \tool{} computes a normalized skeleton $S_{norm}$, a structural hash $\mathcal{H}$, a complexity score $\mathcal{C}$, and the schema context $\mathcal{D}$ to assemble the complete AQT (Lines~\ref{line:alg1:norm}--\ref{line:alg1:return}). 
 % This representation allows queries to be manipulated as structured graph objects rather than flat strings.
 
 
@@ -599,15 +596,15 @@ Meanwhile, a structural graph $\mathcal{G}$ is constructed to capture nesting de
 \SetKwProg{Fn}{Function}{:}{}
 
 \Input{Source query $Q_{src}$; Schema $\mathcal{S}$; Abstraction rules $\mathcal{R}$}
-\Output{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$}
+\Output{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H} \rangle$}
 
 $\mathcal{G} \leftarrow \emptyset$; $Segs \leftarrow \emptyset$ \tcp*{Structure graph; segment storage}
 $AST \leftarrow \textsc{Parse}(Q_{src}, \mathcal{S})$ \tcp*{Build AST with schema binding} \label{line:alg1:parse}
 $root \leftarrow \textsc{Traverse}(AST.root, \textsc{Null})$ \tcp*{Recursive decomposition}
 $S_{norm} \leftarrow \textsc{Normalize}(Segs[root])$ \tcp*{Normalized skeleton} \label{line:alg1:norm}
-$\mathcal{H} \leftarrow \textsc{SHA256}(S_{norm})$; $\mathcal{C} \leftarrow \textsc{Complexity}(AST)$ \tcp*{Hash; score}
+$\mathcal{H} \leftarrow \textsc{SHA256}(S_{norm})$ \tcp*{Structural hash}
 $\mathcal{D} \leftarrow \textsc{ExtractSchema}(\mathcal{S}, Q_{src})$ \tcp*{Schema context}
-\Return $\langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$\; \label{line:alg1:return}
+\Return $\langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H} \rangle$\; \label{line:alg1:return}
 
 \hrulefill
 
@@ -616,8 +613,8 @@ $\mathcal{D} \leftarrow \textsc{ExtractSchema}(\mathcal{S}, Q_{src})$ \tcp*{Sche
     \lIf{$pid \neq \textsc{Null}$}{$\mathcal{G} \leftarrow \mathcal{G} \cup \{(pid, id)\}$} \label{line:alg1:addedge}
     \ForEach{$c$ \textbf{in} $node.children$}{
         \uIf{\textsc{IsBoundary}($c$)}{ \label{line:alg1:boundary_start}
-            $cid \leftarrow \textsc{Traverse}(c, id)$ \tcp*{Recurse into subquery/CTE}
-            $tokens.\textsc{Append}(\texttt{<SubQuery:}cid\texttt{>})$\; \label{line:alg1:boundary_end}
+            $cid \leftarrow \textsc{Traverse}(c, id)$ \tcp*{CTE/subquery/query block}
+            $tokens.\textsc{Append}(\texttt{<Ptr:}cid\texttt{>})$\; \label{line:alg1:boundary_end}
         }
         \uElseIf{$r \leftarrow \textsc{MatchRule}(c, \mathcal{R})$}{ \label{line:alg1:rule_start}
             $tokens.\textsc{Append}(r.abstract)$ \tcp*{AGE()$\to$<TimeDiff>} \label{line:alg1:rule_end}
@@ -673,7 +670,7 @@ We formulate dialect translation as a recursive, structure-driven instantiation 
 \SetKwInOut{Input}{Input}
 \SetKwInOut{Output}{Output}
 
-\Input{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$; Target dialect $D_t$; Hybrid KB $HKB$; Threshold $\delta$}
+\Input{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H} \rangle$; Target dialect $D_t$; Hybrid KB $HKB$; Threshold $\delta$}
 \Output{Compatible seed $Q_{target}$}
 
 $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow \emptyset$ \label{line:alg2:sort} \tcp*{Bottom-up order}
@@ -780,7 +777,7 @@ It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates 
 \SetKwInOut{Input}{Input}
 \SetKwInOut{Output}{Output}
 
-\Input{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H}, \mathcal{C} \rangle$; Target dialect $D_t$; Hybrid KB $HKB$; Threshold $\delta$}
+\Input{AQT $\mathcal{T} = \langle S_{norm}, \mathcal{D}, \mathcal{G}, \mathcal{H} \rangle$; Target dialect $D_t$; Hybrid KB $HKB$; Threshold $\delta$}
 \Output{Compatible seed $Q_{target}$}
 
 $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow \emptyset$ \label{line:alg2:sort} \tcp*{Bottom-up order}
