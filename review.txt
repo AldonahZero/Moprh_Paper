@@ -1,0 +1,190 @@
+ASE 2026 Paper #1952 Reviews and Comments
+===========================================================================
+Paper #1952 MORPH: Structure-Aware Cross-Dialect SQL Transfer for
+Constructing High-Quality Seeds in DBMS Fuzzing
+
+
+Review #1952A
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject
+
+Paper summary
+-------------
+Building upon the foundation of SEDAR, MORPH is an incremental framework designed to optimize cross-dialect SQL seed generation for DBMS fuzzing through a sophisticated, multi-step, rule-based transformation pipeline. The system operates by deconstructing database-specific SQL into a General Abstract Query Tree (AQT), which is then re-instantiated into target-specific dialects using Large Language Models (LLMs) and refined via a continuous runtime feedback loop to rectify parsing and execution errors. Evaluated against DuckDB, ClickHouse, MonetDB, and Virtuoso, MORPH demonstrated superior semantic correctness over existing baselines and successfully uncovered 20 confirmed bugs, proving that its hybrid approach of structural abstraction and generative refinement significantly enhances the diversity and validity of SQL seeds across disparate database environments.
+
+Reasons to accept the paper
+---------------------------
++ A clear and important problem
++ The problem is well motivated
++ The method found 20 confirmed bugs
+
+Reasons to not accept the paper
+-------------------------------
+- Limited novelty
+- Extensibility is not well evaluated 
+- Evaluation may be biased
+
+Detailed comments with constructive suggestions on how to improve the paper
+---------------------------------------------------------------------------
+## Significance
+1. **Evaluation scale**. This paper aims to solve cross-DBMS test case translation, and claims it is easy to extend this method to new DBMSs. However, four DBMSs are insufficient to demonstrate it. Since it is easy to extend, more DBMSs should be involved in the evaluation.
+2. ** Probelm importance**. The problem is an important problem aiming to provide a unified intermediate layer for translating SQL queries across DBMSs.
+
+## Novelty
+1. **Conceptually**, building an AST for the intermediate layer as cross-system translation is not a totally new idea. It is also the goal of how the SQL standard aims to achieve: using a standard grammar to constrain various SQL dialects.
+2. **Technically**, for a database field, it is also not a new technical adoption. AST-based abstraction and RAG-augmented LLM generation are individually well-established in the literature. The AQT construct closely resembles the skeleton-based decomposition in RISE paper. A simple mention of RISE in line 1107 is insufficient to solve this concern. 
+
+
+## Soundness
+1. **Boundary detection is ambiguous**.  In section 3.1, the method is described to do a boundary check for the original SQL before parsing. However, it is unclear how exactly it works. It could be just a simple word-based splitting or any other complicated mechanisms. It needs clarification.
+2. **Limited method extensibility**. The method requires a non-trivial number of rules to do mapping, such as  AGE to TimeDiff. Such a mapping requires expert knowledge to do so. Although authors claim to automatically extract lexical/syntactic rules from grammar specifications, but it cannot guarantee 100% success rate. More discussion and evaluation is necessary to demonstrate it is feasible, and to what extent human effort is required to do this.
+3. **Unsupported SQL dialects.** Some SQL dialects do not have corresponding semantics in other DBMSs, and it is unclear how this method tackles this situation. If the method does not support this situation, a limitation should be acknowledged.
+4. **Unused complexity score**. The complexity score is described as influencing fuzzing execution, but it is never evaluated after its definition. The claim should either be evaluated or removed.
+5. **Weak semantic correctness metric**. It is unclear how this metric is defined. It should demonstrate whether the transferred queries always output the exact same output as executing the original query in the original DBMS.
+
+## Verifiability
+The verifiability is acceptable. The paper mostly depends on pre-defined rules to run, so a reproduced artifact is feasible to reproduce the results. A small concern is the LLMs used, which introduce uncertainty, but it is acceptable.
+
+## Presentation
+1. Many lines are overflowing, such as 24, 40, 77, 148, 614.
+
+Questions for authors' response
+-------------------------------
+1. What is the novelty compared to RISE?
+2. What effort is required to extend to another DBMS?
+
+
+
+Review #1952B
+===========================================================================
+
+Overall merit
+-------------
+3. Weak accept
+
+Paper summary
+-------------
+Database Management Systems (DBMSs) are complex software systems responsible for managing structured data and are therefore frequent targets of fuzzing-based testing. Existing DBMS fuzzers address different bug classes. SQLancer focuses on logic bugs that lead to incorrect query results by generating databases and queries and validating semantic properties using test oracles, while Squirrel is a coverage-guided fuzzer designed primarily to detect crash and memory-safety bugs through the generation of syntactically valid SQL inputs. A limitation of Squirrel is its dependence on high-quality initial seeds, which are often unavailable. Sedar addresses this challenge by transferring SQL test cases across DBMSs, adapting them using schema information and LLM-based rewriting to produce effective seed corpora.
+
+The paper proposes Morph, which extends Sedar in two ways. First, it replaces LLM-based SQL dialect translation with a rule-based compilation approach that explicitly captures dialect-specific syntax. Second, it improves compatibility with downstream fuzzers by analyzing parser error messages and applying sanitization rules or targeted LLM-based repairs to generated queries. Experimental results show that MoRph discovers 20 confirmed bugs across four DBMSs (14 fixed), achieves 14% higher branch coverage than Sedar, and finds 16 additional bugs. An ablation study further demonstrates the impact of MoRph’s individual components.
+
+Reasons to accept the paper
+---------------------------
++ Replacing LLM-based dialect translation with a rule-based compilation pass improves determinism and robustness.
++ The evaluation includes multiple DBMSs, baseline comparisons, and an ablation study that helps justify the contribution of individual components.
++ The approach leads to measurable improvements in coverage and bug discovery.
+
+Reasons to not accept the paper
+-------------------------------
+- Conceptually, the work largely refines and re-engineers Sedar rather than introducing a fundamentally new fuzzing paradigm or insight.
+- The manual effort required to define and maintain dialect-specific rules is not quantified, making it difficult to evaluate scalability and practicality relative to LLM-driven approaches.
+
+Detailed comments with constructive suggestions on how to improve the paper
+---------------------------------------------------------------------------
+The paper is clearly written and reports on a solid experimental effort, demonstrating measurable improvements in coverage and bug discovery over the stated baseline. The discovery of 20 confirmed bugs, including 14 fixes already adopted by DBMS vendors, provides credible evidence of practical impact. However, despite these strengths, the overall contribution remains incremental, and some aspects of the methodology and evaluation require clarification.
+
+From a conceptual standpoint, the main contribution consists of replacing Sedar’s LLM-based SQL dialect translation with a hand-crafted, rule-based compilation pass, complemented by LLM-assisted syntactic repair when the fuzzer rejects a seed. While these design choices are reasonable and arguably improve robustness, they are not particularly novel, nor do they introduce fundamentally new ideas beyond a more careful engineering of existing components.
+
+Anonther significant concern is the manual effort implied by the approach. Compared to Sedar, which relies largely on an LLM to handle SQL dialect differences, Morph appears to require non-trivial manual work to support each new DBMS or DBMS update through dialect-specific compilation rules. This cost is neither measured nor discussed in the paper. Quantifying this effort is important to assess whether the performance gains of Morph justify the likely reduced level of automation relative to Sedar.
+
+The evaluation section also raises several issues. First, the comparison with SQLancer is of limited relevance, as SQLancer targets logic bugs using tightly coupled query generation and oracle mechanisms, making it fundamentally different from seed-based, coverage-guided fuzzing approaches. Second, the reported bug counts are inconsistent across research questions (e.g., 28 and 20 bugs in Table 2 vs. 22 in Table 4), and the reasons for these discrepancies are unclear. Finally, in RQ2, it is not specified which seed corpus was used for Squirrel, which makes the comparison difficult to interpret.
+
+Questions for authors' response
+-------------------------------
+1. Can the authors clearly articulate in which fundamental conceptual dimension Morph goes beyond being a more carefully engineered version of Sedar, rather than being an incremental refinement of its design?
+
+2. What is the concrete manual effort required to exhaustively support a new DBMS dialect in Morph and to keep pace with dialect evolution (e.g., number of rules, developer time, required expertise)? How frequently is this effort expected to recur in practice?
+
+3. Have the authors evaluated whether the observed gains in coverage and bug discovery sufficiently compensate for the likely reduced level of automation compared to Sedar, especially for practitioners integrating Morph with new, updated or proprietary DBMSs?
+
+4. The number of reported bugs differs across RQ1 and RQ2 (see Table 2 vs. Table 4). Can the authors explain these discrepancies and clarify how bugs are counted and attributed across experiments?
+
+5.  In RQ2, which seed corpus was used for Squirrel?
+
+
+
+Review #1952C
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject
+
+Paper summary
+-------------
+This paper proposes Morph, a structure-aware cross-dialect SQL transfer for constructing high-quality initial seeds and enabling effective mutation in DBMS fuzzing. Morph first extracts dialect-agnostic Abstract Query Templates (AQTs), then employs a rule-guided Retrieval-Augmented Generation to instantiate AQTs for target dialects, and finally applies an adaptive query sanitizer to ensure compatibility with downstream fuzzers. Experimental results show that compared with the state-of-the-art seeds transforming approach Sedar, Morph covers 26% more branches, finds 16 more bugs in 24 hours, and achieves 100%-272% higher semantic correctness for transferred seeds. Moreover, Morph detects 28 previously unknown bugs, 20 of which has been confirmed.
+
+Reasons to accept the paper
+---------------------------
++ High-quality seeds are important for DBMS fuzzing. This paper targets an important topic and aims to generate high-quality seeds by cross-dialect SQL translation.
++ Morph can cover more code branches and detect more real-world bugs than the state-of-the-art seeds transforming approach Sedar.
++ The paper is well-written and easy to read.
+
+Reasons to not accept the paper
+-------------------------------
+- The key motivation is unclear. The paper does not adequately explain why structure and semantic preservation is necessary for DBMS fuzzing.
+- The paper does not discuss whether existing SQL translation approaches can serve the same purpose for seed generation.
+- Some technical details are missing, e.g., how dialect-specific constructs are automatically identified during AQT extraction.
+- The evaluation lacks comparison with state-of-the-art SQL translation approaches.
+
+Detailed comments with constructive suggestions on how to improve the paper
+---------------------------------------------------------------------------
+**Significance**
+
+High-quality seeds are important for improving the effectiveness of DBMS fuzzing. This paper constructs high-quality seeds via cross-dialect SQL translation, which targets an important target and is critical for DBMS testing.
+
+**Novelty**
+
+This paper proposes a new seed construction approach Morph for DBMS fuzzing via cross-dialect SQL translation. While applying cross-dialect SQL translation to generate high-quality seeds for DBMS fuzzing is novel, the paper does not discuss existing cross-dialect SQL translation approaches, e.g., SQLGlot, jOOQ, and CrackSQL. These approaches could potentially be directly adapted for seed generation tasks. The paper neither compares with these approaches nor analyzes whether they can achieve similar performance for seed construction, making the novelty of the core design less convincing.
+
+**Soundness**
+
+The proposed Morph approach is generally well-designed. It can translate test cases from other DBMSs to the target DBMS as high-quality fuzzing seeds, addressing the seed shortage problem and potentially improving fuzzing effectiveness.
+
+However, I have some concerns that prevent me from accepting this paper.
+
+DBMS fuzzing’s primary goal is to explore diverse SQL structures and syntax combinations to trigger crashes and cover more execution paths. Under this setting, seed diversity and structural richness are far more critical than semantics. This paper emphasizes the necessity of preserving semantic equivalence during cross-dialect translation. It does not explain why such fidelity is essential for crash-oriented fuzzing. 
+
+Some SQL dialect translation approaches, e.g., SQLGlot, jOOQ, CrackSQL, are designed for high-fidelity cross-dialect conversion. The paper does not discuss, and compare with any of these approaches. It is unclear whether these off-the-shelf translators can achieve similar or even better results for fuzzing seed generation.
+
+The paper only compares Morph with Sedar, an LLM-based seed translation approach designed for fuzzing. However, it lacks comparison with state-of-the-art SQL translation approaches. As a result, it is unclear whether Morph is superior to existing translation approaches for constructing fuzzing seeds.
+
+In Section 3.1, Morph extracts Abstract Query Templates by identifying dialect-specific constructs. It seems that the paper does not clearly explain how these dialect-specific constructs are automatically recognized during the abstraction phase. 
+
+In Section 3.2, when retrieval confidence is low, the rule generator synthesizes new rules and caches them directly into the KB. Do these LLM-generated rules undergo any verification before caching? If not, LLM hallucinations may the KB.
+
+**Verifiability**
+
+The authors introduce the proposed approach and its implementations in detail. The artifact and experimental data are available at Zenodo.
+
+**Presentation**
+
+The paper is generally well written. There are some minor issues.
+* Line 466: The algorithm line number reference in the text is incorrect.
+* Line 576: Typo in the error message example (e.g., "Syntax Error at SELEC").
+* In Section 3.2, when the authors explain the example in Figure 4, the symbols (e.g., id1) used are inconsistent with those in the example itself (e.g., ID1). 
+* The text (Line 873) claims Morph covers 633 more functions than Sedar, but the data in Table 6 (S+: 1036 and S: 625) mathematically indicates a difference of 411.
+
+Questions for authors' response
+-------------------------------
+1. Why is semantic equivalence necessary for fuzzing seed generation, given that fuzzing approaches aim to explore diverse execution paths?
+
+2. Can existing SQL dialect translation approaches address the seed generation task for fuzzing?
+
+3. How about comparing Morph’s SQL translation with existing SQL dialect translation approaches?
+
+Artifact check
+--------------
+3. Satisfactory
+
+Data Availability Statement and DOI link
+----------------------------------------
+1. Data Availability Statement is included in the paper and a DOI link is
+   provided in the paper.
+
+Artifact check comments (if any)
+--------------------------------
+The artifact provides source code, experimental results, and a README document, which are sufficient for other researchers to reproduce the main results. However, the complete bug list does not provide detailed information (e.g., bug ID and issue links), which may be restricted by the anonymous submission requirement.
