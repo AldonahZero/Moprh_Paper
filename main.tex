@@ -149,7 +149,7 @@
     sharp corners=south,   % 可选：如果你想要底部直角，去掉这行则全是圆角
 }
 \usepackage{microtype}
-% \setlength{\emergencystretch}{3em}
+\setlength{\emergencystretch}{3em}
 
 %%
 %% end of the preamble, start of the body of the document source.
@@ -206,12 +206,12 @@ In this paper, we propose \tool{}, a structure-aware cross-dialect SQL transfer 
 % Key challenges in achieving this include extracting query logic, preserving semantics in translation, and adapting queries for fuzzers.
 % \TODO{What is the challenge.}
 It follows a three-step workflow.
-First, \tool{} builds an Abstract Query Template (AQT) with dialect-independent structure extraction, preserving both query structure and semantics.
-Second, \tool{} instantiates the AQT into a target DBMS query with verified dialect.
+First, \tool{} extracts an Abstract Query Template (AQT) that preserves query structure and semantics.
+Second, \tool{} instantiates the AQT into a target-dialect query using verified rules.
 % rules. and fuzzer-supported grammar.
 Finally, \tool{} uses parser feedback to fix remaining incompatibilities, ensuring queries are fuzzer-parsable and mutable.
 We evaluate \tool{} on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}. 
-Compared with the state-of-the-art seeds transforming approach \sedar{}, \tool{} covers 26\% more branches, finds 16 more bugs in 24 hours, and achieves 100\%–272\% higher semantic correctness for transferred seeds.
+Compared with the state-of-the-art seeds transforming approach \sedar{}, \tool{} covers 26\% more branches, finds 16 more bugs in 24 hours, and achieves 100\%--272\% higher semantic correctness for transferred seeds.
 Moreover, \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed.
 % and \bugfixcnt{} that have already been fixed
 % Moreover, we received positive feedback from developers. For example, a MySQL developer commented: ``\TODO{This confirms that the generated seeds are practically useful and understandable in real-world DBMS development}.''
@@ -297,8 +297,8 @@ While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suite
 % To overcome this limitation, Cross-DBMS SQL Transfer has emerged as an active research area~\cite{zhou2020database}. Recent research trends, such as \sedar{}~\cite{fu2024sedar}, establish a test case transfer method centered on Large Language Models (LLMs). Such approach aims to transform rich test cases accumulated in mature DBMSs into effective seeds for target DBMSs. 
 % This mainstream \textit{Translate-and-Sanitize} approach leverages LLMs to translate source SQL statements into target dialects, harnessing their powerful generative capabilities to bridge general syntactic gaps~\cite{fu2024sedar, xia2024fuzz4all, deng2023large}.
 % LLM-based Cross-DBMS SQL Transfer has emerged as an active research area~\cite{zhou2020database},
-To overcome this limitation, some studies have used large language models (LLMs) to translate SQL test cases between DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
-They aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
+To overcome this limitation, prior studies use large language models (LLMs) to translate SQL test cases across DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
+They migrate mature DBMS test cases to target systems as initial fuzzing seeds~\cite{mundler2025type, lin2024sqless}.
 % This strategy aims to repurpose rich historical test cases into effective seeds, bridging the gap between different DBMS dialects. 
 A typical example is \sedar{}~\cite{fu2024sedar}, which performs end-to-end SQL translation using LLMs. It first executes existing test cases on the source DBMS to collect schema information, then leverages LLMs with this schema to generate new test cases for the target DBMS. To ensure compatibility with fuzzers, \sedar{} temporarily comments out unparsable parts during mutation.
 
@@ -314,7 +314,7 @@ A typical example is \sedar{}~\cite{fu2024sedar}, which performs end-to-end SQL 
 
 Despite being able to transform test cases from mature DBMSs into initial seeds for target DBMSs, these methods still suffer from \textit{translation failures} and \textit{semantic degradation}.
 (1) First, end-to-end SQL translation may introduce syntax or semantic errors due to the inherent hallucination of LLMs or their limited knowledge of target dialects. During dialect translation, LLMs often fail to strictly preserve relational semantics, resulting in subtle but important behavioral differences. 
-(2) Second, to ensure that generated queries can be parsed by fuzzers, these methods often mechanically discard grammar structures that the tools cannot handle, causing the loss of valuable SQL features and testing logic embedded in the original test cases. As a result, although the transferred queries remain syntactically valid, they suffer from semantic degradation, limiting coverage of the target DBMS’s execution paths and reducing the effectiveness of stress-testing the query optimizer.
+(2) Second, to make generated queries parseable by fuzzers, these methods often discard unsupported grammar constructs. This removes valuable SQL features and testing logic from the original test cases. As a result, the transferred queries may remain syntactically valid but become semantically degraded, limiting execution-path coverage and reducing the effectiveness of optimizer stress testing.
 
 % However, while these methods ensure syntactic correctness, they suffer from semantic bottlenecks and logic loss.
 % Semantic bottlenecks arise from the hallucination issues inherent in LLMs, which often fail to preserve strict relational semantics during dialect translation, leading to subtle behavioral discrepancies. 
@@ -412,9 +412,8 @@ To address these challenges, we propose \tool{}, a structure-aware cross-dialect
 
 
 
-We implement \tool{} and evaluate it against the state-of-the-art approach \sedar{} on four popular DBMSs, namely \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
-The results show that \tool{} achieves \translateratio{} higher semantic correctness for transferred seeds than \sedar{}.
-Based on that, \tool{} finds a total of 7\%--26\% more branches and 1--11 more bugs than \sedar{} on four DBMSs. 
+We evaluate \tool{} against the state-of-the-art approach \sedar{} on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
+\tool{} achieves \translateratio{} higher semantic correctness for transferred seeds, covers 7\%--26\% more branches, and finds 1--11 more bugs than \sedar{}.
 % Notably, \tool{} significantly outperforms \sedar{} in bug discovery on \duckdb{} (4 vs. 1), \clickhouse{} (2 vs. 1), and \monetdb{} (5 vs. 1), while maintaining comparable performance on \virtuoso{} (2 vs. 2).
 More importantly, \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} that have been confirmed, with \bugfixcnt{} that have already been fixed.
 % Besides, developers actively engaged with our bug reports. For example, a \duckdb{} developer responded: ``Thanks for the report! I'm guessing this is the OOM fault. How much RAM does your machine have?''~\cite{duckdb-issue-20197}.
@@ -1046,7 +1045,8 @@ We evaluate \tool{} to assess its performance in cross-dialect seed transformati
 % We detail the experimental environment, target systems, baselines, and metrics used to substantiate our evaluation.
 
 \textbf{Target DBMSs and Environment.}
-To evaluate the generalization of \tool{} across diverse architectures, we selected four widely used DBMSs according to the DB-Engines Ranking~\cite{dbengines}: MonetDB~\cite{monetdb} v11.51, Virtuoso~\cite{virtuoso} v7.2, DuckDB~\cite{duckdb_git} v1.1.3, and ClickHouse~\cite{clickhouse} v24.8 LTS. These systems span a broad spectrum of architectures, from embedded OLAP engines to distributed columnar stores, and while they share the relational data model, each implements a distinct SQL dialect.
+To evaluate generalization across diverse architectures, we selected four widely used DBMSs according to the DB-Engines Ranking~\cite{dbengines}: MonetDB~\cite{monetdb} v11.51, Virtuoso~\cite{virtuoso} v7.2, DuckDB~\cite{duckdb_git} v1.1.3, and ClickHouse~\cite{clickhouse} v24.8 LTS.
+These systems range from embedded OLAP engines to distributed columnar stores. Although they share the relational data model, each implements a distinct SQL dialect.
 % To evaluate the generalization of \tool{} across diverse architectures, we selected four popular DBMSs, including MonetDB~\cite{monetdb}, Virtuoso~\cite{virtuoso}, DuckDB~\cite{duckdb_git}, and ClickHouse~\cite{clickhouse}.
 % These DBMSs are all widely used according to the DB-Engines Ranking~\cite{dbengines} and represent a broad spectrum of architectural designs, ranging from embedded OLAP systems to distributed columnar stores. While they share common relational data model features, they implement distinct SQL dialects. The specific versions under evaluation are MonetDB v11.51, Virtuoso v7.2, DuckDB v1.1.3, and ClickHouse v24.8 LTS.
 % To evaluate generalization across diverse architectures, we selected four widely used DBMSs: MonetDB, a pioneer open-source column-store database; Virtuoso, a high-performance multi-model engine; DuckDB, an embedded in-process SQL OLAP system; and ClickHouse, a fast distributed columnar DBMS. We deployed the latest official Docker images for each to ensure a standardized environment: \TODO{MonetDB version1, Virtuoso version2, DuckDB verison3, ClickHouse verison4.}
