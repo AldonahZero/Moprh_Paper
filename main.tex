@@ -1124,7 +1124,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 % Beyond the generation phase, we further evaluated the contribution of the \textit{Feedback-Driven Adaptive Sanitizer}. We compared the full framework ($\textsc{Morph}_{\textit{full}}$) against a variant named $\textsc{Morph}_{\textit{static}}$, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
 
 % To evaluate the effectiveness of \tool{} in improving DBMS fuzzing, we compared three different sets of initial seeds. Specifically, $S^-$ denotes directly using the original test cases from the source DBMS as initial seeds; $S$ represents seeds translated by \sedar{} and then fuzzed using the backend fuzzer \griffin{}; and $S^+$ corresponds to seeds translated by \tool{} and fuzzed with \griffin{}. All three configurations were executed under identical experimental settings for 24 hours to ensure a fair comparison.
-We compared \tool{} against three state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer}, \squirrel{}~\cite{zhong2020squirrel}, and \sedar{}~\cite{fu2024sedar}. 
+We compared \tool{} against three state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer}, \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), and \sedar{}~\cite{fu2024sedar}. 
 All tools were executed under identical experimental settings for 24 hours to ensure a fair comparison.
 After the fuzzing campaigns were completed, we conducted a unified dry run of all generated test cases to normalize branch coverage measurement. 
 % Branch coverage was then collected to quantify testing depth. 
