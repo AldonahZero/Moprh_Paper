@@ -93,6 +93,9 @@
 \usepackage{microtype}
 % \setlength{\emergencystretch}{3em}
 \usepackage[hidelinks]{hyperref}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
 
 %%
 %% end of the preamble, start of the body of the document source.
@@ -1295,8 +1298,8 @@ In other words, compared to \sedar, \tool{} covers 633 more functions, 65 more d
 \caption{Statistics of valid SQL features (Functions, Data Types, Keywords) in the transferred seeds.}
 \label{tab:diversity}
 \renewcommand\arraystretch{1}
-\setlength{\tabcolsep}{1.5mm}{
-    \scalebox{0.95}[0.95]{%
+\setlength{\tabcolsep}{1.2pt}
+\resizebox{\columnwidth}{!}{%
         \begin{tabular}{l|ccc|ccc|ccc}
         \toprule
         \multirow{2}{*}{\textbf{DBMS}} & \multicolumn{3}{c|}{\textbf{Functions}} & \multicolumn{3}{c|}{\textbf{Data Types}} & \multicolumn{3}{c}{\textbf{Keywords}} \\
@@ -1308,7 +1311,6 @@ In other words, compared to \sedar, \tool{} covers 633 more functions, 65 more d
         Total & 403 & 625 & \textbf{1036} & 115 & 146 & \textbf{180} & 752 & 872 & \textbf{1368} \\
         Increment & - & +411 & \textbf{+633} & - & +31 & \textbf{+65} & - & +496 & \textbf{+616} \\ \bottomrule
         \end{tabular}
-    }
 }
 \end{table}
 
@@ -1379,11 +1381,13 @@ In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full
 % This results in a coverage increase to \textbf{144,822} branches (\textbf{+22.3\%}). 
 % This experiment confirms that high-quality generation alone is insufficient; the adaptive sanitization bridge is indispensable for translating ``valid intent'' into ``covered paths.''
 
-\begin{table}[t]
+\begin{table}[!b]
 \centering
-\small
+\footnotesize
 \caption{Ablation study of the Feedback-Driven Sanitizer on Branch Coverage across DBMSs (24h).}
 \label{tab:ablation_sanitizer}
+\setlength{\tabcolsep}{3pt}
+\renewcommand\arraystretch{0.95}
 \begin{tabular}{lccc}
 \toprule
 \textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
