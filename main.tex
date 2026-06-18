@@ -93,9 +93,6 @@
 \usepackage{microtype}
 % \setlength{\emergencystretch}{3em}
 \usepackage[hidelinks]{hyperref}
-\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
-\setlength{\floatsep}{6pt plus 2pt minus 2pt}
-\setlength{\intextsep}{6pt plus 2pt minus 2pt}
 
 %%
 %% end of the preamble, start of the body of the document source.
@@ -380,7 +377,7 @@ Recent approaches leverage Large Language Models (LLMs) for cross-dialect transl
 \begin{figure}[b]
   \centering
   \includegraphics[scale=1.0, width=\linewidth]{media/motivating_ase.pdf}
-  \caption{Conventional end-to-end translation methods like \sedar{} suffer from semantic deviation and logic loss (Left). \tool{} decouples intent via AQT, successfully instantiating the equivalent \texttt{date\_diff} logic (Right).}
+  \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
   % that directly convert seeds from \pg{} to \duckdb{} may introduce translation errors and logic loss.
   % The source query contains a dialect-specific function \texttt{AGE} and a type cast \texttt{::INTERVAL}. 
   % Traditional Methods 
@@ -394,14 +391,7 @@ Recent approaches leverage Large Language Models (LLMs) for cross-dialect transl
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\linewidth]{media/overview-ase-new.pdf}
-  \caption{\textbf{Overview of the \tool{}.} \tool{} generates high-quality cross-dialect test cases following three steps: 
-  (1) Structure-Preserving Abstraction. \tool{} first parses SQL into an AST and extracts schema information, then replaces dialect-specific syntax with generic labels to construct AQTs.
-  (2) Rule-Guided Dialect Instantiation. \tool{} uses a task planner to decompose test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
-  % \tool{} uses a task planner to decompose complex test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
-  (3) Feedback-Driven Adaptive Fuzzing. It fixes syntax incompatibilities, then uses DBMS execution feedback to repair remaining errors, and finally marks mutable regions in the mutable seeds to guide fuzzer mutations.
-  % It iteratively refines seeds using DBMS execution feedback to repair errors and produce mutation-friendly, high-quality seeds.
-  % \tool{} adapts fuzzer-incompatible test cases using runtime feedback, preserving core logic while ensuring parsability and maximal coverage.
-  }
+  \caption{\textbf{Overview of \tool{}.} \tool{} transfers source test cases through structure-preserving abstraction, rule-guided dialect instantiation, and feedback-driven adaptive fuzzing.}
   \label{fig:workflow}
   % \vspace{-0.5cm}
 \end{figure*}
@@ -541,7 +531,11 @@ They are defined as follows:
     Abstraction rules map from one dialect-specific construct to abstract representations. A rule has the form:
     % $\text{source} \;\rightarrow\; \text{target}$, 
     \[
-        [Funtion | Type | ...] \rightarrow [<FuncTag>|<TypeCast>|...]
+    \begin{aligned}
+        [\textit{Function} \mid \textit{Type} \mid \cdots]
+        &\rightarrow [\langle \textit{FuncTag} \rangle \mid{} \\
+        &\quad \langle \textit{TypeCast} \rangle \mid \cdots]
+    \end{aligned}
     \]
     where \textit{Source} is a dialect-specific SQL element and \textit{Target} is its corresponding abstract label that represents the semantic intent. For example, a rule for interval computation from \pg{} to \duckdb{} can be represented as $\texttt{AGE}(\cdot) \rightarrow \langle \text{TimeDiff} \rangle$.
     
@@ -729,7 +723,7 @@ which acts as the reasoning core of the agent, with three specialized skills.
 \begin{figure}[b]
     \centering
     \includegraphics[scale=1.0, width=1\linewidth]{media/rule.pdf}
-    \caption{An example of the RAG-enhanced Rule-Guided Dialect Instantiation.
+    \caption{RAG-enhanced rule-guided dialect instantiation.
     % \cnum{1} \textit{Task Planning:} The Planner conducts a bottom-up topological sort on graph $\mathcal{G}$ to schedule the instantiation order. 
     % \cnum{2} \textit{Knowledge-Augmented Execution:} The Skill Executor (Translator, Generator, and Fixer) instantiates abstract segments using context retrieved from the Hybrid KB. 
     % \cnum{3} \textit{Seed Generation:} The system synthesizes \textit{Compatible Seeds} with guaranteed dialect alignment and semantic correctness.}
@@ -893,7 +887,7 @@ As Figure~\ref{fig:feedback-driven} shows, upon receiving compatible seeds, \too
 \begin{figure}[htbp]
   \centering
   \includegraphics[scale=1.0, width=\linewidth]{media/feedback-driven.pdf}
-  \caption{Collaborative Workflow of Adaptive Query Sanitizing, Error-Guided Repairing, and Mutable Seed Generation in Feedback-Driven Fuzzing.}
+  \caption{Feedback-driven adaptive fuzzing workflow.}
   \label{fig:feedback-driven}
 \end{figure}
 
@@ -1124,7 +1118,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 % Beyond the generation phase, we further evaluated the contribution of the \textit{Feedback-Driven Adaptive Sanitizer}. We compared the full framework ($\textsc{Morph}_{\textit{full}}$) against a variant named $\textsc{Morph}_{\textit{static}}$, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
 
 % To evaluate the effectiveness of \tool{} in improving DBMS fuzzing, we compared three different sets of initial seeds. Specifically, $S^-$ denotes directly using the original test cases from the source DBMS as initial seeds; $S$ represents seeds translated by \sedar{} and then fuzzed using the backend fuzzer \griffin{}; and $S^+$ corresponds to seeds translated by \tool{} and fuzzed with \griffin{}. All three configurations were executed under identical experimental settings for 24 hours to ensure a fair comparison.
-We compared \tool{} against three state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer}, \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), and \sedar{}~\cite{fu2024sedar}. 
+We compared \tool{} against three state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), and \sedar{}~\cite{fu2024sedar}. 
 All tools were executed under identical experimental settings for 24 hours to ensure a fair comparison.
 After the fuzzing campaigns were completed, we conducted a unified dry run of all generated test cases to normalize branch coverage measurement. 
 % Branch coverage was then collected to quantify testing depth. 
@@ -1141,52 +1135,44 @@ In addition, we deduplicated crashes using stack trace hashing combined with man
 \centering
 \caption{Number of branches covered by different tools (24h).}
 \label{tab:coverage}
-\renewcommand\arraystretch{0.9}
-\setlength{\tabcolsep}{2.5mm}{
-    \scalebox{0.95}[0.95]{%
-        \begin{tabular}{lcccc}
-            \toprule
-            \textbf{DBMS} & \sqlancer{} & \squirrel{} & \sedar{} & \textsc{Morph} \\
-            \midrule
-            MonetDB    & - & 43,747 & 76,142 & \textbf{81,486} \\
-            Virtuoso   & - & 26,302 & 36,583 & \textbf{40,183} \\
-            DuckDB     & 22,188 & 96,434 & 114,876 & \textbf{144,822} \\
-            ClickHouse & 25,618 & - & 141,215 & \textbf{155,639} \\
-            \midrule
-            Total      & 47,806 & 166,483 & 368,816 & 422,130 \\
-            Improvement$^*$ & 528\%$\uparrow$ & 60\%$\uparrow$ & 14\%$\uparrow$ & - \\ 
-            \bottomrule
-            \multicolumn{5}{l}{\footnotesize $^*$ The improvement is calculated only for both supported DBMSs.}
-        \end{tabular}
-    }
+{\small
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
+    \toprule
+    \textbf{DBMS} & \sqlancer{} & \squirrel{} & \sedar{} & \textsc{Morph} \\
+    \midrule
+    MonetDB    & - & 43,747 & 76,142 & \textbf{81,486} \\
+    Virtuoso   & - & 26,302 & 36,583 & \textbf{40,183} \\
+    DuckDB     & 22,188 & 96,434 & 114,876 & \textbf{144,822} \\
+    ClickHouse & 25,618 & - & 141,215 & \textbf{155,639} \\
+    \midrule
+    Total      & 47,806 & 166,483 & 368,816 & 422,130 \\
+    Improvement$^*$ & 528\%$\uparrow$ & 60\%$\uparrow$ & 14\%$\uparrow$ & - \\
+    \bottomrule
+    \multicolumn{5}{@{}l}{\footnotesize $^*$ Calculated only for commonly supported DBMSs.}
+\end{tabular*}
 }
-\end{table}
+\par\medskip
 
 % On embedded OLAP systems like DuckDB, \tool{} covers 144,822 branches, surpassing \sedar{} by 26\%, \squirrel{} by 60\%, and \sqlancer{} by over 500\%.
 % Crucially, this deep code penetration directly translates into superior bug discovery capability. As shown in the rightmost columns of Table~\ref{tab:coverage}, \tool{} exposes significantly more unique bugs than baselines. 
 % Moreover, as shown in Table~\ref{tab:coverage}, \tool{} ($S^+$) detects a total of 12 and 9 more bugs than \sedar{} ($S$) and raw seeds ($S^{-}$) on four DBMSs, respectively. 
 % \vspace{-1cm}
-\begin{table}[htbp]
-\centering
 \caption{Number of bugs detected by different tools (24h).}
 \label{tab:bugs}
-\renewcommand\arraystretch{0.9}
-\setlength{\tabcolsep}{3mm}{
-\scalebox{0.95}[0.95]{%
-        \begin{tabular}{lcccc}
-            \toprule
-            \textbf{DBMS} & \sqlancer{} & \squirrel{} & \sedar{} & \textsc{Morph} \\
-            \midrule
-            MonetDB    & - & 0 & 3 & \textbf{14} \\
-            Virtuoso   & - & 0 & 2 & \textbf{3} \\
-            DuckDB     & 0 & 0 & 1 & \textbf{3} \\
-            ClickHouse & 0 & - & 0 & \textbf{2} \\
-            \midrule
-            Total      & 0 & 0 & 6 & 22 \\
-            Increment  & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & - \\ 
-            \bottomrule
-        \end{tabular}
-    }
+{\small
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
+    \toprule
+    \textbf{DBMS} & \sqlancer{} & \squirrel{} & \sedar{} & \textsc{Morph} \\
+    \midrule
+    MonetDB    & - & 0 & 3 & \textbf{14} \\
+    Virtuoso   & - & 0 & 2 & \textbf{3} \\
+    DuckDB     & 0 & 0 & 1 & \textbf{3} \\
+    ClickHouse & 0 & - & 0 & \textbf{2} \\
+    \midrule
+    Total      & 0 & 0 & 6 & 22 \\
+    Increment  & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & - \\
+    \bottomrule
+\end{tabular*}
 }
 \end{table}
 
@@ -1294,13 +1280,11 @@ In other words, compared to \sedar, \tool{} covers 633 more functions, 65 more d
 % ============================================================
 \begin{table}[ht]
 \centering % <--- 让表格居中
-\small     % <--- 主动缩小字号，而不是被拉伸
+\footnotesize     % <--- 主动缩小字号，而不是被拉伸
 \caption{Statistics of valid SQL features (Functions, Data Types, Keywords) in the transferred seeds.}
 \label{tab:diversity}
-\renewcommand\arraystretch{1}
-\setlength{\tabcolsep}{1.2pt}
-\resizebox{\columnwidth}{!}{%
-        \begin{tabular}{l|ccc|ccc|ccc}
+\setlength{\tabcolsep}{2pt}
+        \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l|ccc|ccc|ccc@{}}
         \toprule
         \multirow{2}{*}{\textbf{DBMS}} & \multicolumn{3}{c|}{\textbf{Functions}} & \multicolumn{3}{c|}{\textbf{Data Types}} & \multicolumn{3}{c}{\textbf{Keywords}} \\
          & $S^-$ & $S$ & $S^+$ & $S^-$ & $S$ & $S^+$ & $S^-$ & $S$ & $S^+$ \\ \midrule
@@ -1310,8 +1294,7 @@ In other words, compared to \sedar, \tool{} covers 633 more functions, 65 more d
         ClickHouse & 83 & 227 & \textbf{332} & 36 & 61 & \textbf{64} & 124 & 152 & \textbf{187} \\ \midrule
         Total & 403 & 625 & \textbf{1036} & 115 & 146 & \textbf{180} & 752 & 872 & \textbf{1368} \\
         Increment & - & +411 & \textbf{+633} & - & +31 & \textbf{+65} & - & +496 & \textbf{+616} \\ \bottomrule
-        \end{tabular}
-}
+        \end{tabular*}
 \end{table}
 
 The improvement in feature diversity is particularly pronounced in engines with significant dialectal gaps, such as DuckDB and Virtuoso. In DuckDB, \tool{} successfully transfers 456 functions, 63 data types, and 476 keywords, effectively doubling the variety across all categories compared to \sedar{}, which only preserves 214 functions, 39 data types, and 340 keywords. A similar trend is observed in Virtuoso, where \tool{} expands the set of valid keywords from 136 to 335 and data types from 17 to 24. These results indicate that \tool{}'s structure-aware approach is more resilient to ``dialect noise'', which frequently causes traditional tools to fail or over-simplify queries. 
@@ -1345,7 +1328,7 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 \begin{figure}[h]
   \centering
   \includegraphics[width=\linewidth]{media/ablation_combined_analysis.pdf}
-  \caption{\textbf{Ablation Analysis of \tool{} Components.} Comparison of syntactic/semantic correctness and resource consumption across four variants.}
+  \caption{Ablation analysis of \tool{} components.}
   \label{fig:ablation_analysis}
 \end{figure}
 
@@ -1360,7 +1343,7 @@ The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reach
 % Figure~\ref{fig:ablation_analysis} (c), (d), (e), and (f) show the data about fix iterations and token consumptions.
 % While $\tool{}_{\textit{full}}$ introduces a higher iteration cost (+89\%) and token consumption (+21\%) compared to the baseline, these costs are a justified investment for the substantial gain in high-fidelity transfer. 
 % This confirms that the synergy between the structural guidance of AQT and the semantic constraints of the RAG Agent is essential for improving syntax and semantic correctness.
-Figure~\ref{fig:ablation_analysis}(c) shows the distribution of fix iterations, while Figure~\ref{fig:ablation_analysis}(d) reports token consumption. Although $\tool{}_{\textit{full}}$ incurs additional repair iterations and token overhead compared with the baseline, this cost is compensated by clear gains in high-fidelity transfer, yielding the best overall trade-off between generation quality and efficiency.
+Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
 
 % $\tool{}_{\textit{base}}$ yields syntactic and semantic correctness of only 50.7\% and 27.4\%, respectively (Figure~\ref{fig:ablation_analysis}(c) and (d)). 
@@ -1373,22 +1356,20 @@ Figure~\ref{fig:ablation_analysis}(c) shows the distribution of fix iterations, 
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
 % Beyond the generation phase, we further evaluated the contribution of the \textit{Feedback-Driven Adaptive Sanitizer}. 
-To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
+To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
 Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
 % Taking \duckdb{} as an example, \tooldisfuzzer{} achieves a coverage of 118,453 branches. 
-When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
-In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and are used for fuzzers to explore more state space of the target DBMSs. 
+Without adaptive repair, \tooldisfuzzer{} suffers high parser-stage rejection. $\tool{}_{\textit{full}}$ repairs such errors, recovers invalid seeds, and lets fuzzers explore deeper target states. 
 % This results in a coverage increase to \textbf{144,822} branches (\textbf{+22.3\%}). 
 % This experiment confirms that high-quality generation alone is insufficient; the adaptive sanitization bridge is indispensable for translating ``valid intent'' into ``covered paths.''
 
 \begin{table}[!b]
 \centering
 \footnotesize
-\caption{Ablation study of the Feedback-Driven Sanitizer on Branch Coverage across DBMSs (24h).}
+\caption{Sanitizer ablation on branch coverage (24h).}
 \label{tab:ablation_sanitizer}
 \setlength{\tabcolsep}{3pt}
-\renewcommand\arraystretch{0.95}
-\begin{tabular}{lccc}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
 \midrule
@@ -1397,12 +1378,11 @@ Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
 DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
 ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All three components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntactic correctness by 37\%. $\tool{}_{\textit{rag}}$ ensures semantic alignment, boosting validity by 21\%. $\tool{}_{\textit{full}}$ achieves a cumulative improvement of 44\% in syntax and \textbf{38\%} in semantics. 
-Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
+\textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 37\%, $\tool{}_{\textit{rag}}$ boosts semantic validity by 21\%, and $\tool{}_{\textit{full}}$ improves syntax/semantics by 44\%/38\%. The sanitizer further increases branch coverage by up to 39\%.
 \end{answerbox}
 
 
@@ -1420,38 +1400,30 @@ Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for executi
 % \textit{External validity} concerns the generalizability of our results to other database systems. While we selected four representative DBMSs covering Row-store, Column-store, and Multi-model architectures to minimize this threat, extending our approach to DBMSs with non-relational paradigms like graph databases remains a necessary direction for future work.
 
 \textbf{LLM Parameter Selection. } \label{sec:llm-params}
-To ensure reproducibility, we conducted a sensitivity analysis on the temperature parameter across three values (0.2, 0.5, 0.8). 
-The results show that
-% Lower temperatures yielded higher consistency: 
-T=0.2 achieved 95\% translation success rate with 91\% first-attempt stability, outperforming T=0.5 (92\%/78\%) and T=0.8 (85\%/70\%). 
-It indicates that lower temperature settings help the model produce more deterministic outputs while still maintaining semantic correctness. 
-Based on this analysis, we adopt T=0.2 for all experiments to balance reliability and flexibility, ensuring that the translated queries remain both valid and reproducible across runs.
+We use T=0.2 because it achieves 95\% translation success and 91\% first-attempt stability, outperforming T=0.5 (92\%/78\%) and T=0.8 (85\%/70\%).
 % We therefore use T=0.2 for all experiments.
 
 \begin{table}[b]
 \centering
 \small
-\caption{Performance of \tool{} across different underlying LLMs. TS denotes Test Suite.}
+\caption{LLM comparison. TS denotes Test Suite.}
 \label{tab:llm_comparison}
 \setlength{\tabcolsep}{2.5pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrr}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \toprule
-\textbf{Model} & \textbf{Syn. Rate} & \textbf{Sem. Rate} & \textbf{Cost / TS (\$)} & \textbf{Time / TS (s)} \\
+\textbf{Model} & \textbf{Syn.} & \textbf{Sem.} & \textbf{Cost/TS} & \textbf{Time/TS} \\
 \midrule
 Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
 GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
 DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
 Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \bottomrule
-\multicolumn{5}{l}{\footnotesize $^*$ Qwen3.5-27B with depth thinking mode}
-\end{tabular}
-}
+\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with depth thinking mode}
+\end{tabular*}
 \end{table}
 
 \textbf{Impact of the Underlying LLM.}
-We justify the selection of Gemini 2.5-flash-lite for \tool{} by showing the experiments on \monetdb{} with different LLMs: while Qwen3.5-27b achieves slightly higher semantic correctness (0.852), it incurs a 36$\times$ higher monetary cost and 9.5$\times$ longer migration time per test suite. Gemini presents the optimal balance of high validity (0.776 semantic rate), lowest cost, and fastest throughput, making it highly practical for large-scale seed generation tasks.
-Meanwhile, this result also indirectly validates that the performance gains of \tool{} mainly stem from algorithmic design rather than using different LLMs: under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still achieves 0.89 syntactic correctness and 0.533 semantic correctness, outperforming \sedar{} (i.e., 0.781 and 0.388), indicating that the improvements are primarily driven by the proposed method rather than model capacity.
+Table~\ref{tab:llm_comparison} supports Gemini 2.5-flash-lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
 
 
 
@@ -1461,10 +1433,10 @@ Meanwhile, this result also indirectly validates that the performance gains of \
 
 % \vspace{-2cm}
 \textbf{Extensibility of \tool{}. }
-To extend \tool{} to other DBMSs, we do not build exhaustive source-target rule tables manually. Instead, \tool{} uses its prepared mining pipeline to automatically extract lexical/syntactic rule files from grammar resources (such as ANTLR grammars-v4 and official dialect grammar specifications), then registers these rules into the Hybrid KB so the corresponding constructs are included in the AQT-transformable space. During translation, existing rules are retrieved first, and new rules are generated only when confidence is low and then cached for reuse. As a result, extension is incremental rather than manual pairwise rule engineering, with expert input mainly limited to abstraction boundaries and safety constraints.
+To extend \tool{} to other DBMSs, we mine lexical/syntactic rules from grammar resources and register them into the Hybrid KB. New rules are generated only when retrieval confidence is low and then cached, making extension incremental.
 
 \textbf{Extend \tool{} to Find Logic Bugs.} 
-Beyond test case translation, \tool{} can be extended to detect logical and semantic bugs by migrating test oracles from tools like SQLancer~\cite{sqlancer} or comparing semantically equivalent queries across DBMSs to identify discrepancies. Leveraging structure-aware translation and adaptive sanitization, \tool{} enables differential testing and cross-engine consistency checks, exposing subtle type, optimizer, and semantic errors that are often missed by traditional fuzzing due to preserved structural and logical complexity.
+Beyond test case translation, \tool{} can migrate SQLancer-style oracles~\cite{sqlancer} or compare equivalent cross-DBMS queries, enabling future detection of logic and semantic bugs.
 % Beyond test case translation, \tool{} can also be extended to detect logical or semantic bugs. 
 % For example, test oracles from tools like SQLancer~\cite{sqlancer} can be migrated across SQL dialects, and result discrepancies can reveal correctness issues. 
 % Similarly, semantically equivalent queries can be executed on different DBMSs, with differences highlighting subtle bugs. 
@@ -1498,9 +1470,7 @@ Beyond test case translation, \tool{} can be extended to detect logical and sema
 \subsection{DBMS Fuzzing}
 Fuzzing is one of the most effective automated testing techniques for identifying DBMS vulnerabilities.
 % ~\cite{rigger2020detecting, rigger2020finding}. 
-Current DBMS fuzzers can be categorized into generation-based and mutation-based approaches. Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlancer, rigger2020testing}, and DynSQL~\cite{jiang2023dynsql}, construct SQL queries from scratch using hard-coded rules or semantic oracles. Recent advancements in this category include clause-guided methods~\cite{wei2024sqlaser, ba2023testing}, differential execution~\cite{song2023testing, cui2022differentially}, and specialized frameworks like Pinolo~\cite{hao2023pinolo}. However, these tools are often constrained by predefined templates, which limit their ability to cover complex scenarios~\cite{gao2023comprehensive}. Conversely, mutation-based fuzzers explore deeper code paths by evolving test cases from existing seed pools. 
-\squirrel{}~\cite{zhong2020squirrel} introduces an intermediate representation (IR) to perform structure-preserving mutations, while \griffin{}~\cite{fu2022griffin} utilizes grammar-free metadata replacement. 
-To further improve coverage, LEGO~\cite{liang2023sequence} proposes sequence-oriented fuzzing by combining different SQL statement sequences, while other works~\cite{yang2024towards} focus on enhancing mutation diversity and reducing grammar dependence. 
+Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlancer, rigger2020testing}, and DynSQL~\cite{jiang2023dynsql}, construct SQL queries from hard-coded rules or semantic oracles, while recent clause-guided and differential methods further improve logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}. However, predefined templates can limit complex scenarios~\cite{gao2023comprehensive}. Mutation-based fuzzers instead evolve seed pools: \squirrel{}~\cite{zhong2020squirrel} uses IR-based mutations, \griffin{}~\cite{fu2022griffin} uses grammar-free metadata replacement, and LEGO~\cite{liang2023sequence} combines SQL statement sequences. 
 % Traditional DBMS fuzzing techniques are generally categorized into generation-based and mutation-based approaches.
 
 % \textbf{Generation-based Fuzzers.} 
@@ -1518,13 +1488,10 @@ To further improve coverage, LEGO~\cite{liang2023sequence} proposes sequence-ori
 % Recent efforts~\cite{liang2023sequence, yang2024towards} improve mutation diversity and reduce grammar dependence.
 
 
-Existing studies primarily focus on the mechanisms of \textit{how to mutate} or \textit{how to detect} bugs, different from them, \tool{} addresses the upstream challenge of \textit{seed acquisition}. As an orthogonal and complementary approach~\cite{zhong2020squirrel, jiang2023dynsql}, \tool{} provides high-quality cross-dialect seeds that unlock the testing potential for complex scenarios and emerging DBMS engines~\cite{gao2023comprehensive}.
+Unlike these works, \tool{} addresses the upstream challenge of \textit{seed acquisition} by producing high-quality cross-dialect seeds for complex scenarios and emerging DBMS engines~\cite{gao2023comprehensive}.
 
 \subsection{LLM-Based Seed Generation}
-Several recent works integrate LLMs to generate high-quality initial seeds for DBMS testing. CrackSQL~\cite{zhou2025cracking} employs genetic algorithms alongside LLMs to mine complex mutation patterns, while RISE~\cite{xie2026rise} utilizes skeleton-based query decomposition to enhance seed diversity. Fuzz4All~\cite{xia2024fuzz4all} demonstrates the versatility of LLM prompting for input generation across multiple software domains. While these intra-dialect approaches effectively improve query variety, they are often insufficient for emerging DBMSs due to the scarcity of engine-specific training data. To address this, \sedar{}~\cite{fu2024sedar} introduces end-to-end translation with commenting-out sanitization to facilitate cross-dialect migration, yet it remains susceptible to semantic hallucinations. Recent efforts such as ShQveL~\cite{zhong2025testing} and QTRAN~\cite{lin2025qtran} further focus on fragment synthesis and metamorphic-oracle extensions to improve testing coverage. Despite these advancements, ensuring semantic fidelity across heterogeneous SQL engines remains a persistent challenge.
-
-Existing SQL translation tools mainly aim to improve semantic consistency between RDBMSs, and their translated seeds often cannot be used by fuzzers due to DBMS syntax and feature discrepancies. \sedar{} adopts an end-to-end translation and improves executability by commenting out incompatible parts; however, this breaks structural integrity and loses semantic information. 
-In contrast, \tool{} is specifically designed for DBMS fuzzing, particularly for emerging OLAP engines like \clickhouse{} where high quality initial seeds are often scarce. It improves semantic correctness while maximizing the preservation of SQL feature diversity, making the generated seeds more suitable for subsequent fuzzing. Furthermore, unlike tools like QTRAN, which translates test oracle to find logic bugs, \tool{} focuses on constructing high-quality initial seeds for finding crash bugs.
+Recent LLM-based methods improve DBMS seed generation: CrackSQL~\cite{zhou2025cracking}, RISE~\cite{xie2026rise}, and Fuzz4All~\cite{xia2024fuzz4all} improve seed variety, while \sedar{}~\cite{fu2024sedar}, ShQveL~\cite{zhong2025testing}, and QTRAN~\cite{lin2025qtran} explore cross-dialect transfer, fragment synthesis, and oracle extension. Unlike them, \tool{} targets fuzzer-ready crash-bug seeds and preserves SQL feature diversity across dialects.
 
 
 % Unlike intra-dialect approaches, \tool{} achieves \textit{cross-dialect} transfer via AQT and recursive instantiation, overcoming DBMS disparities. Specifically, \tool{} employs an abstraction and then instantiation paradigm. It applies recursive AST substitution to preserve semantic complexity.
@@ -1537,16 +1504,9 @@ In contrast, \tool{} is specifically designed for DBMS fuzzing, particularly for
 % By establishing the \textit{Abstraction-then-Instantiation} paradigm, \tool{} effectively decouples logical intent from syntactic representation. The system orchestrates a static analysis engine to extract dialect-agnostic AQT, employs a rule-guided RAG agent to recursively instantiate these templates into target dialects, and utilizes an adaptive sanitizer to ensure seamless integration with downstream fuzzers.
 % Extensive evaluations across four distinct DBMS architectures demonstrate that \tool{} significantly outperforms state-of-the-art baselines, improving semantic validity by up to \textbf{272\%} and achieving superior code coverage. Furthermore, its practical efficacy is evidenced by the discovery of \bugcnt{} previously unknown bugs, covering critical components from the optimizer to the storage engine.
 % Future work will explore extending this structural transfer paradigm to non-relational systems, such as Graph and Time-Series databases, to further broaden the scope of automated database testing.
-In this paper, we propose \tool{}, an automated fuzzing framework with structure-aware SQL transfer to bridge semantic gaps in cross-dialect DBMS fuzzing. 
-\tool{} introduces a query logic abstraction and instantiation workflow that effectively separates logical intent from specific syntax. 
-Specifically, the framework first extracts dialect-agnostic AQTs, and then employs a rule-guided RAG agent to instantiate these AQTs for target dialects. 
-Finally, it applies an adaptive query sanitizer to ensure compatibility with downstream fuzzers. 
-Our evaluations across four DBMSs show that \tool{} outperforms state-of-the-art baseline \sedar{}, improving semantic validity by up to 272\% and achieving superior code coverage. Moreover, \tool{} has successfully detected \bugcnt{} previously unknown bugs in four popular DBMSs, covering critical components from the optimizer to the storage engine. Our future work will explore extending this structural transfer paradigm to non-relational systems, such as Graph and Time-Series databases, to further broaden the scope of automated database testing.
+We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them with a rule-guided RAG agent, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic validity by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend this transfer paradigm to non-relational systems.
 
-\section{Data Availability Statement}
-The artifact and experimental data are available in an anonymous archive with a DOI at
-    % are anonymously archived with a DOI at 
-\url{https://doi.org/10.5281/zenodo.19251660}. 
+\noindent\textbf{Data.} \url{https://doi.org/10.5281/zenodo.19251660}. 
 % we also provide an anonymous mirror at \url{https://anonymous.4open.science/r/Morph-82DE}. Both links contain the same artifact content.
 
 
