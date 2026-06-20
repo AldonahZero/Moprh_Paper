@@ -103,11 +103,7 @@ We include SQLancer because it is a state-of-the-art DBMS testing tool for many 
 
 ### Question 1: Why is semantic equivalence necessary for fuzzing seed generation?
 
-Thank you for pointing this out. We agree that crash-oriented fuzzing does not require strict semantic equivalence, i.e., the transferred query does not need to produce the same result as the original query on the source DBMS. Our intended metric is **semantic correctness/validity**, not semantic equivalence: it measures whether a transferred seed can execute on the target DBMS without runtime errors after passing the parser.
-
-What Morph aims to preserve is the **semantic richness** of the source seed, including schema dependencies, type constraints, function usage, nested query structure, and cross-statement relationships. This matters for fuzzing because a seed that is merely syntactically valid but semantically broken is often rejected before reaching deeper optimizer/executor logic, while an over-sanitized seed loses the complex SQL features that drive path exploration. Thus, semantic correctness is a prerequisite for executability, and semantic richness is the property that keeps the seed valuable for mutation and coverage-guided fuzzing.
-
-We will revise the paper to avoid implying that Morph guarantees semantic equivalence. Empirically, Morph preserves richer SQL features in the transferred seeds, including 411 more functions, 34 more data types, and 496 more keywords than Sedar. This improved semantic richness, together with higher semantic validity, leads to 14% higher branch coverage and 16 more bugs than Sedar in 24 hours.
+Sorry for the confusion. Morph does not aim to guarantee semantic equivalence. Instead, it aims to preserve the structure and semantic richness, while also ensuring semantic correctness, enabling fuzzers to explore deeper DBMS components rather than only shallow paths. Morph achieves this via AQT-based structural abstraction and feedback-guided repair. AQT captures nested queries, functions, type casts, and cross-statement dependencies, while fuzzer feedback is used to repair incompatible constructs and ensure executability. Consequently, Morph preserves richer SQL features in the transferred seeds, containing 411 more functions, 34 more data types, and 496 more keywords, achieving 14% higher branch coverage, and detects 16 more bugs than Sedar in 24 hours.
 
 ### Question 2: Can existing SQL dialect translation approaches address fuzzing seed generation?
 

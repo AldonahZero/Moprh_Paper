@@ -130,12 +130,12 @@ In this paper, we propose \tool{}, a structure-aware cross-dialect SQL transfer 
 % Key challenges in achieving this include extracting query logic, preserving semantics in translation, and adapting queries for fuzzers.
 % \TODO{What is the challenge.}
 It follows a three-step workflow.
-First, \tool{} builds an Abstract Query Template (AQT) with dialect-independent structure extraction, preserving both query structure and semantics.
+First, \tool{} builds an Abstract Query Template (AQT) with dialect-independent structure extraction, preserving query structure and semantic-rich dependencies.
 Second, \tool{} instantiates the AQT into a target DBMS query with verified dialect.
 % rules. and fuzzer-supported grammar.
 Finally, \tool{} uses parser feedback to fix remaining incompatibilities, ensuring queries are fuzzer-parsable and mutable.
 We evaluate \tool{} on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}. 
-Compared with the state-of-the-art seeds transforming approach \sedar{}, \tool{} covers 26\% more branches, finds 16 more bugs in 24 hours, and achieves 100\%–272\% higher semantic correctness for transferred seeds.
+Compared with the state-of-the-art seeds transforming approach \sedar{}, \tool{} covers 26\% more branches, finds 16 more bugs in 24 hours, and achieves 100\%--272\% higher semantic correctness for transferred seeds.
 Moreover, \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed.
 % and \bugfixcnt{} that have already been fixed
 % Moreover, we received positive feedback from developers. For example, a MySQL developer commented: ``\TODO{This confirms that the generated seeds are practically useful and understandable in real-world DBMS development}.''
@@ -204,8 +204,8 @@ A typical example is \sedar{}~\cite{fu2024sedar}, which performs end-to-end SQL 
 % Semantic bottlenecks arise from the probabilistic nature of LLMs, which often fail to preserve strict relational semantics during dialect translation, leading to subtle behavioral discrepancies. Furthermore, the reliance on heuristic sanitization results in logic loss, where unparsable syntax containing essential predicates or join conditions is mechanically discarded to ensure executability. Consequently, the transferred queries undergo structural degeneration, rendering them insufficient for effectively stress-testing the target query optimizer despite being syntactically valid.
 
 Despite being able to transform test cases from mature DBMSs into initial seeds for target DBMSs, these methods still suffer from \textit{translation failures} and \textit{semantic degradation}.
-(1) First, end-to-end SQL translation may introduce syntax or semantic errors due to the inherent hallucination of LLMs or their limited knowledge of target dialects. During dialect translation, LLMs often fail to strictly preserve relational semantics, resulting in subtle but important behavioral differences. 
-(2) Second, to ensure that generated queries can be parsed by fuzzers, these methods often mechanically discard grammar structures that the tools cannot handle, causing the loss of valuable SQL features and testing logic embedded in the original test cases. As a result, although the transferred queries remain syntactically valid, they suffer from semantic degradation, limiting coverage of the target DBMS’s execution paths and reducing the effectiveness of stress-testing the query optimizer.
+(1) First, end-to-end SQL translation may introduce syntax or semantic errors due to the inherent hallucination of LLMs or their limited knowledge of target dialects. Such errors often break schema references, type constraints, or function semantics, making the transferred seeds fail during execution on the target DBMS. 
+(2) Second, to ensure that generated queries can be parsed by fuzzers, these methods often mechanically discard grammar structures that the tools cannot handle, causing the loss of valuable SQL features and testing logic embedded in the original test cases. As a result, although the transferred queries remain syntactically valid, they suffer from semantic degradation, limiting coverage of the target DBMS's execution paths and reducing the effectiveness of stress-testing the query optimizer.
 
 % However, while these methods ensure syntactic correctness, they suffer from semantic bottlenecks and logic loss.
 % Semantic bottlenecks arise from the hallucination issues inherent in LLMs, which often fail to preserve strict relational semantics during dialect translation, leading to subtle behavioral discrepancies. 
@@ -215,13 +215,13 @@ To address the limitations of existing approaches, we propose a structure-aware 
 Our core idea is to \textbf{decouple the logical intent of a test case from the dialect-specific syntax, transforming unstable textual translation into a more robust Structural Recursive Substitution approach}.
 We observe that, although different SQL dialects vary in function naming or syntactic sugar, they typically share an \textit{invariant abstract query logic} that governs the underlying operations and relationships between data elements.
 % \TODO{captures the overall structure of a query and its data-flow dependencies}. 
-By separating the core query logic from dialect-specific syntax, test cases can be translated across DBMSs while preserving their testing semantics. 
-This enables fuzzing to be more accurate and comprehensive, as it retains the essential behaviors of the queries while avoiding translation failures caused by superficial syntactic differences.
+By separating semantic-rich query structures from dialect-specific syntax, test cases can be translated across DBMSs while retaining the features that make them useful fuzzing seeds.
+This enables fuzzing to be more accurate and comprehensive, as it preserves schema dependencies, type constraints, functions, and nested structures while avoiding translation failures caused by superficial syntactic differences.
 
 However, realizing this idea has three challenges:
-(1) First, query logic is often tightly coupled with dialect-specific syntax, requiring the separation of syntactic differences while preserving the original query semantics, structure, and dependencies.
-(2) Second, ensuring semantic correctness during query transformation is non-trivial, as operators, functions, and type conversions may differ across dialects, requiring carefully constrained rewriting.
-(3) Third, advanced SQL features in target DBMSs often exceed the grammar supported by generic fuzzers; naively removing unsupported constructs can break queries, necessitating semantics-preserving adaptations into parsable forms without modifying the fuzzer.
+(1) First, query logic is often tightly coupled with dialect-specific syntax, requiring the separation of syntactic differences while preserving the original structure, dependencies, and semantic richness.
+(2) Second, ensuring target-side semantic correctness during query transformation is non-trivial, as operators, functions, and type conversions may differ across dialects, requiring carefully constrained rewriting.
+(3) Third, advanced SQL features in target DBMSs often exceed the grammar supported by generic fuzzers; naively removing unsupported constructs can break queries, necessitating structure-preserving adaptations into parsable forms without modifying the fuzzer.
 
 % (1) First, query logic is often tightly coupled with dialect-specific syntax, requiring separation of syntactic differences while preserving the structure, dependencies, and behavior of the original query. 
 % (2) Second, recursive SQL substitution risks semantic errors, as operators, functions, and type conversions may differ across dialects; each subtree replacement must be constrained to maintain semantic correctness. 
@@ -654,8 +654,8 @@ Finally, a structure-aware AQT is constructed, capturing the parent-child relati
 % Dialect translation requires more than surface-level lexical substitution, as subtle semantic discrepancies across dialects including differences in operator behaviors and implicit type conversions can easily lead to misaligned query semantics. 
 % To ensure that recursive subtree generation preserves the intended logical meaning, the system must strictly constrain the LLM’s output space during AQT construction, guaranteeing that each substituted subtree remains semantically consistent with the target dialect.
 % Following the abstraction phase, the system obtains an AQT tuple. 
-The step aims to instantiate AQTs into a syntactically valid query that adheres to the target grammar while preserving the original logical intent.
-The challenge is preserving semantic correctness in recursive SQL substitution.
+The step aims to instantiate AQTs into a syntactically valid query that adheres to the target grammar while preserving semantic-rich structures from the source seed.
+The challenge is preserving target-side semantic correctness in recursive SQL substitution.
 % unlike fragile end to end textual translation, 
 To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on a Retrieval-Augmented Generation (RAG) architecture, which grounds LLM outputs in retrieved dialect-specific evidence to reduce hallucinations. 
 
@@ -706,7 +706,7 @@ Each abstract token $\tau$ is instantiated using rules retrieved from the Hybrid
 % The \textit{Vector Index} keeps embedded dialect evidence (documentation, function signatures, and operator semantics) and retrieves top-$k$ relevant constraints for each abstract token $\tau$, grounding generation in concrete dialect rules rather than free-form synthesis.
 % If the retrieval confidence falls below a threshold $\delta$, a rule generator synthesizes a candidate rule, which is cached only after target-parser validation succeeds.
 
-To ensure syntactic correctness under semantic constraints, each generated fragment is validated by the target database parser. If a parsing error occurs, an iterative repair loop repairs the fragment and its rule using the error message and structural context while preserving semantic intent (Line~\ref{line:alg2:fix}). Only successfully validated rules are cached; unverified rules are discarded. This mechanism avoids degenerate fixes such as clause removal and enforces faithful preservation of query semantics.
+To ensure syntactic correctness under semantic constraints, each generated fragment is validated by the target database parser. If a parsing error occurs, an iterative repair loop repairs the fragment and its rule using the error message and structural context while preserving the seed's semantic-rich structure (Line~\ref{line:alg2:fix}). Only successfully validated rules are cached; unverified rules are discarded. This mechanism avoids degenerate fixes such as clause removal and preserves testing-relevant SQL features.
 Finally, validated fragments are progressively cached and assembled in a bottom-up manner to produce $Q_{target}$ (Lines~\ref{line:alg2:cache}--\ref{line:alg2:assemble}).
 
 \textbf{Test-Oriented Skill Execution.} The above instantiation procedure is implemented by \textit{Skill Executor},
@@ -732,7 +732,7 @@ which acts as the reasoning core of the agent, with three specialized skills.
     \label{fig:agent_translation}
 \end{figure}
 
-\textit{Error Fix:} This skill operates as a runtime correction module. It performs immediate syntax validation on generated fragments, and when a target database parser rejects a fragment, it identifies and localizes the error using both the compiler feedback and the AST context. To prevent degenerate repairs such as clause removal, its correction process explicitly enforces semantic preservation through constrained few-shot rewriting examples, ensuring that the final output remains a \textit{Compatible Seed} while preserving the original query complexity.
+\textit{Error Fix:} This skill operates as a runtime correction module. It performs immediate syntax validation on generated fragments, and when a target database parser rejects a fragment, it identifies and localizes the error using both the compiler feedback and the AST context. To prevent degenerate repairs such as clause removal, its correction process explicitly favors structure-preserving rewrites through constrained few-shot examples, ensuring that the final output remains a \textit{Compatible Seed} while preserving the original query complexity.
 
 
 % \textit{SQL Translator:} The primary skill responsible for token-to-dialect mapping. It synthesizes the target SQL fragment by fusing the input segment with the function signatures retrieved from the \textit{Vector Index}. For instance, when encountering \texttt{<TimeDiff>}, it utilizes the retrieved \duckdb{} \texttt{date\_diff} signature to produce the final compliant expression.
@@ -926,6 +926,7 @@ We evaluate \tool{} to assess its performance in cross-dialect seed transformati
 \item \textbf{RQ4:} What is the contribution of each component in \tool{} to the overall performance?
     % , including the \textit{Syntax-Aware Query Abstraction}, the \textit{Rule-Guided RAG Agent}, and the \textit{Feedback-Driven Adaptive Sanitizer}, 
 \end{itemize}
+We first describe the experimental setup, and then answer RQ1--RQ4 in the following four subsections.
 
     % \item \textbf{RQ4:} How do the individual components of \tool{}—specifically the \textit{Syntax-Aware Query Abstraction}, the \textit{Rule-Guided RAG Agent}, and the \textit{Feedback-Driven Adaptive Sanitizer}—contribute to the overall performance?
 % Experiment setup (environment, benchmark, evaluation metrics, etc.)
@@ -975,8 +976,9 @@ We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end
 % to evaluate \tool{} against the best existing solution.
 
 We employ three metrics to evaluate \tool{}.
-First, to assess transfer quality, we measure \textit{Syntactic Correctness} (the proportion of seeds passing the parser) and \textit{Semantic Validity} (the proportion executing without runtime errors). 
+First, to assess transfer quality, we measure \textit{Syntactic Correctness} (the proportion of seeds passing the parser) and \textit{Semantic Correctness} (the proportion executing without runtime errors). 
 Formally, given a generated seed set $\mathcal{Q}$, we compute $\mathrm{Syn.}=|\mathcal{Q}_{parse}|/|\mathcal{Q}|$ and $\mathrm{Sem.}=|\mathcal{Q}_{exec}|/|\mathcal{Q}|$, where $\mathcal{Q}_{parse}$ denotes parser-accepted seeds and $\mathcal{Q}_{exec}$ denotes seeds executed without runtime errors.
+Here, semantic correctness does not denote result equivalence between the source and target DBMSs; instead, it captures whether a transferred seed is executable in the target DBMS without runtime errors. We separately measure semantic richness by counting valid functions, data types, and keywords preserved in executable transferred seeds.
 Second, to quantify the effectiveness in improving fuzzing, we utilize LLVM's \texttt{SanitizerCoverage} to track \textit{Branch Coverage} over 24-hour campaigns. We report the average results across five independent runs to mitigate randomness. Third, regarding real-world bug discovery, we present the detected number of bugs. 
 The bugs are deduplicated from raw crash logs using stack hashes and error signatures, ensuring that the reported numbers reflect unique numbers.
 
@@ -993,9 +995,9 @@ The bugs are deduplicated from raw crash logs using stack hashes and error signa
 % \paragraph{\textbf{Evaluation Metrics}}
 % \lqf{
 % We employ three comprehensive sets of metrics to evaluate \tool{}
-% First, to assess transfer quality, we measure \textit{Syntactic Correctness} (the proportion of seeds passing the parser) and \textit{Semantic Validity} (the proportion executing without runtime errors). Second, to quantify deep logic exploration, we utilize LLVM's \texttt{SanitizerCoverage} to track \textit{Branch Coverage} over 24-hour campaigns. We report the average results across five independent runs to mitigate randomness. Third, to demonstrate practical effectiveness, we report the number of \textit{Unique Crashes} (deduplicated by stack trace) and \textit{Logic Bugs} discovered.
+% First, to assess transfer quality, we measure \textit{Syntactic Correctness} (the proportion of seeds passing the parser) and \textit{Semantic Correctness} (the proportion executing without runtime errors). Second, to quantify deep logic exploration, we utilize LLVM's \texttt{SanitizerCoverage} to track \textit{Branch Coverage} over 24-hour campaigns. We report the average results across five independent runs to mitigate randomness. Third, to demonstrate practical effectiveness, we report the number of \textit{Unique Crashes} (deduplicated by stack trace) and \textit{Logic Bugs} discovered.
 % }
-% We employ three sets of metrics. First, validity statistics measure Syntactic Correctness (proportion of seeds passing the parser) and Semantic Validity (proportion of seeds executing without runtime errors), serving as the primary indicators of transfer quality. Second, regarding code coverage, we utilize LLVM's \texttt{SanitizerCoverage} to capture Branch Coverage over a 24-hour campaign. To mitigate randomness, we repeated each campaign 5 times and reported the average results to quantify deep logic exploration. Third, for bug discovery, we report the number of Unique Crashes (deduplicated by stack trace) and Logic Bugs detected.
+% We employ three sets of metrics. First, validity statistics measure Syntactic Correctness (proportion of seeds passing the parser) and Semantic Correctness (proportion of seeds executing without runtime errors), serving as the primary indicators of transfer quality. Second, regarding code coverage, we utilize LLVM's \texttt{SanitizerCoverage} to capture Branch Coverage over a 24-hour campaign. To mitigate randomness, we repeated each campaign 5 times and reported the average results to quantify deep logic exploration. Third, for bug discovery, we report the number of Unique Crashes (deduplicated by stack trace) and Logic Bugs detected.
 
 
 % , and each fuzzing session was configured for a duration of 24 hours.
@@ -1011,7 +1013,7 @@ The bugs are deduplicated from raw crash logs using stack hashes and error signa
 
 
 
-\subsection{Real-World Bug Detection}
+\subsection{RQ1: Real-World Bug Detection}
 
 %============================================================
 % Table: Real-World Bug Detection
@@ -1117,7 +1119,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 % Notably, \textbf{2} bugs have already been fixed and \textbf{9} confirmed by developers, demonstrating \tool{}'s ability to generate high-quality, impactful test cases that traditional tools missed.
 \end{answerbox}
 
-\subsection{Comparison with Other Fuzzing Tools}
+\subsection{RQ2: Comparison with Other Fuzzing Tools}
 % Beyond the generation phase, we further evaluated the contribution of the \textit{Feedback-Driven Adaptive Sanitizer}. We compared the full framework ($\textsc{Morph}_{\textit{full}}$) against a variant named $\textsc{Morph}_{\textit{static}}$, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
 
 % To evaluate the effectiveness of \tool{} in improving DBMS fuzzing, we compared three different sets of initial seeds. Specifically, $S^-$ denotes directly using the original test cases from the source DBMS as initial seeds; $S$ represents seeds translated by \sedar{} and then fuzzed using the backend fuzzer \griffin{}; and $S^+$ corresponds to seeds translated by \tool{} and fuzzed with \griffin{}. All three configurations were executed under identical experimental settings for 24 hours to ensure a fair comparison.
@@ -1187,9 +1189,9 @@ Moreover, \tool{} detects a total of 16 more bugs than \sedar{} on all four DBMS
 % Notably, on MonetDB and DuckDB, \tool{} detected 5 and 4 unique bugs, respectively, whereas \sedar{} only found 1 in each. 
 % In total, \tool{} discovered 13 unique bugs across all targets, compared to just 5 by \sedar{}. 
 This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
-% The correlation between semantic validity, coverage, and bug discovery is evident. In the raw baseline ($S^-$), queries often terminate early during parsing due to syntax errors. By ensuring high semantic validity (RQ2), \tool{} allows the fuzzer to bypass early rejection checks, exercise deeper logic within the optimizer and executor, and ultimately trigger more critical vulnerabilities.
+% The correlation between semantic correctness, coverage, and bug discovery is evident. In the raw baseline ($S^-$), queries often terminate early during parsing due to syntax errors. By ensuring high semantic correctness (RQ2), \tool{} allows the fuzzer to bypass early rejection checks, exercise deeper logic within the optimizer and executor, and ultimately trigger more critical vulnerabilities.
 % The correlation between testing strategy, coverage, and bug discovery is evident. 
-Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source queries. By ensuring high semantic validity (RQ2), \tool{} enables fuzzers to bypass early engine rejections, exercise deeper optimizer and executor logic, and trigger critical vulnerabilities.
+Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source queries. By ensuring high semantic correctness (RQ2), \tool{} enables fuzzers to bypass early engine rejections, exercise deeper optimizer and executor logic, and trigger critical vulnerabilities.
 
 
 % ============================================================
@@ -1225,9 +1227,10 @@ The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
 % and exploring deeper state spaces to uncover bugs
 
-\subsection{Effectiveness of Translation of \tool{}}
+\subsection{RQ3: Effectiveness of Translation of \tool{}}
 In this section, we evaluate the effectiveness of \tool{} by comparing it with untranslated initial seeds, off-the-shelf SQL dialect translators, recent SQL translation systems, and \sedar{}.
 We evaluate in two aspects: the validity of translated seeds and the semantic richness of SQL features preserved in the translated test cases.
+We emphasize that this evaluation targets fuzzing seed quality rather than cross-DBMS result equivalence: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for subsequent mutation.
 % In this section, we evaluate the effectiveness of the translation in \tool{} in two aspects, namely the validity and the diversity of SQL features of the test cases translated by \tool{}.
 % and preserve the semantic richness of source test cases.
 
@@ -1237,18 +1240,18 @@ As shown in Table~\ref{tab:validity}, directly executing source seeds without tr
 For instance, the semantic correctness ratio is only 0.097 on Virtuoso, while the highest ratio of No translation is only 0.284 on DuckDB. 
 This shows that foreign SQL dialects are largely ineffective as fuzzing seeds without explicit adaptation.
 Off-the-shelf translators and recent SQL translation systems improve syntactic acceptance to some extent, but they still leave a substantial semantic gap.
-For example, on DuckDB, SQLGlot, CrackSQL, and RISE achieve syntactic correctness above 0.738, yet their semantic validity remains no higher than 0.314.
-Although \sedar{} improves semantic validity over these generic translators on most targets, it still suffers from semantic hallucinations and destructive sanitization. 
-In contrast, \tool{} achieves the best result in every syntactic and semantic column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness than \sedar{} on the tested DBMSs.
-On \duckdb{}, for example, \tool{} improves semantic validity from \sedar{}'s 0.365 to 0.748 by preserving target-compatible schema, type, and function semantics during transfer.
-% First, we analyze the semantic validity of the generated seeds. As shown in Table~\ref{tab:validity}, raw seeds ($S^-$) exhibit low transferability, with semantic correctness ratios dropping as low as 9.7\% on Virtuoso. This confirms that direct execution of foreign SQL dialects is ineffective due to syntax incompatibilities.
+For example, on DuckDB, SQLGlot, CrackSQL, and RISE achieve syntactic correctness above 0.738, yet their semantic correctness remains no higher than 0.314.
+Although \sedar{} improves semantic correctness over these generic translators on most targets, it still suffers from semantic hallucinations and destructive sanitization. 
+In contrast, \tool{} achieves the best result in every syntactic and semantic-correctness column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness than \sedar{} on the tested DBMSs.
+On \duckdb{}, for example, \tool{} improves semantic correctness from \sedar{}'s 0.365 to 0.748 by preserving target-compatible schema, type, and function semantics during transfer.
+% First, we analyze the semantic correctness of the generated seeds. As shown in Table~\ref{tab:validity}, raw seeds ($S^-$) exhibit low transferability, with semantic correctness ratios dropping as low as 9.7\% on Virtuoso. This confirms that direct execution of foreign SQL dialects is ineffective due to syntax incompatibilities.
 
 % ============================================================
 % Table 5: Validity Statistics (RQ3) 
 % ============================================================
 \begin{table}[ht]
 \centering % <--- 关键：居中对齐
-\caption{Comparison of syntactic correctness and semantic validity across target DBMSs. Syn. and Sem. denote syntactic correctness and semantic validity, respectively. The best result in each column is highlighted in bold. The last row reports the relative improvement of \tool{} over \sedar{}.}
+\caption{Comparison of syntactic and semantic correctness across target DBMSs. Syn. and Sem. denote syntactic correctness and semantic correctness, respectively. The best result in each column is highlighted in bold. The last row reports the relative improvement of \tool{} over \sedar{}.}
 \label{tab:validity} % <--- 标签：用于引用
 \renewcommand\arraystretch{1}
 \scriptsize
@@ -1277,7 +1280,7 @@ On \duckdb{}, for example, \tool{} improves semantic validity from \sedar{}'s 0.
 }
 \end{table}
 
-The semantic improvement is particularly pronounced on DBMSs with larger dialect gaps. On Virtuoso, \tool{} achieves a semantic validity of 0.629, which represents a 272\% improvement over \sedar{}. Consistently, on MonetDB, the semantic validity reaches 0.776, effectively doubling the performance of \sedar{} with a 100\% increase. Even on DuckDB, where \sedar{} performs relatively better, \tool{} still provides a 105\% boost in semantic validity. 
+The semantic-correctness improvement is particularly pronounced on DBMSs with larger dialect gaps. On Virtuoso, \tool{} achieves a semantic correctness of 0.629, which represents a 272\% improvement over \sedar{}. Consistently, on MonetDB, the semantic correctness reaches 0.776, effectively doubling the performance of \sedar{} with a 100\% increase. Even on DuckDB, where \sedar{} performs relatively better, \tool{} still provides a 105\% boost in semantic correctness. 
 The empirical data suggests that the \textit{Abstraction-then-Instantiation} paradigm successfully bridges the gap between parsability and execution by mapping logical intent to target constraints. Consequently, \tool{} provides the DBMS fuzzing with seeds that are mostly executable, serving as a viable foundation for testing.
 
 
@@ -1286,7 +1289,7 @@ Beyond validity, we assessed whether the transferred seeds retain the testing va
 As summarized in Table~\ref{tab:diversity}, \tool{} demonstrates a consistent ability to maintain a higher degree of semantic richness than all baselines. 
 In aggregate, \tool{} successfully preserves 1,036 distinct functions, 180 unique data types, and 1,368 keywords across the four target DBMSs. 
 In contrast, \sedar{} retains 625 functions, 146 data types, and 872 keywords. 
-In other words, compared to \sedar{}, \tool{} covers 411 more functions, 34 more data types, and 496 more keywords.
+In other words, compared to \sedar{}, \tool{} covers 411 more functions, 34 more data types, and 496 more keywords, corresponding to aggregate improvements of 66\%, 23\%, and 57\%, respectively.
 % Compared with No translation, this is a substantial net increment of +633 functions, +65 data types, and +616 keywords.
 
 % Beyond validity, we assessed whether the transferred seeds retain the testing value of the source test cases by analyzing the diversity of valid SQL features (functions, data types, and keywords). Table~\ref{tab:diversity} presents the statistics.
@@ -1296,11 +1299,12 @@ In other words, compared to \sedar{}, \tool{} covers 411 more functions, 34 more
 % ============================================================
 \begin{table}[ht]
 \centering % <--- 让表格居中
-\footnotesize     % <--- 主动缩小字号，而不是被拉伸
+\scriptsize     % <--- 主动缩小字号，而不是被拉伸
 \caption{Statistics of valid SQL features in the transferred seeds. F, DT, and K denote functions, data types, and keywords, respectively. The best result in each column is highlighted in bold.}
 \label{tab:diversity}
-\setlength{\tabcolsep}{2pt}
-\resizebox{\columnwidth}{!}{%
+\setlength{\tabcolsep}{1.2pt}
+\renewcommand{\arraystretch}{0.92}
+\resizebox{0.96\columnwidth}{!}{%
         \begin{tabular}{l|ccc|ccc|ccc|ccc}
         \toprule
         \multirow{2}{*}{\textbf{Method}} &
@@ -1336,12 +1340,12 @@ window function signatures) when they fail to parse in the target engine. Conver
 % This advantage stems from the difference in sanitization strategies. \sedar{}~\cite{fu2024sedar} employs a destructive strategy (commenting out unparsable tokens), which often removes complex clauses like \texttt{::INTERVAL} when they fail to parse. In contrast, \tool{} recursively instantiates these structures into target-compliant forms (e.g., converting PostgreSQL's interval syntax to DuckDB's standard). Consequently, \tool{} preserves \textbf{180} unique data types across all targets, whereas \sedar{} only retains 146, ensuring that the fuzzer is exposed to a broader range of type-related execution paths.
 
 \begin{answerbox}
-\textbf{Answer to RQ3:} \tool{} achieves the strongest validity results across all tested translation methods and DBMSs. It improves semantic correctness by up to 272\% over \sedar{} and preserves 1,036 distinct functions, 411 more than \sedar{}. By eliminating semantic hallucinations and employing constructive instantiation, \tool{} ensures generated seeds are both executable and rich in testing logic.
+\textbf{Answer to RQ3:} \tool{} achieves the strongest correctness results across all tested translation methods and DBMSs. It improves semantic correctness by up to 272\% over \sedar{} and preserves 1,036 functions, 180 data types, and 1,368 keywords, exceeding \sedar{} by 411 (+66\%), 34 (+23\%), and 496 (+57\%), respectively. By eliminating semantic hallucinations and employing constructive instantiation, \tool{} ensures generated seeds are both executable and rich in testing logic.
 \end{answerbox}
 
 
 
-\subsection{Contribution of Individual Components}
+\subsection{RQ4: Contribution of Individual Components}
 To analyze the specific contributions of the individual components within \tool{}, we conducted an ablation study across two phases. 
 For the \textit{translation phase}, we evaluated four variants using the task of  \pg{}-to-\duckdb{} transfer:
 (1) $\tool{}_{\textit{base}}$: the baseline using direct zero-shot LLM translation (i.e., prompting the LLM with the raw SQL and asking for a direct translation, unlike the $S^-$ baseline which executes the raw, untranslated SQL directly);
@@ -1364,8 +1368,8 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 % 关闭组件\textit{Syntax-Aware Query Abstraction}，语法正确率为50.7%，语义正确率为27.4%
 As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Syntax-Aware Query Abstraction} and the \textit{Rule-Guided RAG Agent} are disabled, the syntactic correctness is 51\% and the semantic correctness of $\tool{}_{\textit{base}}$ is 27\%.
 With \textit{Syntax-Aware Query Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The semantic correctness also increases to 32\%.
-Moreover, with \textit{Rule-Guided RAG Agent}, $\tool{}_{\textit{rag}}$ further enhances syntax correctness to 87\%, and it also increases correctness to 49\% (+21\%) by grounding generation in retrieved dialect rules.
-The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} semantic correctness.
+Moreover, with \textit{Rule-Guided RAG Agent}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases semantic correctness to 49\% (+21\%) by grounding generation in retrieved dialect rules.
+The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic correctness and \textbf{65\%} semantic correctness.
 % 去掉def
 % Figure~\ref{fig:ablation_analysis} (c), (d), (e), and (f) show the data about fix iterations and token consumptions.
 % While $\tool{}_{\textit{full}}$ introduces a higher iteration cost (+89\%) and token consumption (+21\%) compared to the baseline, these costs are a justified investment for the substantial gain in high-fidelity transfer. 
@@ -1409,7 +1413,7 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 \end{table}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 37\%, $\tool{}_{\textit{rag}}$ boosts semantic validity by 21\%, and $\tool{}_{\textit{full}}$ improves syntax/semantics by 44\%/38\%. The sanitizer further increases branch coverage by up to 39\%.
+\textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 37\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, and $\tool{}_{\textit{full}}$ improves syntax/semantic correctness by 44\%/38\%. The sanitizer further increases branch coverage by up to 39\%.
 \end{answerbox}
 
 
@@ -1529,9 +1533,9 @@ Recent LLM-based methods improve DBMS seed generation: CrackSQL~\cite{zhou2025cr
 \label{sec:conclusion}
 % In this paper, we propose \tool{}, an automated framework designed to bridge the semantic barriers in cross-dialect DBMS fuzzing through structure-aware SQL transfer.
 % By establishing the \textit{Abstraction-then-Instantiation} paradigm, \tool{} effectively decouples logical intent from syntactic representation. The system orchestrates a static analysis engine to extract dialect-agnostic AQT, employs a rule-guided RAG agent to recursively instantiate these templates into target dialects, and utilizes an adaptive sanitizer to ensure seamless integration with downstream fuzzers.
-% Extensive evaluations across four distinct DBMS architectures demonstrate that \tool{} significantly outperforms state-of-the-art baselines, improving semantic validity by up to \textbf{272\%} and achieving superior code coverage. Furthermore, its practical efficacy is evidenced by the discovery of \bugcnt{} previously unknown bugs, covering critical components from the optimizer to the storage engine.
+% Extensive evaluations across four distinct DBMS architectures demonstrate that \tool{} significantly outperforms state-of-the-art baselines, improving semantic correctness by up to \textbf{272\%} and achieving superior code coverage. Furthermore, its practical efficacy is evidenced by the discovery of \bugcnt{} previously unknown bugs, covering critical components from the optimizer to the storage engine.
 % Future work will explore extending this structural transfer paradigm to non-relational systems, such as Graph and Time-Series databases, to further broaden the scope of automated database testing.
-We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them with a rule-guided RAG agent, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic validity by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend this transfer paradigm to non-relational systems.
+We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them with a rule-guided RAG agent, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic correctness by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend this transfer paradigm to non-relational systems.
 
 \noindent\textbf{Data.} \url{https://doi.org/10.5281/zenodo.19251660}. 
 % we also provide an anonymous mirror at \url{https://anonymous.4open.science/r/Morph-82DE}. Both links contain the same artifact content.
