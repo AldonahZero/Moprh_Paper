@@ -162,9 +162,9 @@
 };
 
 % Internal Flow Arrows
-% 1. Generator -> Translator (New Rule) - From Left-South
+% 1. Generator -> Translator (Candidate Rule) - From Left-South
 \draw[-latex, thick, black!60] (generator.225) -- (translator.north) 
-    node[midway, left, font=\tiny, xshift=-2pt] {New Rule};
+    node[midway, left, font=\tiny, xshift=-2pt] {Candidate Rule};
 
 % 2. Translator -> Fixer (Draft Fragment)
 \draw[-latex, thick, black!60] (translator.east) -- (fixer.west) 

@@ -119,8 +119,7 @@
     \textcolor{black}{S_{norm}}, 
     \textcolor{black}{\mathcal{G}}, 
     \mathcal{D}, 
-    \textcolor{black}{\mathcal{H}}, 
-    \textcolor{black}{\mathcal{C}} 
+    \textcolor{black}{\mathcal{H}} 
     \rangle$
 };
 
@@ -136,8 +135,7 @@
 };
 \node[left=0.1cm of graphNode, font=\normalsize\sffamily\bfseries, color=black!70] (graphLabel) {$\mathcal{G}$:};
 \node[right=0.5cm of graphNode, font=\scriptsize\sffamily, color=blue] (hcLabels) {
-    \textbf{$\mathcal{H}$}: \texttt{0x3f7a} \textcolor{gray}{\textit{(hash)}} \quad
-    \textbf{$\mathcal{C}$}: 8.5 \textcolor{gray}{\textit{(nodes+depth)}}
+    \textbf{$\mathcal{H}$}: \texttt{0x3f7a} \textcolor{gray}{\textit{(hash)}}
 };
 
 \node[left=0.8cm of n5, anchor=east, 
@@ -204,7 +202,7 @@
 
 \node[dialogBox] (step3) at (aqtContainer.south |- bottomY) {
     \textbf{\textcolor{blue}{Structure-Aware AQT}}\\  
-    Creates matchable query representation Tuple $\mathcal{T} = \langle S_{norm}, \mathcal{G}, \mathcal{D}, \mathcal{H}, \mathcal{C} \rangle$
+    Creates matchable query representation Tuple $\mathcal{T} = \langle S_{norm}, \mathcal{G}, \mathcal{D}, \mathcal{H} \rangle$
 };
 \node[cnum, fill=blue, left=2pt of step3.north west, anchor=north east] {3};
 \draw[pointer, blue] (step3.north) to[out=90, in=-90] (aqtContainer.south);
