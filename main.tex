@@ -682,12 +682,14 @@ $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow 
     \ForEach{$\tau$ \textbf{in} $\textsc{AbstractTokens}(S)$}{
         $(rule, conf) \leftarrow \textsc{Retrieve}(HKB, \tau, D_t)$ \label{line:alg2:retrieve} \tcp*{Query Hybrid KB}
         \If{$conf < \delta$}{
-            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \;
-            $HKB.\textsc{Cache}(\tau, rule)$\;
+            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \tcp*{Candidate rule}
         }
-        $frag \leftarrow \textsc{Translator}(\tau, rule, \mathcal{D})$ \label{line:alg2:translate} \tcp*{Instantiate token}
+        $frag \leftarrow \textsc{Translator}(\tau, rule, \mathcal{D})$ \label{line:alg2:translate} \tcp*{Apply rule}
         \While{$err \leftarrow \textsc{Parse}(frag, D_t)$}{
-            $frag \leftarrow \textsc{Fixer}(frag, err)$ \label{line:alg2:fix} \;
+            $(frag, rule) \leftarrow \textsc{Fixer}(frag, rule, err)$ \label{line:alg2:fix} \;
+        }
+        \If{$conf < \delta$}{
+            $HKB.\textsc{Cache}(\tau, rule)$ \label{line:alg2:cache_rule} \tcp*{Verified rule only}
         }
         $S \leftarrow \textsc{Replace}(S, \tau, frag)$\;
     }
@@ -697,14 +699,14 @@ $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow 
 \end{algorithm}
 
 To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, the system employs a rule-guided instantiation process as formalized in Algorithm~\ref{alg:translation}. The algorithm first performs a topological sort on the structure graph $\mathcal{G}$ to determine a bottom-up execution sequence (Line~\ref{line:alg2:sort}), ensuring that nested subqueries are resolved before their parents. For each segment, the algorithm recursively substitutes instantiated child fragments into the current structure (Lines~\ref{line:alg2:substitute_start}--\ref{line:alg2:substitute_end}).
-Each abstract token $\tau$ is instantiated using rules retrieved from the Hybrid Knowledge Base (Line~\ref{line:alg2:retrieve}). When retrieval confidence falls below a threshold $\delta$, a rule generator synthesizes a new transformation rule from the AST context and few-shot examples (Line~\ref{line:alg2:generate}), which is then cached back into the knowledge base for future reuse. The token is then translated into target-compliant syntax using the selected rule (Line~\ref{line:alg2:translate}).
+Each abstract token $\tau$ is instantiated using rules retrieved from the Hybrid Knowledge Base (Line~\ref{line:alg2:retrieve}). When retrieval confidence falls below a threshold $\delta$, a rule generator synthesizes a candidate rule from the AST context and few-shot examples (Line~\ref{line:alg2:generate}). The candidate is applied by the translator and validated by the target DBMS parser before it is cached (Lines~\ref{line:alg2:translate}--\ref{line:alg2:cache_rule}).
 
 % Each abstract token $\tau$ is instantiated using rules retrieved from the Hybrid Knowledge Base (Line~\ref{line:alg2:retrieve}), which integrates an \textit{Abstract Pattern Store} and a \textit{Vector Index}. 
 % The \textit{Abstract Pattern Store} keeps deduplicated structural skeletons extracted during AQT generation (e.g., \texttt{JOIN}/\texttt{WINDOW} templates), preserving query topology across dialects. 
 % The \textit{Vector Index} keeps embedded dialect evidence (documentation, function signatures, and operator semantics) and retrieves top-$k$ relevant constraints for each abstract token $\tau$, grounding generation in concrete dialect rules rather than free-form synthesis.
-% If the retrieval confidence falls below a threshold $\delta$, a rule generator synthesizes a new transformation rule from the AST context and few-shot examples (Line~\ref{line:alg2:generate}), which is then cached back into the knowledge base for future reuse. The token is then translated into target-compliant syntax using the selected rule (Line~\ref{line:alg2:translate}).
+% If the retrieval confidence falls below a threshold $\delta$, a rule generator synthesizes a candidate rule, which is cached only after target-parser validation succeeds.
 
-To ensure syntactic correctness under semantic constraints, each generated fragment is validated by the target database parser. If a parsing error occurs, an iterative repair loop is triggered, where the fragment is corrected using both the error message and structural context while preserving semantic intent (Line~\ref{line:alg2:fix}). This mechanism avoids degenerate fixes such as clause removal and enforces faithful preservation of query semantics.
+To ensure syntactic correctness under semantic constraints, each generated fragment is validated by the target database parser. If a parsing error occurs, an iterative repair loop repairs the fragment and its rule using the error message and structural context while preserving semantic intent (Line~\ref{line:alg2:fix}). Only successfully validated rules are cached; unverified rules are discarded. This mechanism avoids degenerate fixes such as clause removal and enforces faithful preservation of query semantics.
 Finally, validated fragments are progressively cached and assembled in a bottom-up manner to produce $Q_{target}$ (Lines~\ref{line:alg2:cache}--\ref{line:alg2:assemble}).
 
 \textbf{Test-Oriented Skill Execution.} The above instantiation procedure is implemented by \textit{Skill Executor},
@@ -715,7 +717,7 @@ which acts as the reasoning core of the agent, with three specialized skills.
 
 \textit{SQL Translation:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering \texttt{<TimeDiff>}, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
 
-\textit{Rule Generation:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It leverages the LLM’s zero-shot reasoning, together with AST context and few-shot examples, to synthesize a new transformation rule. The generated rule is subsequently cached into the hybrid knowledge base to improve coverage and reduce future reliance on ad hoc generation.
+\textit{Rule Generation:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate transformation rule. The candidate is cached in the Hybrid KB only after target-parser validation succeeds.
 
 \begin{figure}[b]
     \centering
@@ -735,7 +737,7 @@ which acts as the reasoning core of the agent, with three specialized skills.
 
 % \textit{SQL Translator:} The primary skill responsible for token-to-dialect mapping. It synthesizes the target SQL fragment by fusing the input segment with the function signatures retrieved from the \textit{Vector Index}. For instance, when encountering \texttt{<TimeDiff>}, it utilizes the retrieved \duckdb{} \texttt{date\_diff} signature to produce the final compliant expression.
     
-% \textit{Rule Generator:} This skill is triggered when the retrieval confidence for a specific feature falls below a threshold. It leverages the LLM's zero-shot reasoning to synthesize a new transformation rule based on the AST context and few-shot examples, which is then cached back into a hybrid knowledge base to refine the system's knowledge over time.
+% \textit{Rule Generator:} This skill synthesizes a candidate rule under low retrieval confidence and caches it only after target-parser validation succeeds.
     
 % \textit{Error Fixer:} Functioning as a runtime monitor, this skill performs an immediate syntax check on the generated fragment. If the target database's parser rejects the fragment, the fixer analyzes the compiler's error message \emph{alongside the AST context} to pinpoint the fault. To prevent the LLM from oversimplifying the query (e.g., simply deleting the rejected clause), the fixer's prompt explicitly enforces semantic preservation through few-shot examples of correct rewriting strategies, ensuring the final output is a \textit{Compatible Seed} that retains its original complexity.
 
@@ -789,12 +791,14 @@ $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow 
     \ForEach{$\tau$ \textbf{in} $\textsc{AbstractTokens}(S)$}{
         $(rule, conf) \leftarrow \textsc{Retrieve}(HKB, \tau, D_t)$ \label{line:alg2:retrieve} \tcp*{Query Hybrid KB}
         \If{$conf < \delta$}{
-            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \;
-            $HKB.\textsc{Cache}(\tau, rule)$\;
+            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \tcp*{Candidate rule}
         }
-        $frag \leftarrow \textsc{Translator}(\tau, rule, \mathcal{D})$ \label{line:alg2:translate} \tcp*{Instantiate token}
+        $frag \leftarrow \textsc{Translator}(\tau, rule, \mathcal{D})$ \label{line:alg2:translate} \tcp*{Apply rule}
         \While{$err \leftarrow \textsc{Parse}(frag, D_t)$}{
-            $frag \leftarrow \textsc{Fixer}(frag, err)$ \label{line:alg2:fix} \;
+            $(frag, rule) \leftarrow \textsc{Fixer}(frag, rule, err)$ \label{line:alg2:fix} \;
+        }
+        \If{$conf < \delta$}{
+            $HKB.\textsc{Cache}(\tau, rule)$ \label{line:alg2:cache_rule} \tcp*{Verified rule only}
         }
         $S \leftarrow \textsc{Replace}(S, \tau, frag)$\;
     }
