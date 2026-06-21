@@ -191,7 +191,7 @@ While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suite
 To overcome this limitation, some studies have used large language models (LLMs) to translate SQL test cases between DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
 They aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
 % This strategy aims to repurpose rich historical test cases into effective seeds, bridging the gap between different DBMS dialects. 
-A typical example is \sedar{}~\cite{fu2024sedar}, which performs end-to-end SQL translation using LLMs. It first executes existing test cases on the source DBMS to collect schema information, then leverages LLMs with this schema to generate new test cases for the target DBMS. To ensure compatibility with fuzzers, \sedar{} temporarily comments out unparsable parts during mutation.
+A typical example is \sedar{}~\cite{fu2024sedar}, which follows an LLM-centric \textit{Translate-and-Sanitize} pipeline. It first executes existing test cases on the source DBMS to collect schema information, then directly feeds the schema and raw SQL text to an LLM for target-dialect translation. To ensure compatibility with fuzzers, \sedar{} relies on \textit{Unparsable Commenting}, which temporarily comments out unparsable parts during mutation.
 
 
 % A typical example is \sedar{}~\cite{fu2024sedar}, which leverages LLMs to automatically translate and adapt source SQL statements for the target DBMS.
@@ -212,11 +212,10 @@ Despite being able to transform test cases from mature DBMSs into initial seeds 
 % Furthermore, these methods mechanically discard unparsable syntax to ensure executability, causing the loss of valuable testing logic embedded in the original seeds. Consequently, the transferred queries undergo structural degeneration, rendering them insufficient for effectively stress-testing the target query optimizer despite being syntactically valid.
 
 To address the limitations of existing approaches, we propose a structure-aware method for cross-dialect transfer of SQL test cases. 
-Our core idea is to \textbf{decouple the logical intent of a test case from the dialect-specific syntax, transforming unstable textual translation into a more robust Structural Recursive Substitution approach}.
-We observe that, although different SQL dialects vary in function naming or syntactic sugar, they typically share an \textit{invariant abstract query logic} that governs the underlying operations and relationships between data elements.
-% \TODO{captures the overall structure of a query and its data-flow dependencies}. 
-By separating semantic-rich query structures from dialect-specific syntax, test cases can be translated across DBMSs while retaining the features that make them useful fuzzing seeds.
-This enables fuzzing to be more accurate and comprehensive, as it preserves schema dependencies, type constraints, functions, and nested structures while avoiding translation failures caused by superficial syntactic differences.
+Our core idea is to \textbf{reformulate SQL transfer from LLM-driven text translation into constrained instantiation over Abstract Query Templates (AQTs)}.
+Instead of asking an LLM to translate raw SQL end-to-end, \tool{} first extracts an AQT that explicitly captures schema dependencies, nested structures, and clause-level relationships.
+It then instantiates the AQT into target-dialect SQL using explicit transfer rules and target-side feedback, with the LLM used only for bounded rule generation or local repair under structural constraints.
+This enables fuzzing to retain testing-relevant SQL features while avoiding the translation failures and destructive sanitization caused by direct text translation.
 
 However, realizing this idea has three challenges:
 (1) First, query logic is often tightly coupled with dialect-specific syntax, requiring the separation of syntactic differences while preserving the original structure, dependencies, and semantic richness.
@@ -475,6 +474,9 @@ By maintaining these complex semantics during transfer, \tool{} ensures the gene
  % structure-aware cross-dialect SQL transfer framework designed for constructing high-quality initial seeds for DBMS fuzzi
 \tool{} is a structure-aware cross-dialect DBMS fuzzing framework for generating effective seeds for the target DBMSs.
 As Figure~\ref{fig:workflow} shows, it takes the original queries from the source DBMS as input, transforms them across dialects into initial seeds for the target DBMS, and then mutates these seeds to discover bugs.
+Unlike LLM-centric text translation, \tool{} treats transfer as a constrained instantiation process over AQTs.
+It first abstracts source SQL into a structure that records schema dependencies, nested query structures, and clause-level relationships; then it recursively instantiates abstract nodes with rules retrieved or generated under target-dialect constraints.
+When a generated structure is rejected by the target parser or executor, \tool{} performs feedback-driven local repair instead of destructively discarding the invalid structure, producing fuzzer-compatible seeds while retaining testing-relevant SQL features.
 % leverages cross-dialect transform to generate high-quality initial seeds for the target DBMS, and employs these test cases for bug discovery.
 
 
@@ -1299,32 +1301,33 @@ In other words, compared to \sedar{}, \tool{} covers 411 more functions, 34 more
 % ============================================================
 \begin{table}[ht]
 \centering % <--- 让表格居中
-\scriptsize     % <--- 主动缩小字号，而不是被拉伸
-\caption{Statistics of valid SQL features in the transferred seeds. F, DT, and K denote functions, data types, and keywords, respectively. The best result in each column is highlighted in bold.}
+\caption{Statistics of valid SQL features in the transferred seeds. F, DT, and K denote functions, data types, and keywords, respectively. The best result in each column is highlighted in bold. The last row reports percentage improvement of \tool{} over \sedar{}.}
 \label{tab:diversity}
-\setlength{\tabcolsep}{1.2pt}
-\renewcommand{\arraystretch}{0.92}
-\resizebox{0.96\columnwidth}{!}{%
-        \begin{tabular}{l|ccc|ccc|ccc|ccc}
-        \toprule
-        \multirow{2}{*}{\textbf{Method}} &
-        \multicolumn{3}{c|}{\textbf{MonetDB}} &
-        \multicolumn{3}{c|}{\textbf{Virtuoso}} &
-        \multicolumn{3}{c|}{\textbf{DuckDB}} &
-        \multicolumn{3}{c}{\textbf{ClickHouse}} \\
-        & \textbf{F} & \textbf{DT} & \textbf{K}
-        & \textbf{F} & \textbf{DT} & \textbf{K}
-        & \textbf{F} & \textbf{DT} & \textbf{K}
-        & \textbf{F} & \textbf{DT} & \textbf{K} \\ \midrule
-        No translation & 107 & 29 & 235 & 28 & 16 & 102 & 185 & 34 & 291 & 83 & 36 & 124 \\
-        SQLGlot & 113 & 25 & 231 & 32 & 15 & 107 & 195 & 28 & 288 & 103 & 35 & 142 \\
-        jOOQ & 110 & 17 & 210 & 34 & 14 & 103 & 187 & 22 & 253 & 94 & 34 & 104 \\
-        CrackSQL & 133 & 23 & 255 & 41 & 17 & 108 & 198 & 32 & 329 & 146 & 46 & 136 \\
-        RISE & 145 & 27 & 236 & 45 & 18 & 122 & 251 & 34 & 314 & 155 & 54 & 160 \\
-        \sedar{} & 132 & 29 & 244 & 52 & 17 & 136 & 214 & 39 & 340 & 227 & 61 & 152 \\
-        \tool{} & \textbf{161} & \textbf{29} & \textbf{370} & \textbf{87} & \textbf{24} & \textbf{335} & \textbf{456} & \textbf{63} & \textbf{476} & \textbf{332} & \textbf{64} & \textbf{187} \\ \midrule
-        vs. \sedar{} & +22\% & +0\% & +52\% & +67\% & +41\% & +146\% & +113\% & +62\% & +40\% & +46\% & +5\% & +23\% \\ \bottomrule
-        \end{tabular}
+{\footnotesize
+\setlength{\tabcolsep}{0.8pt}
+\renewcommand{\arraystretch}{0.95}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}l|ccc|ccc|ccc|ccc@{}}
+    \toprule
+    \multirow{2}{*}{\textbf{Method}} &
+    \multicolumn{3}{c|}{\textbf{MonetDB}} &
+    \multicolumn{3}{c|}{\textbf{Virtuoso}} &
+    \multicolumn{3}{c|}{\textbf{DuckDB}} &
+    \multicolumn{3}{c}{\textbf{ClickHouse}} \\
+    & \textbf{F} & \textbf{DT} & \textbf{K}
+    & \textbf{F} & \textbf{DT} & \textbf{K}
+    & \textbf{F} & \textbf{DT} & \textbf{K}
+    & \textbf{F} & \textbf{DT} & \textbf{K} \\ \midrule
+    No translation & 107 & \textbf{29} & 235 & 28 & 16 & 102 & 185 & 34 & 291 & 83 & 36 & 124 \\
+    SQLGlot & 113 & 25 & 231 & 32 & 15 & 107 & 195 & 28 & 288 & 103 & 35 & 142 \\
+    jOOQ & 110 & 17 & 210 & 34 & 14 & 103 & 187 & 22 & 253 & 94 & 34 & 104 \\
+    CrackSQL & 133 & 23 & 255 & 41 & 17 & 108 & 198 & 32 & 329 & 146 & 46 & 136 \\
+    RISE & 145 & 27 & 236 & 45 & 18 & 122 & 251 & 34 & 314 & 155 & 54 & 160 \\
+    \sedar{} & 132 & \textbf{29} & 244 & 52 & 17 & 136 & 214 & 39 & 340 & 227 & 61 & 152 \\
+    \tool{} & \textbf{161} & \textbf{29} & \textbf{370} & \textbf{87} & \textbf{24} & \textbf{335} & \textbf{456} & \textbf{63} & \textbf{476} & \textbf{332} & \textbf{64} & \textbf{187} \\ \midrule
+    vs. \sedar{} (\%) & +22 & +0 & +52 & +67 & +41 & +146 & +113 & +62 & +40 & +46 & +5 & +23 \\ \bottomrule
+\end{tabular}
+}
 }
 \end{table}
 
@@ -1522,7 +1525,12 @@ Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlance
 Unlike these works, \tool{} addresses the upstream challenge of \textit{seed acquisition} by producing high-quality cross-dialect seeds for complex scenarios and emerging DBMS engines~\cite{gao2023comprehensive}.
 
 \subsection{LLM-Based Seed Generation}
-Recent LLM-based methods improve DBMS seed generation: CrackSQL~\cite{zhou2025cracking}, RISE~\cite{xie2026rise}, and Fuzz4All~\cite{xia2024fuzz4all} improve seed variety, while \sedar{}~\cite{fu2024sedar}, ShQveL~\cite{zhong2025testing}, and QTRAN~\cite{lin2025qtran} explore cross-dialect transfer, fragment synthesis, and oracle extension. Unlike them, \tool{} targets fuzzer-ready crash-bug seeds and preserves SQL feature diversity across dialects.
+Recent LLM-based methods improve DBMS seed generation: CrackSQL~\cite{zhou2025cracking}, RISE~\cite{xie2026rise}, and Fuzz4All~\cite{xia2024fuzz4all} improve seed variety, while \sedar{}~\cite{fu2024sedar}, ShQveL~\cite{zhong2025testing}, and QTRAN~\cite{lin2025qtran} explore cross-dialect transfer, fragment synthesis, and oracle extension.
+\sedar{} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
+However, \sedar{} remains an LLM-centric SQL text translation framework: it feeds schema information and raw SQL to an LLM and then relies on destructive sanitization, such as commenting out unparsable fragments, to satisfy fuzzer compatibility.
+In contrast, \tool{} reformulates transfer as AQT-constrained instantiation.
+AQTs expose schema dependencies, nested structures, and clause-level relationships as an explicit structural space; target-dialect rules are retrieved or generated within this space; and parser/executor feedback performs local structural repair rather than deleting invalid constructs.
+This design difference leads to stronger empirical results: \tool{} achieves 0.629--0.776 semantic correctness across four DBMSs, compared with 0.169--0.388 for \sedar{}, and further covers 14\% more branches and finds 16 more bugs than \sedar{} in 24 hours.
 
 
 % Unlike intra-dialect approaches, \tool{} achieves \textit{cross-dialect} transfer via AQT and recursive instantiation, overcoming DBMS disparities. Specifically, \tool{} employs an abstraction and then instantiation paradigm. It applies recursive AST substitution to preserve semantic complexity.
