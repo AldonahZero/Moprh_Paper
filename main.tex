@@ -188,8 +188,11 @@ While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suite
 % To overcome this limitation, Cross-DBMS SQL Transfer has emerged as an active research area~\cite{zhou2020database}. Recent research trends, such as \sedar{}~\cite{fu2024sedar}, establish a test case transfer method centered on Large Language Models (LLMs). Such approach aims to transform rich test cases accumulated in mature DBMSs into effective seeds for target DBMSs. 
 % This mainstream \textit{Translate-and-Sanitize} approach leverages LLMs to translate source SQL statements into target dialects, harnessing their powerful generative capabilities to bridge general syntactic gaps~\cite{fu2024sedar, xia2024fuzz4all, deng2023large}.
 % LLM-based Cross-DBMS SQL Transfer has emerged as an active research area~\cite{zhou2020database},
-To overcome this limitation, some studies have used large language models (LLMs) to translate SQL test cases between DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
-They aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
+To overcome this limitation, existing studies and tools have used SQL dialect translation to transfer SQL across DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
+General-purpose translators such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, as well as recent systems such as RISE~\cite{xie2026rise}, mainly focus on statement-level translation for query migration or semantic-equivalent SELECT rewriting.
+However, fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent DDL, DML, and query statements, and the transferred results must remain parsable and mutable by downstream fuzzers.
+Thus, directly applying statement-level translators may lose cross-statement dependencies or produce fuzzer-incompatible structures.
+Some fuzzing-oriented methods instead aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
 % This strategy aims to repurpose rich historical test cases into effective seeds, bridging the gap between different DBMS dialects. 
 A typical example is \sedar{}~\cite{fu2024sedar}, which follows an LLM-centric \textit{Translate-and-Sanitize} pipeline. It first executes existing test cases on the source DBMS to collect schema information, then directly feeds the schema and raw SQL text to an LLM for target-dialect translation. To ensure compatibility with fuzzers, \sedar{} relies on \textit{Unparsable Commenting}, which temporarily comments out unparsable parts during mutation.
 
@@ -203,17 +206,17 @@ A typical example is \sedar{}~\cite{fu2024sedar}, which follows an LLM-centric \
 % However, while these methods successfully ensure syntactic correctness, they suffer from semantic bottlenecks and logic loss.
 % Semantic bottlenecks arise from the probabilistic nature of LLMs, which often fail to preserve strict relational semantics during dialect translation, leading to subtle behavioral discrepancies. Furthermore, the reliance on heuristic sanitization results in logic loss, where unparsable syntax containing essential predicates or join conditions is mechanically discarded to ensure executability. Consequently, the transferred queries undergo structural degeneration, rendering them insufficient for effectively stress-testing the target query optimizer despite being syntactically valid.
 
-Despite being able to transform test cases from mature DBMSs into initial seeds for target DBMSs, these methods still suffer from \textit{translation failures} and \textit{semantic degradation}.
-(1) First, end-to-end SQL translation may introduce syntax or semantic errors due to the inherent hallucination of LLMs or their limited knowledge of target dialects. Such errors often break schema references, type constraints, or function semantics, making the transferred seeds fail during execution on the target DBMS. 
-(2) Second, to ensure that generated queries can be parsed by fuzzers, these methods often mechanically discard grammar structures that the tools cannot handle, causing the loss of valuable SQL features and testing logic embedded in the original test cases. As a result, although the transferred queries remain syntactically valid, they suffer from semantic degradation, limiting coverage of the target DBMS's execution paths and reducing the effectiveness of stress-testing the query optimizer.
+Despite being able to transform SQL across DBMSs, existing dialect translation approaches cannot directly support fuzzing seed generation because they still suffer from \textit{test-case semantic loss} and \textit{fuzzer incompatibility}.
+(1) First, statement-level translators process statements in isolation, while fuzzing seeds rely on dependencies across schema definitions, inserted data, and subsequent queries. Losing these dependencies can break schema references, type constraints, or function semantics, making the transferred seeds fail during execution on the target DBMS.
+(2) Second, even when translation produces target-dialect SQL, the result may exceed the grammar accepted by downstream fuzzers. Existing methods often handle such incompatibilities by mechanically discarding or commenting out unsupported grammar structures, causing the loss of valuable SQL features and testing logic embedded in the original test cases. As a result, although the transferred queries may remain syntactically valid, they suffer from semantic degradation, limiting coverage of the target DBMS's execution paths and reducing the effectiveness of stress-testing the query optimizer.
 
 % However, while these methods ensure syntactic correctness, they suffer from semantic bottlenecks and logic loss.
 % Semantic bottlenecks arise from the hallucination issues inherent in LLMs, which often fail to preserve strict relational semantics during dialect translation, leading to subtle behavioral discrepancies. 
 % Furthermore, these methods mechanically discard unparsable syntax to ensure executability, causing the loss of valuable testing logic embedded in the original seeds. Consequently, the transferred queries undergo structural degeneration, rendering them insufficient for effectively stress-testing the target query optimizer despite being syntactically valid.
 
 To address the limitations of existing approaches, we propose a structure-aware method for cross-dialect transfer of SQL test cases. 
-Our core idea is to \textbf{reformulate SQL transfer from LLM-driven text translation into AQT-Guided Dialect Instantiation}.
-Instead of asking an LLM to translate raw SQL end-to-end, \tool{} first extracts an AQT that explicitly captures schema dependencies, nested structures, and clause-level relationships.
+Our core idea is to \textbf{reformulate SQL transfer from direct SQL-text translation into test-case-level AQT-Guided Dialect Instantiation}.
+Instead of translating each SQL statement or raw test case as text, \tool{} first extracts an AQT that explicitly captures schema dependencies, nested structures, and clause-level relationships.
 It then instantiates the AQT into target-dialect SQL using local AQT-node mappings and target-side feedback, with the LLM used only for bounded rule generation or local repair under structural constraints.
 Unlike statement-level translators such as RISE, \tool{} models full test cases, including nested structures, schema dependencies, and clause-level relationships; mapping rules are only local operators for instantiating AQT nodes, rather than the core translation paradigm.
 This enables fuzzing to retain testing-relevant SQL features while avoiding the translation failures and destructive sanitization caused by direct text translation.
@@ -685,14 +688,14 @@ $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow 
     \ForEach{$\tau$ \textbf{in} $\textsc{AbstractTokens}(S)$}{
         $(rule, conf) \leftarrow \textsc{Retrieve}(HKB, \tau, D_t)$ \label{line:alg2:retrieve} \tcp*{Query Hybrid KB}
         \If{$conf < \delta$}{
-            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \tcp*{Candidate rule}
+            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \tcp*{Candidate local rule}
         }
         $frag \leftarrow \textsc{Translator}(\tau, rule, \mathcal{D})$ \label{line:alg2:translate} \tcp*{Apply rule}
         \While{$err \leftarrow \textsc{Parse}(frag, D_t)$}{
             $(frag, rule) \leftarrow \textsc{Fixer}(frag, rule, err)$ \label{line:alg2:fix} \;
         }
         \If{$conf < \delta$}{
-            $HKB.\textsc{Cache}(\tau, rule)$ \label{line:alg2:cache_rule} \tcp*{Verified rule only}
+            $HKB.\textsc{Cache}(\tau, rule)$ \label{line:alg2:cache_rule} \tcp*{Cache parser-validated rule}
         }
         $S \leftarrow \textsc{Replace}(S, \tau, frag)$\;
     }
@@ -702,14 +705,14 @@ $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow 
 \end{algorithm}
 
 To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}. The algorithm first performs a topological sort on the structure graph $\mathcal{G}$ to determine a bottom-up execution sequence (Line~\ref{line:alg2:sort}), ensuring that nested subqueries are resolved before their parents. For each segment, the algorithm recursively substitutes instantiated child fragments into the current structure (Lines~\ref{line:alg2:substitute_start}--\ref{line:alg2:substitute_end}).
-Each abstract token $\tau$ is instantiated using a local mapping retrieved from the Hybrid Knowledge Base (Line~\ref{line:alg2:retrieve}). When retrieval confidence falls below a threshold $\delta$, the Rule Generator synthesizes a candidate rule from the AST context and few-shot examples (Line~\ref{line:alg2:generate}). The candidate is applied by the translator and validated by the target DBMS parser before it is cached (Lines~\ref{line:alg2:translate}--\ref{line:alg2:cache_rule}).
+Each abstract token $\tau$ is instantiated using a local mapping retrieved from the Hybrid Knowledge Base (Line~\ref{line:alg2:retrieve}). When retrieval confidence falls below a threshold $\delta$, the Rule Generator only synthesizes a candidate local rule from the AST context and few-shot examples (Line~\ref{line:alg2:generate}). This candidate is first applied by the translator to instantiate the token and then checked by the target DBMS parser before it can enter the Hybrid KB (Lines~\ref{line:alg2:translate}--\ref{line:alg2:cache_rule}).
 
 % Each abstract token $\tau$ is instantiated using rules retrieved from the Hybrid Knowledge Base (Line~\ref{line:alg2:retrieve}), which integrates an \textit{Abstract Pattern Store} and a \textit{Vector Index}. 
 % The \textit{Abstract Pattern Store} keeps deduplicated structural skeletons extracted during AQT generation (e.g., \texttt{JOIN}/\texttt{WINDOW} templates), preserving query topology across dialects. 
 % The \textit{Vector Index} keeps embedded dialect evidence (documentation, function signatures, and operator semantics) and retrieves top-$k$ relevant constraints for each abstract token $\tau$, grounding generation in concrete dialect rules rather than free-form synthesis.
-% If the retrieval confidence falls below a threshold $\delta$, a rule generator synthesizes a candidate rule, which is cached only after target-parser validation succeeds.
+% If the retrieval confidence falls below a threshold $\delta$, a rule generator synthesizes a candidate local rule, which is cached only after target-parser validation succeeds.
 
-To ensure syntactic correctness under semantic constraints, each generated fragment is validated by the target database parser. If a parsing error occurs, an iterative repair loop repairs the fragment and its local rule using the error message and structural context while preserving the seed's semantic-rich structure (Line~\ref{line:alg2:fix}). Only successfully validated rules are cached; unverified candidates are discarded. This mechanism avoids degenerate fixes such as clause removal and preserves testing-relevant SQL features.
+To ensure syntactic correctness under semantic constraints, each generated fragment is validated by the target database parser. If a parsing error occurs, an iterative repair loop repairs the fragment and its local rule using the error message and structural context while preserving the seed's semantic-rich structure (Line~\ref{line:alg2:fix}). Only after parser validation succeeds does \tool{} cache the corresponding generated rule; unverified candidates are discarded rather than reused. This mechanism avoids degenerate fixes such as clause removal and preserves testing-relevant SQL features.
 Finally, validated fragments are progressively cached and assembled in a bottom-up manner to produce $Q_{target}$ (Lines~\ref{line:alg2:cache}--\ref{line:alg2:assemble}).
 
 \textbf{Test-Oriented Skill Execution.} The above instantiation procedure is implemented by \textit{Skill Executor},
@@ -720,7 +723,7 @@ which acts as the reasoning core of the agent, with three specialized skills.
 
 \textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering \texttt{<TimeDiff>}, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
 
-\textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule. The candidate is cached in the Hybrid KB only after target-parser validation succeeds.
+\textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
 
 \begin{figure}[b]
     \centering
@@ -740,7 +743,7 @@ which acts as the reasoning core of the agent, with three specialized skills.
 
 % \textit{SQL Translator:} The primary skill responsible for token-to-dialect mapping. It synthesizes the target SQL fragment by fusing the input segment with the function signatures retrieved from the \textit{Vector Index}. For instance, when encountering \texttt{<TimeDiff>}, it utilizes the retrieved \duckdb{} \texttt{date\_diff} signature to produce the final compliant expression.
     
-% \textit{Rule Generator:} This skill synthesizes a candidate rule under low retrieval confidence and caches it only after target-parser validation succeeds.
+% \textit{Rule Generator:} This skill synthesizes a candidate local rule under low retrieval confidence and caches it only after target-parser validation succeeds.
     
 % \textit{Error Fixer:} Functioning as a runtime monitor, this skill performs an immediate syntax check on the generated fragment. If the target database's parser rejects the fragment, the fixer analyzes the compiler's error message \emph{alongside the AST context} to pinpoint the fault. To prevent the LLM from oversimplifying the query (e.g., simply deleting the rejected clause), the fixer's prompt explicitly enforces semantic preservation through few-shot examples of correct rewriting strategies, ensuring the final output is a \textit{Compatible Seed} that retains its original complexity.
 
@@ -794,14 +797,14 @@ $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow 
     \ForEach{$\tau$ \textbf{in} $\textsc{AbstractTokens}(S)$}{
         $(rule, conf) \leftarrow \textsc{Retrieve}(HKB, \tau, D_t)$ \label{line:alg2:retrieve} \tcp*{Query Hybrid KB}
         \If{$conf < \delta$}{
-            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \tcp*{Candidate rule}
+            $rule \leftarrow \textsc{Generator}(\tau, D_t)$ \label{line:alg2:generate} \tcp*{Candidate local rule}
         }
         $frag \leftarrow \textsc{Translator}(\tau, rule, \mathcal{D})$ \label{line:alg2:translate} \tcp*{Apply rule}
         \While{$err \leftarrow \textsc{Parse}(frag, D_t)$}{
             $(frag, rule) \leftarrow \textsc{Fixer}(frag, rule, err)$ \label{line:alg2:fix} \;
         }
         \If{$conf < \delta$}{
-            $HKB.\textsc{Cache}(\tau, rule)$ \label{line:alg2:cache_rule} \tcp*{Verified rule only}
+            $HKB.\textsc{Cache}(\tau, rule)$ \label{line:alg2:cache_rule} \tcp*{Cache parser-validated rule}
         }
         $S \leftarrow \textsc{Replace}(S, \tau, frag)$\;
     }
@@ -812,7 +815,7 @@ $Order \leftarrow \textsc{TopologicalSort}(\mathcal{G})$; $Fragments \leftarrow 
 
 
 To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, \tool{} employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}. 
-The algorithm first performs a topological sort on the structure graph $\mathcal{G}$ to determine a bottom-up execution sequence (Line~\ref{line:alg2:sort}), ensuring nested subqueries are resolved before their parents. For each segment, the planner recursively substitutes instantiated child fragments (Lines~\ref{line:alg2:substitute_start}). Each abstract token $\tau$ is instantiated using rules retrieved from the \texttt{Hybrid KB} (Line~\ref{line:alg2:retrieve}), or, if confidence is low, a generator creates a new rule (Line~\ref{line:alg2:generate}). The token is translated into target-compliant syntax (Line~\ref{line:alg2:translate}) and iteratively parsed and fixed (Line~\ref{line:alg2:fix}). Compliant fragments are then cached and assembled into the final seed $Q_{target}$ (Lines~\ref{line:alg2:cache}--\ref{line:alg2:assemble}).
+The algorithm first performs a topological sort on the structure graph $\mathcal{G}$ to determine a bottom-up execution sequence (Line~\ref{line:alg2:sort}), ensuring nested subqueries are resolved before their parents. For each segment, the planner recursively substitutes instantiated child fragments (Lines~\ref{line:alg2:substitute_start}). Each abstract token $\tau$ is instantiated using rules retrieved from the \texttt{Hybrid KB} (Line~\ref{line:alg2:retrieve}), or, if confidence is low, a generator creates a candidate local rule (Line~\ref{line:alg2:generate}). The token is translated into target-compliant syntax (Line~\ref{line:alg2:translate}) and iteratively parsed and fixed (Line~\ref{line:alg2:fix}); generated rules are cached only after parser validation succeeds. Compliant fragments are then cached and assembled into the final seed $Q_{target}$ (Lines~\ref{line:alg2:cache}--\ref{line:alg2:assemble}).
 
 % The algorithm first conducts a topological sort on the structure graph $\mathcal{G}$ to determine a bottom-up execution sequence (Line~\ref{line:alg2:sort}), ensuring that nested subqueries are resolved before their parent segments. 
 % For each segment, the planner recursively substitutes previously instantiated child fragments (Lines~\ref{line:alg2:substitute_start}--\ref{line:alg2:substitute_end}). 
@@ -874,7 +877,7 @@ To enable mutation over such seeds, the challenge is to translate or adapt advan
 % To achieve this, \tool{} maintains a feedback-driven mutation loop that continuously interacts with the downstream fuzzer at runtime. 
 % Unlike prior approaches that perform seed generation as a one-off offline step, 
 To address that,
-\tool{} iteratively leverages parsing and execution feedback to rewrite or encapsulate unsupported constructs into valid equivalents. 
+\tool{} iteratively leverages parsing and execution feedback to rewrite or encapsulate unsupported constructs into valid equivalents through a structure-preserving fallback process. 
 % the process consists of the three steps: 
 As Figure~\ref{fig:feedback-driven} shows, upon receiving compatible seeds, \tool{} sanitizes and executes them in the target DBMS, using execution results to either proceed to mutation or trigger error-guided semantic repair, and produces a seed annotated with mutable regions to support fuzzing.
 % Figure~\ref{fig:feedback-driven} illustrates the collaborative workflow of these three components in achieving adaptive fuzzing. 
@@ -903,10 +906,10 @@ As Figure~\ref{fig:feedback-driven} shows, upon receiving compatible seeds, \too
 % Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities that were not captured by the static translation phase. Instead of discarding these seeds or destructively commenting out the unparsable tokens (as done in \sedar{}~\cite{fu2024sedar}), the sanitizer captures the parser's error message and modifies the seeds based on syntactic feedback.
 % For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed. 
 
-Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities not captured by the static translation phase. Instead of discarding these seeds or destructively commenting out unparsable tokens (as in \sedar{}~\cite{fu2024sedar}), the sanitizer captures the parser error message and modifies the seeds based on syntactic feedback. For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed.
+Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities not captured by the static translation phase. Instead of discarding these seeds or destructively commenting out unparsable tokens (as in \sedar{}~\cite{fu2024sedar}), the sanitizer captures the parser error message, localizes the unsupported dialect-specific construct to the corresponding AQT node, and repairs it using syntactic feedback. For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed.
 
 % \textit{Error-Guided Repairing.} 
-When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} identifies the corresponding node in the AQT and applies a set of \textit{Sanitization Rules}. If no rule matches, the LLM \textit{Error Fixer} skill is invoked~\cite{fan2023automated} to locally rewrite the problematic structure into a compliant form. For example, a rejected window function syntax may be transformed into a standard aggregation form when possible.
+When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order. First, it checks the sanitization dictionary and applies an existing mapping when the unsupported construct has a known target-compatible form. Second, if no exact mapping exists, it uses RAG to retrieve candidate replacements from dialect evidence and validates the rewritten fragment with the fuzzer parser. Third, if no suitable replacement can be found, \tool{} executes the original source-side construct in the source DBMS and substitutes the returned value as a constant, preserving the surrounding query structure whenever possible. Finally, only if these structure-preserving attempts fail, \tool{} comments out the minimal offending construct. This ordering makes destructive commenting a last resort rather than the default sanitization strategy.
 % \textit{Mutable Seed Generation.} 
 Once a seed passes the fuzzer's parser, it is designated as a \textit{Mutable Seed}. \tool{} then identifies data-dependent components, such as literals and predicates, and marks them as mutable regions. This directs the fuzzer's mutation engine to focus on logic-altering variations rather than the fixed syntactic skeleton, accelerating the discovery of deep logic bugs.
 
@@ -1550,15 +1553,12 @@ Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlance
 Unlike these works, \tool{} addresses the upstream challenge of \textit{seed acquisition} by producing high-quality cross-dialect seeds for complex scenarios and emerging DBMS engines~\cite{gao2023comprehensive}.
 
 \subsection{LLM-Based Seed Generation}
-Recent LLM-based methods improve DBMS seed generation: CrackSQL~\cite{zhou2025cracking}, RISE~\cite{xie2026rise}, and Fuzz4All~\cite{xia2024fuzz4all} improve seed variety, while \sedar{}~\cite{fu2024sedar}, ShQveL~\cite{zhong2025testing}, and QTRAN~\cite{lin2025qtran} explore cross-dialect transfer, fragment synthesis, and oracle extension.
-RISE is designed for semantic-equivalent SELECT statement translation across RDBMSs.
-It decomposes a single SELECT statement into skeletons, isolates dialect-specific constructs, and asks LLMs to infer translation rules.
-In contrast, \tool{} targets test-case-level seed transfer for DBMS fuzzing: AQTs model schema dependencies, nested structures, clause-level relationships, and fuzzer-compatibility constraints across full test cases.
-Thus, rules in \tool{} are local AQT-node instantiation operators rather than the central translation abstraction.
+General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, convert SQL syntax across DBMS dialects for query migration and application compatibility. They provide useful mappings for individual statements, but they do not treat a fuzzing seed as a whole test case with DDL/DML dependencies, schema constraints, and downstream mutation requirements. Recent work RISE~\cite{xie2026rise} further studies semantic-equivalent SELECT translation across RDBMSs by decomposing a SELECT statement into skeletons, isolating dialect-specific constructs, and using LLMs to infer translation rules. However, this statement-level design does not model cross-statement dependencies and does not ensure that the translated result is acceptable to a fuzzer's internal grammar.
+Recent LLM-based methods improve DBMS seed generation: CrackSQL~\cite{zhou2025cracking} and Fuzz4All~\cite{xia2024fuzz4all} improve seed variety, while \sedar{}~\cite{fu2024sedar}, ShQveL~\cite{zhong2025testing}, and QTRAN~\cite{lin2025qtran} explore cross-dialect transfer, fragment synthesis, and oracle extension.
 \sedar{} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
 However, \sedar{} remains an LLM-centric SQL text translation framework: it feeds schema information and raw SQL to an LLM and then relies on destructive sanitization, such as commenting out unparsable fragments, to satisfy fuzzer compatibility.
 In contrast, \tool{} reformulates transfer as AQT-Guided Dialect Instantiation.
-AQTs expose schema dependencies, nested structures, and clause-level relationships as an explicit structural space; target-dialect rules are retrieved or generated within this space; and parser/executor feedback performs local structural repair rather than deleting invalid constructs.
+AQTs expose schema dependencies, nested structures, and clause-level relationships as an explicit structural space; target-dialect rules are retrieved or generated within this space; and parser/executor feedback performs local structural repair rather than deleting invalid constructs. Thus, \tool{} targets test-case-level seed transfer rather than statement-level translation, preserving test-case structure while repairing fuzzer-incompatible constructs.
 This design difference leads to stronger empirical results: \tool{} achieves 0.629--0.776 semantic correctness across four DBMSs, compared with 0.169--0.388 for \sedar{}, and further covers 14\% more branches and finds 16 more bugs than \sedar{} in 24 hours.
 
 
