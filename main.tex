@@ -1242,8 +1242,8 @@ As shown in Table~\ref{tab:validity}, directly executing source seeds without tr
 For instance, the semantic correctness ratio is only 0.097 on Virtuoso, while the highest ratio of No translation is only 0.284 on DuckDB. 
 This shows that foreign SQL dialects are largely ineffective as fuzzing seeds without explicit adaptation.
 Off-the-shelf translators and recent SQL translation systems improve syntactic acceptance to some extent, but they still leave a substantial semantic gap.
-For example, on DuckDB, SQLGlot, CrackSQL, and RISE achieve syntactic correctness above 0.738, yet their semantic correctness remains no higher than 0.314.
-Although \sedar{} improves semantic correctness over these generic translators on most targets, it still suffers from semantic hallucinations and destructive sanitization. 
+For example, on DuckDB, SQLGlot, CrackSQL, and RISE achieve syntactic correctness of at least 0.738, yet their semantic correctness remains no higher than 0.314.
+Although \sedar{} improves semantic correctness, it still suffers from semantic hallucinations and destructive sanitization. 
 In contrast, \tool{} achieves the best result in every syntactic and semantic-correctness column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness than \sedar{} on the tested DBMSs.
 On \duckdb{}, for example, \tool{} improves semantic correctness from \sedar{}'s 0.365 to 0.748 by preserving target-compatible schema, type, and function semantics during transfer.
 % First, we analyze the semantic correctness of the generated seeds. As shown in Table~\ref{tab:validity}, raw seeds ($S^-$) exhibit low transferability, with semantic correctness ratios dropping as low as 9.7\% on Virtuoso. This confirms that direct execution of foreign SQL dialects is ineffective due to syntax incompatibilities.
@@ -1253,7 +1253,7 @@ On \duckdb{}, for example, \tool{} improves semantic correctness from \sedar{}'s
 % ============================================================
 \begin{table}[ht]
 \centering % <--- 关键：居中对齐
-\caption{Comparison of syntactic and semantic correctness across target DBMSs. Syn. and Sem. denote syntactic correctness and semantic correctness, respectively. The best result in each column is highlighted in bold. The last row reports the relative improvement of \tool{} over \sedar{}.}
+\caption{Comparison of syntactic and semantic correctness across target DBMSs. Syn. and Sem. denote syntactic correctness and semantic correctness, respectively. A dash indicates that the tool does not support translation to the target dialect. The best result in each column is highlighted in bold. The last row reports the relative improvement of \tool{} over \sedar{}.}
 \label{tab:validity} % <--- 标签：用于引用
 \renewcommand\arraystretch{1}
 \scriptsize
@@ -1271,9 +1271,9 @@ On \duckdb{}, for example, \tool{} improves semantic correctness from \sedar{}'s
         & \textbf{Syn.} & \textbf{Sem.}
         & \textbf{Syn.} & \textbf{Sem.} \\ \midrule
         No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
-        SQLGlot & 0.640 & 0.244 & 0.480 & 0.091 & 0.738 & 0.186 & 0.665 & 0.193 \\
-        jOOQ & 0.571 & 0.115 & 0.382 & 0.072 & 0.652 & 0.136 & 0.554 & 0.175 \\
-        CrackSQL & 0.757 & 0.199 & 0.537 & 0.159 & 0.740 & 0.211 & 0.717 & 0.264 \\
+        SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
+        jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
+        CrackSQL & - & - & - & - & 0.740 & 0.211 & 0.717 & 0.264 \\
         RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
         \sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
         \tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\ \midrule
@@ -1288,7 +1288,7 @@ The empirical data suggests that the \textit{Abstraction-then-Instantiation} par
 
 \textbf{Semantic Richness of the Translated Test Cases.}
 Beyond validity, we assessed whether the transferred seeds retain the testing value of the source test cases by analyzing the diversity of valid SQL features across three dimensions: functions, data types, and keywords. 
-As summarized in Table~\ref{tab:diversity}, \tool{} demonstrates a consistent ability to maintain a higher degree of semantic richness than all baselines. 
+As summarized in Table~\ref{tab:diversity}, \tool{} demonstrates a consistent ability to maintain a higher degree of semantic richness than all applicable baselines. 
 In aggregate, \tool{} successfully preserves 1,036 distinct functions, 180 unique data types, and 1,368 keywords across the four target DBMSs. 
 In contrast, \sedar{} retains 625 functions, 146 data types, and 872 keywords. 
 In other words, compared to \sedar{}, \tool{} covers 411 more functions, 34 more data types, and 496 more keywords, corresponding to aggregate improvements of 66\%, 23\%, and 57\%, respectively.
@@ -1301,7 +1301,7 @@ In other words, compared to \sedar{}, \tool{} covers 411 more functions, 34 more
 % ============================================================
 \begin{table}[ht]
 \centering % <--- 让表格居中
-\caption{Statistics of valid SQL features in the transferred seeds. F, DT, and K denote functions, data types, and keywords, respectively. The best result in each column is highlighted in bold. The last row reports percentage improvement of \tool{} over \sedar{}.}
+\caption{Statistics of valid SQL features in the transferred seeds. F, DT, and K denote functions, data types, and keywords, respectively. A dash indicates that the tool does not support translation to the target dialect. The best result in each column is highlighted in bold. The last row reports percentage improvement of \tool{} over \sedar{}.}
 \label{tab:diversity}
 {\footnotesize
 \setlength{\tabcolsep}{0.8pt}
@@ -1319,9 +1319,9 @@ In other words, compared to \sedar{}, \tool{} covers 411 more functions, 34 more
     & \textbf{F} & \textbf{DT} & \textbf{K}
     & \textbf{F} & \textbf{DT} & \textbf{K} \\ \midrule
     No translation & 107 & \textbf{29} & 235 & 28 & 16 & 102 & 185 & 34 & 291 & 83 & 36 & 124 \\
-    SQLGlot & 113 & 25 & 231 & 32 & 15 & 107 & 195 & 28 & 288 & 103 & 35 & 142 \\
-    jOOQ & 110 & 17 & 210 & 34 & 14 & 103 & 187 & 22 & 253 & 94 & 34 & 104 \\
-    CrackSQL & 133 & 23 & 255 & 41 & 17 & 108 & 198 & 32 & 329 & 146 & 46 & 136 \\
+    SQLGlot & - & - & - & - & - & - & 195 & 28 & 288 & 103 & 35 & 142 \\
+    jOOQ & - & - & - & - & - & - & 187 & 22 & 253 & 94 & 34 & 104 \\
+    CrackSQL & - & - & - & - & - & - & 198 & 32 & 329 & 146 & 46 & 136 \\
     RISE & 145 & 27 & 236 & 45 & 18 & 122 & 251 & 34 & 314 & 155 & 54 & 160 \\
     \sedar{} & 132 & \textbf{29} & 244 & 52 & 17 & 136 & 214 & 39 & 340 & 227 & 61 & 152 \\
     \tool{} & \textbf{161} & \textbf{29} & \textbf{370} & \textbf{87} & \textbf{24} & \textbf{335} & \textbf{456} & \textbf{63} & \textbf{476} & \textbf{332} & \textbf{64} & \textbf{187} \\ \midrule
@@ -1466,8 +1466,41 @@ Table~\ref{tab:llm_comparison} supports Gemini 2.5-flash-lite: Qwen3.5-27B is mo
 % While our abstraction-then-instantiation paradigm aims to maintain semantic richness, there is a potential concern that high validity rates might come at the cost of simplified queries. However, our diversity analysis (Table~\ref{tab:diversity}) demonstrates that \tool{} retains significantly more syntax elements (functions, data types, keywords) than baselines, confirming that validity stems from precise structural adaptation.
 
 % \vspace{-2cm}
-\textbf{Extensibility of \tool{}. }
-To extend \tool{} to other DBMSs, we mine lexical/syntactic rules from grammar resources and register them into the Hybrid KB. New rules are generated only when retrieval confidence is low and then cached, making extension incremental.
+\textbf{Extensibility and Manual Effort.}
+To extend \tool{} to another DBMS, we first automatically extract lexical and syntactic features from grammar specifications and register the corresponding mapping rules into the Hybrid KB.
+For features that cannot be mapped automatically, \tool{} uses the LLM to generate candidate rules, followed by manual review and correction.
+Table~\ref{tab:manual_effort} summarizes the extension effort across six DBMSs, including two additional targets, SQLServer and OpenTenBase.
+Overall, only 3.2\% (140/4,323) of transfer rules require manual correction.
+Each correction typically takes 1--3 minutes for an engineer with DBMS expertise; for example, adapting \tool{} to SQLServer requires only three manual corrections.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Manual effort for extending \tool{} to target DBMSs.}
+\label{tab:manual_effort}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrr@{}}
+\toprule
+\textbf{Target DBMS} & \textbf{Auto Rules} & \textbf{Manual} & \textbf{Ratio} \\
+\midrule
+DuckDB & 534 & 42 & 7.3\% \\
+ClickHouse & 1,362 & 46 & 3.3\% \\
+MonetDB & 398 & 26 & 6.1\% \\
+Virtuoso & 782 & 22 & 2.7\% \\
+SQLServer & 230 & 3 & 1.3\% \\
+OpenTenBase & 877 & 1 & 0.1\% \\
+\midrule
+Total & 4,183 & 140 & 3.2\% \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+We further validate extensibility on SQLServer, a commercial DBMS with vendor-specific grammars, and OpenTenBase, a distributed DBMS with distributed-specific SQL features.
+\tool{} generates 233 rules for SQLServer and 878 rules for OpenTenBase, achieving syntactic correctness of 96.6\% and 98.6\%, and semantic correctness of 71.5\% and 72.7\%, respectively.
+These results show that most dialect support is obtained automatically, while manual review is limited to a small number of unmapped or ambiguous constructs.
+To quantify the benefit of this manual effort, we remove the 42 manually corrected DuckDB rules and rerun \tool{} on DuckDB.
+The manually reviewed rules allow \tool{} to cover 14,087 additional branches and find two more bugs than the fully automated version.
+Thus, manual review provides additional gains, but the majority of coverage and bug-finding capability comes from the automated extraction, instantiation, and repair pipeline.
 
 \textbf{Extend \tool{} to Find Logic Bugs.} 
 Beyond test case translation, \tool{} can migrate SQLancer-style oracles~\cite{sqlancer} or compare equivalent cross-DBMS queries, enabling future detection of logic and semantic bugs.
