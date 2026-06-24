@@ -103,7 +103,7 @@
 %% end of the preamble, start of the body of the document source.
 \begin{document}
 
-\title{Morph: Structure-Aware Cross-Dialect SQL Transfer for Constructing High-Quality Seeds in DBMS Fuzzing}
+\title{Structure-Aware Cross-Dialect SQL Transfer for Constructing High-Quality Seeds in DBMS Fuzzing}
 \author{\IEEEauthorblockN{Anonymous Author(s)}}
 
 \maketitle
@@ -143,7 +143,7 @@ DBMS Fuzzing, Initial Seeds, Cross-DBMS SQL Transfer
 % - Reviewer B/Q1 novelty vs. SedaR：Introduction、Approach overview、Related Work 统一强调 SedaR 是 LLM text translation + destructive sanitization，Morph 是 AQT-Guided whole-test-case instantiation + feedback repair，并用 RQ3/RQ2 数字支撑差异。
 % - Reviewer A/Q1 novelty vs. RISE：Introduction、Related Work、RQ3 统一强调 RISE 是 SELECT statement-level translation，Morph 是 fuzzing seed 的 whole-test-case transfer；rules 只是局部 AQT-node instantiation operator。
 % - Reviewer C/Q1 semantic correctness：Evaluation setup/RQ3 明确 semantic correctness 指目标 DBMS 无 runtime error 执行成功，区别于源/目标结果等价；semantic richness 另用 functions/data types/keywords 衡量。
-% - Reviewer B/C extensibility/manual effort：Discussion 中用 manual effort 表说明规则主要自动抽取，人工只 review/correction 少量 unmapped constructs；正文不强调 SQLServer/OpenTenBase bug 数。
+% - Reviewer B/C extensibility/manual effort：Discussion 中用 manual effort 表说明规则主要自动抽取，人工只 review/correction 少量 unmapped constructs。
 % - Comment2 rule verification：Algorithm 2 与 Rule Generator 段强调 LLM 只生成 candidate local rule，必须实例化并经 parser validation/repair 后才 cache 到 Hybrid KB。
 % - Comment3 unsupported constructs：Feedback-Driven Adaptive Fuzzing 段写四级 fallback：已有 mapping -> RAG candidate -> source DBMS 常量替换 -> 最小 comment out，强调先保留结构，再做破坏性处理。
 
@@ -321,8 +321,9 @@ When a generated structure is rejected by the target parser or executor, \tool{}
 The step aims to separate the logic of test cases from their dialect-specific representations. The challenge lies in extracting such logic from tightly coupled SQL dialects. To address this, we formalize the seed structure to enable precise manipulation of the extracted logic. We first give some formal definitions of basic concepts.
 \numberwithin{equation}{section} % 公式按章节编号（可选）
 \newtheorem{definition}{Definition}[section] % Definition 按 section 编号
-\textbf{Formal Definition.} To support syntax-aware query abstraction and decouple the logical intent of a test case, we introduce SQL abstraction rules, test-case dependencies, and AQT. 
-They are defined as follows:
+\textbf{Formal Definition.} To support syntax-aware query abstraction and decouple the logical intent of a test case, we introduce SQL abstraction rules and AQT.
+A SQL test case is an ordered sequence of DDL, DML, and query statements; $R_i$ and $W_i$ denote the objects read/referenced and written/created by statement $s_i$, respectively.
+The two formal objects are defined as follows:
 \vspace{-0.4cm}
 \begin{list}{}{\setlength{\leftmargin}{0.5em}}
 \item
@@ -336,16 +337,6 @@ They are defined as follows:
     \end{aligned}
     \]
     where \textit{Source} is a dialect-specific SQL element and \textit{Target} is its corresponding abstract label that represents the semantic intent. For example, a rule for interval computation from \pg{} to \duckdb{} can be represented as $\texttt{AGE}(\cdot) \rightarrow \langle \text{TimeDiff} \rangle$.
-    \end{definition}
-\item
-    \vspace{-0.5cm}
-    \begin{definition}[SQL Test Case]\label{def:testcase}
-    A SQL test case $\mathcal{C}$ is an ordered sequence of SQL statements:
-    $$\mathcal{C} = \langle s_1, s_2, \ldots, s_n \rangle$$
-    where each $s_i \in \{\textit{DDL}, \textit{DML}, \textit{Query}\}$.
-    Let $R_i$ denote the set of database objects read or referenced by $s_i$, and let $W_i$ denote the set of database objects whose schema or instance state is created, altered, or populated by $s_i$.
-    A \textit{cross-statement dependency} exists from $s_i$ to $s_j$ ($i < j$), written $s_i \xrightarrow{dep} s_j$, iff $R_j \cap W_i \neq \emptyset$.
-    The dependency set is $\Delta(\mathcal{C}) = \{(i,j) \mid i < j \land R_j \cap W_i \neq \emptyset\}$.
     \end{definition}
 \item
     \vspace{-0.5cm}
@@ -671,7 +662,15 @@ In addition, we deduplicated crashes using stack trace hashing combined with man
 }
 \end{table}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
+\caption{Coverage growth over time in 24-hour fuzzing campaigns. Griffin denotes the downstream fuzzer with its original seed corpus.}
+\label{fig:coverage_over_time}
+\end{figure}
+
 As illustrated in Table~\ref{tab:coverage}, \tool{} achieves the highest branch coverage across all evaluated DBMSs. Specifically, \tool{} covers a total of 422,130 branches, representing overall improvements of 528\%, 60\%, and 14\% over \sqlancer{}, \squirrel{}, and \sedar{}, respectively, on their supported targets. 
+Figure~\ref{fig:coverage_over_time} further shows that \tool{} reaches higher coverage earlier and continues to gain branches after 12 hours, while several baselines plateau sooner.
 The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, \tool{} exposes significantly more unique bugs than baselines. 
 Moreover, \tool{} detects a total of 16 more bugs than \sedar{} on all four DBMSs. 
@@ -841,7 +840,6 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 % - 只放正文评估之外仍需交代的设计/实用性问题，减少 RQ 结果的重复叙述。
 % - LLM 参数和模型依赖用于回答“效果是否来自特定 LLM/参数”。
 % - Extensibility and Manual Effort 合并回答 reviewer 关于新增 DBMS 成本、维护成本、人工投入收益的问题。
-% - SQLServer/OpenTenBase 只用于 generality 和 manual effort 证据，不在正文强调 bug 数。
 % LLM 参数写作逻辑：
 % - 说明 T=0.2 来自 success/stability 的折中，参数选择有实验依据。
 % - 这里承接 Evaluation setup 中的参数选择句，正文只保留必要数字。
@@ -873,19 +871,17 @@ Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \textbf{Impact of the Underlying LLM.}
 Table~\ref{tab:llm_comparison} supports Gemini 2.5-flash-lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
 % Extensibility 写作逻辑 / Reviewer B、C 修改逻辑：
-% Review A-Soundness2/A-Q2 回应位置：表格列出六个 DBMS 的 auto rules、manual corrections、ratio，并补 SQLServer/OpenTenBase validity。
+% Review A-Soundness2/A-Q2 回应位置：表格列出四个 target DBMS 的 auto rules、manual corrections、ratio。
 % Review B-Q2/B-Q3 回应位置：人工修正规则比例、1--3 分钟经验成本、DuckDB 人工规则消融一起回答维护成本与收益。
 % - 回答“扩展到新 DBMS 需要多少 effort”和“相对 SedaR 的自动化损失是否值得”。
 % - 先讲两步流程：自动抽取 grammar/spec features；LLM 生成 unmapped candidate rules 后人工 review/correction。
-% - 表格给六个 DBMS 的人工修正比例，说明人工只占少量。
-% - SQLServer/OpenTenBase 用 syntax/semantic correctness 证明 generality；这里不写新增 bug 数。
+% - 表格给四个 target DBMS 的人工修正比例，说明人工只占少量。
 % - DuckDB 人工规则消融说明人工 review 有增益，但主体能力来自自动抽取、实例化和修复流程。
 \textbf{Extensibility and Manual Effort.}
 To extend \tool{} to another DBMS, we first automatically extract lexical and syntactic features from grammar specifications and register the corresponding mapping rules into the Hybrid KB.
 For features that cannot be mapped automatically, \tool{} uses the LLM to generate candidate rules, followed by manual review and correction.
-Table~\ref{tab:manual_effort} summarizes the extension effort across six DBMSs, including two additional targets, SQLServer and OpenTenBase.
-Overall, only 3.2\% (140/4,323) of transfer rules require manual correction.
-Each correction typically takes 1--3 minutes for an engineer with DBMS expertise; for example, adapting \tool{} to SQLServer requires only three manual corrections.
+Table~\ref{tab:manual_effort} summarizes the extension effort across four target DBMSs.
+Overall, only 4.2\% (136/3,212) of transfer rules require manual correction, and each correction typically takes 1--3 minutes for an engineer with DBMS expertise.
 
 \begin{table}[t]
 \centering
@@ -901,16 +897,12 @@ DuckDB & 534 & 42 & 7.3\% \\
 ClickHouse & 1,362 & 46 & 3.3\% \\
 MonetDB & 398 & 26 & 6.1\% \\
 Virtuoso & 782 & 22 & 2.7\% \\
-SQLServer & 230 & 3 & 1.3\% \\
-OpenTenBase & 877 & 1 & 0.1\% \\
 \midrule
-Total & 4,183 & 140 & 3.2\% \\
+Total & 3,076 & 136 & 4.2\% \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-We further validate extensibility on SQLServer, a commercial DBMS with vendor-specific grammars, and OpenTenBase, a distributed DBMS with distributed-specific SQL features.
-\tool{} generates 233 rules for SQLServer and 878 rules for OpenTenBase, achieving syntactic correctness of 96.6\% and 98.6\%, and semantic correctness of 71.5\% and 72.7\%, respectively.
 These results show that most dialect support is obtained automatically, while manual review is limited to a small number of unmapped or ambiguous constructs.
 To quantify the benefit of this manual effort, we remove the 42 manually corrected DuckDB rules and rerun \tool{} on DuckDB.
 The manually reviewed rules allow \tool{} to cover 14,087 additional branches and find two more bugs than the fully automated version.
