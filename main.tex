@@ -915,24 +915,35 @@ Thus, manual review provides additional gains, but the majority of coverage and 
 
 % Related Work 写作逻辑：
 % Review A-Novelty/B-Q1/C-Q2 回应位置：Related Work 集中比较 SQLGlot/jOOQ/RISE/Sedar，补足 Introduction 中的简短提名。
-% 回应逻辑：先说明 DBMS fuzzing 工具解决 seed 使用和生成，再说明 dialect translators 面向 statement/query migration，最后落到 Morph 的 test-case-level seed transfer。
-% - DBMS Fuzzing：说明现有 generation/mutation fuzzers 关注如何生成或变异 query，但没有解决 emerging DBMS 的 high-quality seed acquisition。
-% - LLM-Based Seed Generation：SQLGlot/jOOQ/RISE/SedaR 都放在这里，维持当前小节结构。
-% - 对 RISE 强调 SELECT statement-level semantic-equivalent translation；对 SedaR 强调 LLM text translation + destructive sanitization。
-% - 结尾用 RQ3/RQ2 数字支撑 conceptual difference，让差异有实验落点。
+% 回应逻辑：先把相关工作分成三类，再分别介绍代表工作，最后强调 Morph 的不同。
+% - DBMS Fuzzing：现有 generation/mutation/oracle fuzzers 解决如何生成或变异 query，但不解决 emerging DBMS 的 high-quality seed acquisition。
+% - LLM-Based Seed Generation：LLM 可用于直接合成、片段合成或 test-case transfer，但常依赖文本生成和后处理 sanitizer。
+% - Cross-Dialect SQL Translation：SQLGlot/jOOQ/RISE/CrackSQL 等面向 statement/query migration，不建模 fuzzing seed 的 test-case-level dependency 和 fuzzer compatibility。
+% - Related Work 不复述 RQ 数字，只保留 conceptual difference。
+Related work falls into three categories: DBMS fuzzing, LLM-based seed generation, and cross-dialect SQL translation.
+The first category improves how DBMS inputs are generated, mutated, or checked; the second uses LLMs to synthesize or transfer testing inputs; and the third translates SQL across dialects for migration or compatibility.
+\tool{} builds on these lines of work but targets a different problem: structure-preserving transfer of whole SQL test cases into high-quality fuzzing seeds.
+
 \subsection{DBMS Fuzzing}
 Fuzzing is one of the most effective automated testing techniques for identifying DBMS vulnerabilities.
 Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlancer, rigger2020testing}, and DynSQL~\cite{jiang2023dynsql}, construct SQL queries from hard-coded rules or semantic oracles, while recent clause-guided and differential methods further improve logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}. However, predefined templates can limit complex scenarios~\cite{gao2023comprehensive}. Mutation-based fuzzers instead evolve seed pools: \squirrel{}~\cite{zhong2020squirrel} uses IR-based mutations, \griffin{}~\cite{fu2022griffin} uses grammar-free metadata replacement, and LEGO~\cite{liang2023sequence} combines SQL statement sequences. 
-Unlike these works, \tool{} addresses the upstream challenge of \textit{seed acquisition} by producing high-quality cross-dialect seeds for complex scenarios and emerging DBMS engines~\cite{gao2023comprehensive}.
+These fuzzers are effective once suitable seeds or generation rules are available, but they do not directly address how to obtain high-quality seeds for emerging DBMSs.
+Unlike these works, \tool{} focuses on the upstream \textit{seed acquisition} problem by transferring mature DBMS test cases into target-compatible seed sequences.
 
 \subsection{LLM-Based Seed Generation}
-General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, convert SQL syntax across DBMS dialects for query migration and application compatibility. They provide useful mappings for individual statements, but they do not treat a fuzzing seed as a whole test case with DDL/DML dependencies, schema constraints, and downstream mutation requirements. Recent work RISE~\cite{xie2026rise} further studies semantic-equivalent SELECT translation across RDBMSs by decomposing a SELECT statement into skeletons, isolating dialect-specific constructs, and using LLMs to infer translation rules. However, this statement-level design does not model cross-statement dependencies and does not ensure that the translated result is acceptable to a fuzzer's internal grammar.
-Recent LLM-based methods improve DBMS seed generation: CrackSQL~\cite{zhou2025cracking} and Fuzz4All~\cite{xia2024fuzz4all} improve seed variety, while \sedar{}~\cite{fu2024sedar}, ShQveL~\cite{zhong2025testing}, and QTRAN~\cite{lin2025qtran} explore cross-dialect transfer, fragment synthesis, and oracle extension.
-\sedar{} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
-However, \sedar{} remains an LLM-centric SQL text translation framework: it feeds schema information and raw SQL to an LLM and then relies on destructive sanitization, such as commenting out unparsable fragments, to satisfy fuzzer compatibility.
-In contrast, \tool{} reformulates transfer as AQT-Guided Dialect Instantiation.
-AQTs expose schema dependencies, nested structures, and clause-level relationships as an explicit structural space; target-dialect rules are retrieved or generated within this space; and parser/executor feedback performs local structural repair rather than deleting invalid constructs. Thus, \tool{} targets test-case-level seed transfer rather than statement-level translation, preserving test-case structure while repairing fuzzer-incompatible constructs.
-This design difference leads to stronger empirical results: \tool{} achieves 0.629--0.776 semantic correctness across four DBMSs, compared with 0.169--0.388 for \sedar{}, and further covers 14\% more branches and finds 16 more bugs than \sedar{} in 24 hours.
+Recent work has explored LLMs for generating or enriching testing inputs.
+Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQveL~\cite{zhong2025testing} synthesizes SQL fragments for database testing.
+\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
+However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
+In particular, \sedar{} feeds schema information and raw SQL to an LLM, then repairs incompatibilities by sanitizing unparsable fragments.
+In contrast, \tool{} uses the LLM only within an AQT-guided instantiation process, where schema dependencies, nested structures, and clause-level relationships are explicit and can be repaired locally without discarding the surrounding test-case structure.
+
+\subsection{Cross-Dialect SQL Translation}
+General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, convert SQL syntax across DBMS dialects for query migration and application compatibility.
+Recent research systems further improve SQL translation through learned or rule-driven mechanisms: CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} performs rule-driven SELECT translation via query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
+These systems provide useful statement-level mappings, but their goal is query migration, semantic-equivalent translation, or oracle portability rather than fuzzing-seed construction.
+They therefore do not explicitly model a seed as an ordered test case with DDL/DML dependencies, evolving schema context, and downstream fuzzer compatibility constraints.
+\tool{} differs by treating cross-dialect transfer as test-case-level AQT instantiation: it preserves cross-statement dependencies while constructing target-compliant seed sequences for mutation-based DBMS fuzzing.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -941,7 +952,7 @@ This design difference leads to stronger empirical results: \tool{} achieves 0.6
 % - 保持和全文术语一致：AQT-Guided Dialect Instantiation + adaptive sanitization。
 We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them through AQT-Guided Dialect Instantiation, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic correctness by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend this transfer paradigm to non-relational systems.
 
-\noindent\textbf{Data Availability.} \url{https://doi.org/10.5281/zenodo.19251660}. 
+\noindent\textbf{Data Availability.}The artifact and experimental data are available in an anonymous archive with a DOI at \url{https://doi.org/10.5281/zenodo.19251660}. 
 % we also provide an anonymous mirror at \url{https://anonymous.4open.science/r/Morph-82DE}. Both links contain the same artifact content.
 
 
