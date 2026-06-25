@@ -1,0 +1,872 @@
+ Structure-Aware Cross-Dialect SQL Transfer for
+Constructing High-Quality Seeds in DBMS Fuzzing
+                                                        Anonymous Author(s)
+
+
+   Abstract—DBMS fuzzing mutates initial seed queries into new     assets, creating a critical bottleneck that restricts the testing
+ones to explore execution paths and trigger crash bugs, making     depth of existing fuzzers.
+the quality and diversity of the initial seeds critical. In practice, To overcome this limitation, existing studies and tools
+built-in test suites are typically used as initial seeds, but many
+DBMSs lack such suites, especially for emerging database engines.  have used SQL dialect translation to transfer SQL across
+Recent studies have applied LLMs to end-to-end translate test      DBMSs [16]–[19]. General-purpose translators such as SQL-
+queries across DBMSs. However, such translation may introduce      Glot [20] and jOOQ [21], as well as recent systems such as
+syntax and semantic errors due to hallucination and limited        RISE [22], mainly focus on statement-level translation for query
+dialect knowledge. Moreover, even with available seeds, current    migration or semantic-equivalent SELECT rewriting. However,
+fuzzers struggle to effectively mutate them because of limited
+support for SQL grammar, often leading to the loss of important    fuzzing seeds are full test cases rather than isolated statements:
+query semantics.                                                   they often contain multiple interdependent DDL, DML, and
+   In this paper, we propose M ORPH, a test-case-level structure-  query statements, and the transferred results must remain
+aware cross-dialect SQL transfer framework designed for            parsable and mutable by downstream fuzzers. Thus, directly
+constructing high-quality initial seeds and enabling effective     applying statement-level translators may lose cross-statement
+mutation in DBMS fuzzing. It follows a three-step workflow. First,
+M ORPH builds an Abstract Query Template (AQT) with dialect-       dependencies or produce fuzzer-incompatible structures. Some
+independent structure extraction, preserving statement order and   fuzzing-oriented methods instead aim to migrate high-quality
+cross-statement dependencies. Second, M ORPH performs AQT-         test seeds from mature DBMSs to target systems, converting
+Guided Dialect Instantiation to construct a target seed sequence   historical test cases into initial fuzzing seeds compatible across
+under target-dialect constraints. Finally, M ORPH uses parser      DBMS dialects [23], [24]. A typical example is S EDAR [19],
+feedback to fix remaining incompatibilities, ensuring queries
+are fuzzer-parsable and mutable. We evaluate M ORPH on four        which follows an LLM-centric Translate-and-Sanitize pipeline.
+popular DBMSs: DuckDB, ClickHouse, MonetDB, and Virtuoso.          It first executes existing test cases on the source DBMS to
+Compared with the state-of-the-art seeds transforming approach     collect schema information, then directly feeds the schema
+S EDAR, M ORPH covers 26% more branches, finds 16 more bugs in     and raw SQL text to an LLM for target-dialect translation. To
+24 hours, and achieves 100%–272% higher semantic correctness       ensure compatibility with fuzzers, S EDAR relies on Unparsable
+for transferred seeds. Moreover, M ORPH uncovers 28 previously
+unknown bugs, including 20 confirmed.                              Commenting, which temporarily comments out unparsable parts
+   Index Terms—DBMS Fuzzing, Initial Seeds, Cross-DBMS SQL         during mutation.
+Transfer                                                              Despite being able to transform SQL across DBMSs, existing
+                                                                   dialect translation approaches cannot directly support fuzzing
+                       I. I NTRODUCTION                            seed generation because they still suffer from test-case semantic
+   Database management systems (DBMSs) provide the essen- loss and fuzzer incompatibility. (1) First, statement-level
+tial framework for organizing and accessing data. Ensuring translators process statements in isolation, while fuzzing seeds
+that a DBMS operates reliably is critical for maintaining rely on dependencies across schema definitions, inserted data,
+data integrity and business continuity. However, the complex and subsequent queries. Losing these dependencies can break
+architectures and intricate implementations of modern DBMSs schema references, type constraints, or function semantics,
+inevitably introduce potential bugs, which can lead to system making the transferred seeds fail during execution on the target
+crashes, data loss, or service interruptions [1], [2]. Timely DBMS. (2) Second, even when translation produces target-
+detection of such bugs is therefore crucial for maintaining the dialect SQL, the result may exceed the grammar accepted
+reliability of these DBMSs.                                        by downstream fuzzers. Existing methods often handle such
+   In recent years, fuzzing has emerged as an effective technique incompatibilities by mechanically discarding or commenting
+for uncovering crashes and detecting hidden errors [3]–[6]. out unsupported grammar structures, causing the loss of
+Many DBMS fuzzers have already discovered lots of bugs in valuable SQL features and testing logic embedded in the
+popular DBMSs [7]–[9]. These fuzzers typically generate new original test cases. As a result, syntactically valid transferred
+test cases by repeatedly mutating a set of initial seed queries to queries can still suffer semantic degradation, limiting execution-
+explore more execution paths. Consequently, the effectiveness path coverage and weakening optimizer stress testing.
+of fuzzing largely depends on the quality and diversity of            To address the limitations of existing approaches, we propose
+the initial seeds [10]–[13]. While established DBMSs (e.g., a structure-aware method for cross-dialect transfer of SQL
+PostgreSQL [14]) possess extensive test suites serving as ideal test cases. Our core idea is to reformulate SQL transfer
+seeds, emerging engines like DuckDB [15] often lack such from direct SQL-text translation into AQT-Guided Dialect
+Instantiation for whole test cases. Instead of translating each        In summary, the paper makes the following contributions:
+SQL statement or raw test case as text, M ORPH first extracts 1) We find that many DBMS fuzzers lack high-quality initial
+an AQT that explicitly captures schema dependencies, nested             seeds. LLM-based end-to-end translation often introduces
+structures, and clause-level relationships. It then instantiates the    errors, and limited SQL grammar support further hinders
+AQT into target-dialect SQL using local AQT-node mappings               mutation and degrades query semantics, reducing testing
+and target-side feedback, with the LLM used only for bounded            effectiveness.
+rule generation or local repair under structural constraints. 2) We propose M ORPH, a structure-aware cross-dialect SQL
+Unlike statement-level translators such as RISE [22], which             transfer framework for constructing high-quality seeds.
+reduce an individual SQL statement to a statement-local rewrite         Instead of direct translation, M ORPH extracts AQTs and
+rule, M ORPH abstracts a whole test case into an AQT that               performs AQT-Guided Dialect Instantiation with a retrieval-
+explicitly records cross-statement read/write dependencies, an          augmented knowledge base. Moreover, M ORPH enables
+evolving schema context, and nested clause-level structure;             effective fuzzing through parser feedback-driven adaptation.
+mapping rules are only local operators for instantiating AQT 3) M ORPH uncovered 28 previously unknown bugs on four
+nodes, rather than the core translation paradigm. This enables          diverse DBMSs, with 20 confirmed and 14 fixed. Compared
+fuzzing to retain testing-relevant SQL features while avoiding          to the state-of-the-art method S EDAR, M ORPH improves
+the translation failures and destructive sanitization caused by         semantic correctness by 100%–272%, achieving up to a
+direct text translation.                                                26% increase in branch coverage.
+   However, realizing this idea has three challenges: (1) First,
+query logic is often tightly coupled with dialect-specific syntax,               II. BACKGROUND AND M OTIVATION
+requiring the separation of syntactic differences while preserv-       SQL Dialects. Database Management Systems (DBMSs)
+ing the original structure, dependencies, and semantic richness. underpin modern data-driven applications and expose high-
+(2) Second, ensuring target-side semantic correctness during level declarative query languages for data interaction. Although
+query transformation is non-trivial, as operators, functions, and SQL is standardized, real-world DBMSs implement diverse
+type conversions may differ across dialects, requiring carefully SQL dialects with substantial syntactic and semantic varia-
+constrained rewriting. (3) Third, advanced SQL features in tions. For example, PostgreSQL uses AGE(timestamp) for
+target DBMSs often exceed the grammar supported by generic date arithmetic, whereas DuckDB requires date_diff().
+fuzzers; naively removing unsupported constructs can break Similarly, type casting syntax varies between ::INTERVAL
+queries, necessitating structure-preserving adaptations into in PostgreSQL and CAST(... AS INTERVAL) in standard
+parsable forms without modifying the fuzzer.                         SQL. These dialect gaps pose substantial barriers for reusing
+   To address these challenges, we propose M ORPH, a structure- test assets across different DBMSs. DBMS Fuzzing and
+aware cross-dialect DBMS fuzzing framework for constructing Cross-Dialect Seed Transfer. Fuzzing has emerged as a
+high-quality initial seeds and enabling effective mutations. core technique for discovering system crashes [9], [13]. By
+M ORPH consists of three steps: (1) First, M ORPH parses each continuously generating and mutating inputs to traverse diverse
+SQL test case into schema-bound statement ASTs, replaces execution paths, it effectively exposes corner cases and potential
+dialect-specific syntax with generic labels, and extracts both bugs. The efficacy of fuzzing is heavily influenced by the
+intra-statement structure and cross-statement dependencies to quality of Initial Seeds. Due to the diverse features of DBMSs,
+build an AQT. (2) Second, M ORPH performs AQT-Guided fuzzers lacking high-quality initial seeds with specific syntactic
+Dialect Instantiation, recursively instantiating AQT nodes features (e.g., recursive CTEs) are often confined to shallow
+into dialect-specific subtrees under target-dialect constraints parsing logic, thus leaving many bugs undetected [26].
+while propagating the evolving target schema context across            To address seed scarcity for emerging DBMSs testing, Cross-
+statements. (3) Finally, M ORPH adapts SQL queries that DBMS SQL Transfer has emerged as an active research direc-
+are incompatible with fuzzers by using runtime feedback, tion [16]. Recent approaches leverage Large Language Models
+converting unsupported constructs into parsable forms while (LLMs) for cross-dialect translation [18], [27]. S EDAR [19],
+preserving their logical structure to maximize testing coverage. the current state-of-the-art, adopts a Translate-and-Sanitize
+   We implement M ORPH and evaluate it against the state- paradigm: using an LLM to translate seeds between different
+of-the-art approach S EDAR on four popular DBMSs, namely dialects, followed by Unparsable Commenting to handle parsing
+DuckDB, ClickHouse, MonetDB, and Virtuoso. The results errors by commenting out incompatible parts or statements.
+show that M ORPH achieves 100%–272% higher semantic                   Motivating Example. LLM-based cross-dialect transfer
+correctness for transferred seeds than S EDAR. Based on that, methods help in the generation of initial fuzzer seeds but may
+M ORPH finds a total of 7%–26% more branches and 1–11 introduce semantic deviation due to hallucinations. Moreover,
+more bugs than S EDAR on four DBMSs. More importantly, many fuzzers cover only a subset of SQL grammar. Existing
+M ORPH uncovers 28 previously unknown bugs, including 20 methods typically comment out unsupported features to support
+that have been confirmed, with 14 that have already been fixed. seed mutation after transfer, which alters the query and causes
+Moreover, M ORPH has shown substantial real-world impact: the logic loss. Limitations of Existing Approaches. Figure
+all reported bugs of MonetDB have been incorporated into its 1 illustrates the semantic deviation and logic loss S EDAR
+official N EXT R ELEASE milestone [25].                              experiences when transferring a test case from PostgreSQL
+to DuckDB, which contains dialect-specific features like the A. Structure-Preserving Abstraction
+AGE function in the WHERE clause and the ::INTERVAL                    The step aims to separate the logic of test cases from their
+type cast. With limited knowledge of DuckDB’s syntax, dialect-specific representations. The challenge lies in extracting
+the LLM hallucinates and preserves AGE, causing syntax such logic from tightly coupled SQL dialects. To address this,
+and semantic errors. To satisfy parsing constraints, S EDAR we formalize the seed structure to enable precise manipulation
+comments out AGE and replaces the WHERE condition with of the extracted logic. We first give some formal definitions of
+True, producing a syntactically valid but simplified query that basic concepts. Formal Definition. To support syntax-aware
+loses the original verification intent and fails to exercise deep query abstraction and decouple the logical intent of a test
+internal states. As a result, the migrated seed has limited utility case, we introduce SQL abstraction rules and AQT. A SQL
+for subsequent effective mutation in DBMS fuzzing. Basic test case is an ordered sequence of DDL, DML, and query
+Idea of M ORPH. The core idea of M ORPH is to thoroughly statements; Ri and Wi denote the objects read/referenced and
+decouple logical intent from syntactic representation, shifting written/created by statement si , respectively. The two formal
+from unstable textual translation to more robust structural objects are defined as follows:
+recursive substitution. As shown in Figure 1, M ORPH does not
+perform erroneous syntactic translation, but instead abstracts the   Definition III.1 (SQL Abstraction Rule). Abstraction rules
+dialect-specific AGE function into a generic ¡TimeDiff¿ intent.      map from one dialect-specific construct to abstract represen-
+It then performs a high-fidelity instantiation into DuckDB’s         tations. A rule has the form:
+equivalent syntax. By ensuring the type casting and window                     [Function | Type | · · · ] → [⟨FuncTag⟩ |
+function partition logic are preserved, M ORPH generates a high-                                             ⟨TypeCast⟩ | · · · ]
+fidelity seed that retains the original filtering complexity. By
+maintaining these complex semantics during transfer, M ORPH          where Source is a dialect-specific SQL element and Target is
+ensures the generated seeds are effective for validation, enabling   its corresponding abstract label that represents the semantic
+them to reach deeper code paths within the DBMS and uncover          intent. For example, AGE(·) → ⟨TimeDiff⟩ abstracts interval
+intricate logic bugs that might be unreachable by S EDAR.            computation.
+                                                                     Definition III.2 (Abstract Query Template). Given a SQL
+                                                                     test case C = ⟨s1 , . . . , sn ⟩, its AQT is defined as a 5-tuple:
+                         III. A PPROACH
+                                                                                         T = ⟨U, ∆, D, Gtc , H⟩
+   M ORPH is a structure-aware cross-dialect DBMS fuzzing                                                    •  U = ⟨U1 , . . . , Un ⟩ is the ordered sequence of statement
+                                                                                                                                                      i
+framework for generating effective seeds for the target DBMSs.                                                  templates. Each Ui = ⟨kindi , Snorm        , G i , Ri , Wi ⟩ records
+As Figure 2 shows, it takes source SQL test cases from mature                                                   the statement type, normalized skeleton, intra-statement
+DBMSs as input, transforms them across dialects into initial                                                    structure graph, read/reference set, and write/effect set of
+seed sequences for the target DBMS, and then mutates these                                                      si .
+seeds to discover bugs. Unlike LLM-centric text translation,                                                  • ∆ ⊆ {(i, j) | i < j} is the cross-statement dependency set,
+M ORPH treats transfer as an AQT-Guided Dialect Instantiation                                                   where (i, j) ∈ ∆ iff Rj ∩ Wi ̸= ∅.
+process. It first abstracts each source test case into an AQT that                                            • D is the cumulative schema context after executing
+records statement order, schema dependencies, nested query                                                      ⟨s1 , . . . , sn ⟩ in order, including table definitions, column
+structures, and clause-level relationships; then it recursively                                                 types, constraints, and object-state summaries needed for
+instantiates abstract nodes with rules retrieved or generated                                                   target-side instantiation.
+under target-dialect constraints. When a generated structure                                                  • Gtc = (Vtc , Etc ) is the test-case dependency graph, where
+is rejected by the target parser or executor, M ORPH performs                                                   Vtc = {1, . . . , n} and Etc = ∆.
+feedback-driven local repair instead of destructively discarding                                              • H is a structural hash for deduplication, computed over
+the invalid structure, producing fuzzer-compatible seeds while                                                  the ordered normalized skeletons and dependency edges.
+retaining testing-relevant SQL features.                                                                    Structure-Aware AQT Generation. Unlike prior statement-
+                                                                                                            level translators that process each SQL statement in isolation
+                                                                                                            and emit a statement-local rewrite rule, M ORPH treats the whole
+        Source Seed from PostgreSQL: SELECT * FROM t0 WHERE AGE(t0.c1, NOW()) > '1 year'::INTERVAL;         test case as the abstraction unit, representing it as the AQT
+                                                                                                  Dialect   five-tuple of Definition III.2. Algorithm 1 scans the ordered
+         Conventional End-to-End Translation Methods         Morph: Structure-Aware SQL Transfer
+                                                                                                            statement sequence, extracts a statement template for each state-
+                   Step1: LLM Translation
+                                      Semantic Deviation
+                                                                 Step 1: Query Logic Abstraction
+                                                                                     Constraint Reasoning
+                                                                                                            ment, records cross-statement dependencies, and propagates the
+                                                           WHERE <TimeDiff> > <Interval>
+            WHERE AGE(t0.c1, ...) > ...                                                                     evolving schema context across the whole test case. For each
+               Step2: Unparsable Commenting
+                                            Logic Loss
+                                                                 Step 2: AQT-Guided Instantiation
+                                                                                         Logic Preserved
+                                                                                                            statement, E XTRACT S TMT T EMPLATE parses the statement
+               WHERE /*AGE...*/ TRUE                          WHERE date_diff('year') > INTERVAL ...;       with the current context, detects scoped SQL boundaries such
+                                                                                                            as CTE bodies and nested subqueries, and applies abstraction
+Fig. 1. Motivating example: S EDAR causes semantic deviation and logic loss,                                rules R to replace dialect-specific constructs with generic
+while M ORPH preserves intent via AQT.                                                                      representations. It also returns read/write sets (Ri , Wi ), which
+                   Syntax-Aware Query Abstraction                                                             AQT-Guided Dialect Instantiation                                    Feedback-Driven Adaptive Fuzzing
+
+                                                                                                                                                    Skill Executor
+                                                                                                                                                         SQL
+                                               Schema        AQT                                                                                                                      Query          Error Fixer
+                                                                                                                     Task                             Translator
+                            SQL Parser                     Generator                                                                                                                 Sanitizer
+                                                                                                                    Planner
+                                                                                                                                                                                                   Error            Fixed
+  Test                                                                                      AQTs                                                        Rule         Translated                    Msg              Seed
+ Cases                                                                                                                                                Generator        Seeds                                                Bugs
+                                                                                                                                          Query
+                                                                                                                                          Token
+                                                                                                                                                                                        Mutable
+                                                             Dialect                                            Knowledge                 Top-k       Error Fixer                       Seeds
+                                 AST                         Reduce                                               Base                    Dialect                                                          Fuzzer
+
+
+
+                                           Fig. 2. Overview of M ORPH. M ORPH combines structure-preserving transfer with feedback-guided fuzzing.
+
+
+
+are used to add dependency edges from earlier statements                                                                                            during recursive traversal. The SUBQUERY root node is
+(Line 5). Finally, M ORPH updates the cumulative context                                                                                            recognized as a boundary, decomposing the query into an outer
+after each statement and assembles the AQT with the ordered                                                                                         block (ID 1) and an inner subquery (ID 2). The abstraction
+statement units, dependency graph, cumulative schema context,                                                                                       engine then applies rules R to normalize dialect-specific
+and structural hash (Lines 7–11). This representation enables                                                                                       constructs, mapping AGE(...), ::INT, and MIN(.) into
+SQL test cases to be manipulated as structured graph-based                                                                                          ¡TimeDiff¿, ¡TypeCast¿, and ¡AggMin¿. Finally, a statement
+objects rather than flat strings. For example, Figure 3 shows                                                                                       template is constructed, capturing the parent-child relationship
+                                                                                                                                                    via a pointer ¡Ptr:2¿ and producing a normalized skeleton
+ Algorithm 1: AQT Extraction                                                                                                                        Snorm that preserves logic while abstracting dialect differences.
+  Input : Test case C = ⟨s1 , . . . , sn ⟩; initial context S0 ; rules                                                                              B. AQT-Guided Dialect Instantiation
+            R
+  Output : AQT T = ⟨U, ∆, D, Gtc , H⟩                                                                                                                  This step instantiates AQTs into syntactically valid target
+1 U ← [ ]; ∆ ← ∅; Ctx ← S0 ;                                                                                                                        seed sequences while preserving semantic-rich structures from
+2 foreach si in C do                                                                                                                                the source seed. The instantiation respects the dependency
+3     Ui ← E XTRACT S TMT T EMPLATE(si , Ctx, R) ;                                                                                                  order in Gtc : DDL and DML statements are instantiated
+4     (Ri , Wi ) ← ACCESS S ETS(Ui );
+5     ∆ ← ∆ ∪ {(j, i) | j < i ∧ Ri ∩ Wj ̸= ∅} ;
+                                                                                                                                                    before queries that depend on them, and the evolving target
+6     U.A PPEND(Ui );                                                                                                                               context is propagated across statements to maintain cross-
+7     Ctx ← U PDATE C ONTEXT(Ctx, si ) ;                // Evolve                                                                                   statement type, reference, and state consistency. The challenge
+       schema/state                                                                                                                                 is preserving target-side semantic correctness during recursive
+8  D ← Ctx;                                                                                                                                         AQT-node instantiation without breaking the original test-case
+9  Gtc ← ({1, . . . , L
+                      |U|}, ∆);                                                                                                                     order. To address it, M ORPH transforms the instantiation task
+10 H ← SHA256(          i S KELETON (Ui ) ⊕ ∆);                                                                                                     into a closed-loop reasoning process built on a Retrieval-
+11 return ⟨U, ∆, D, Gtc , H⟩;
+                                                                                                                                                    Augmented Generation (RAG) architecture, which grounds
+                                                                                                                                                    LLM outputs in retrieved dialect-specific evidence to reduce
+one statement from a source SQL test case containing a nested                                                                                       hallucinations. We formulate dialect translation as a two-level
+subquery, where the outer query filters records using an interval                                                                                   instantiation problem: the outer level walks the statement
+computation, e.g., “SELECT ... WHERE u.created_at                                                                                                   dependency graph while preserving the original sequence
+¿ (SELECT AGE(...) FROM ...)”. The statement is                                                                                                     for independent statements, and the inner level recursively
+first parsed into an AST, and structural boundaries are identified                                                                                  instantiates each statement’s structure graph in a bottom-
+                                                                                                                                                    up manner. To guarantee that the generated queries remain
+                                                                                                                                                    semantically consistent with the target dialect during recursive
+    Source AST                                        Abstraction Engine                         Structure-
+                   SELECT                                                                        Aware AQT          SELECT                          construction, the system employs an AQT-Guided Dialect
+                   WHERE                                                                                            WHERE
+
+                                              Input
+                                                              Rules R
+                                                                                       Extract
+                                                                                                                                                    Instantiation process as formalized in Algorithm 2. The
+                        ＞                               AGE(·) → <TimeDiff>                                            ＞
+                                                                                                                                                    algorithm first derives a stable dependency order over Gtc ,
+          SUBQUERY                                      ::INT → <TypeCast>
+                                                                                                          SUBQUERY
+            ROOT
+                            u.created_at
+                                                        MIN(·) → <AggMin>
+                                                                              S norm
+                                                                                                                           u.created_at
+                                                                                                                                                    which respects cross-statement dependencies while preserving
+                   SELECT
+                                                                                                                ID:1 → [..., <Ptr:2>]
+                                                                                                                                                    the source order for independent statements (Line 1). For
+                                                              Discarded:                                      ID:2 → [<AggMin>, ...]
+             AGE(...)        FROM                            AGE(), ::INT                                                                           each statement, it invokes I NSTANTIATE S TMT with source-side
+             Boundary Detection
+            Identifies query boundaries
+                                                          Normalizes Dialect
+                                                             Applies rules R
+                                                                                                         Structure-Aware AQT
+                                                                                                 Creates matchable query representation
+                                                                                                                                                    constraints and the current target context, and then propagates
+        Detects nested SELECT, CTE patterns             (e.g., AGE→<TimeDiff>)                          Tuple � = ⟨�, �, �, ��� , ℋ⟩
+                                                                                                                                                    the updated target context to subsequent statements (Lines 4–6).
+                                                                                                                                                    Inside I NSTANTIATE S TMT, M ORPH follows the intra-statement
+Fig. 3. An example of the per-statement component in AQT extraction. It
+detects nested SQL boundaries and normalizes dialect-specific features to
+                                                                                                                                                    structure graph in bottom-up order, substitutes instantiated
+abstract labels, producing the statement template used by the full test-case                                                                        child fragments, retrieves or generates local dialect mappings
+representation.                                                                                                                                     from the Hybrid KB, and validates the resulting fragments
+ Algorithm 2: AQT Instantiation                                                                                             case complexity. To reduce semantic drift, M ORPH uses a
+  Input : AQT T = ⟨U, ∆, D, Gtc , H⟩; target dialect Dt ;                                                                   Hybrid Knowledge Base with two complementary stores. The
+           Hybrid KB HKB; threshold δ                                                                                       Abstract Pattern Store keeps deduplicated structural skele-
+  Output : Compatible seed sequence Qtarget                                                                                 tons extracted during AQT generation (e.g., JOIN/WINDOW
+1 StmtOrder ←
+                                                                                                                            templates), preserving query topology across dialects. The
+    S TABLE T OPOLOGICAL S ORT(Gtc , ⟨1, . . . , |U|⟩) ;
+   // Respect deps; keep original order                                                                                     Vector Index stores embedded dialect evidence (documentation,
+2 Qtarget ← [ ]; Cs ← D; Ct ← ∅;                                                                                            function signatures, and operator semantics) and retrieves
+3 foreach i in StmtOrder do                                                                                                 top-k relevant constraints for each abstract token τ , thereby
+4      Qi ← I NSTANTIATE S TMT(Ui , Dt , HKB, δ, Cs , Ct ) ;                                                                grounding generation in concrete dialect evidence rather than
+5      Qtarget .A PPEND(Qi );                                                                                               free-form synthesis. Take Figure 4 as an example, the left panel
+6      Ct ← U PDATE C ONTEXT(Ct , Qi ) ;          // Propagate
+        context                                                                                                             shows the abstract query graph G, where the root segment id1
+                                                                                                                            depends on the nested segment id2 ; therefore, the planner
+7    return Qtarget ;
+                                                                                                                            first performs a topological sort and obtains the execution
+                                                                                                                            order Order = [id2 → id1 ]. In the center panel, M ORPH first
+                                                                                                                            instantiates id2 by concretizing its abstract tokens, including
+with the target DBMS parser before caching new rules. If                                                                    mapping <AggMin> to MIN(..) and <TypeCast> to a
+validation fails, the Error Fixer repairs the fragment and rule                                                             dialect-valid CAST(.. AS ..) form, and validates this
+using parser feedback; unverified candidates are discarded                                                                  subquery fragment with parser feedback until it succeeds.
+rather than reused. This mechanism avoids degenerate fixes                                                                  It then substitutes this validated id2 fragment into id1 and
+such as clause removal and preserves testing-relevant SQL                                                                   instantiates the outer predicate by mapping <TimeDiff> to
+features. Finally, the instantiated statements form the target                                                              DuckDB’s date_diff. The right panel shows the resulting
+seed sequence Qtarget . Test-Oriented Skill Execution. The                                                                  Compatible Seed that keeps the original nested time-window
+above instantiation procedure is implemented by Skill Executor,                                                             filtering logic.
+which acts as the reasoning core of the agent, with three
+specialized skills. SQL Translator: This skill is responsible                                                               C. Feedback-Driven Adaptive Fuzzing
+for token-to-dialect instantiation. It generates the target SQL                                                                Some DBMS features lie beyond the grammatical scope
+fragment by integrating the input segment with function                                                                     supported by existing fuzzers, making mutation difficult. To
+signatures retrieved from the Vector Index. For example, when                                                               enable mutation over such seeds, the challenge is to translate or
+encountering <TimeDiff>, it maps the abstraction to the                                                                     adapt advanced DBMS features into fuzzer-compatible forms,
+corresponding DuckDB date_diff signature to produce a                                                                       or to mark mutable regions, while preserving both syntax
+dialect-compliant expression. Rule Generator: This skill is                                                                 correctness and semantic consistency. To address that, M ORPH
+activated when retrieval confidence for a given feature falls                                                               iteratively leverages parsing and execution feedback to rewrite
+below a predefined threshold. It uses the LLM’s zero-shot                                                                   or encapsulate unsupported constructs into valid equivalents
+reasoning, AST context, and few-shot examples to synthesize a                                                               through a structure-preserving fallback process. As Figure 5
+candidate local rule, not a committed KB entry. The candidate                                                               shows, upon receiving compatible seeds, M ORPH sanitizes and
+is applied by the SQL Translator and, if needed, repaired by                                                                executes them in the target DBMS, using execution results to
+the Error Fixer; it is cached in the Hybrid KB only after target-                                                           either proceed to mutation or trigger error-guided semantic
+parser validation succeeds. Error Fix: This skill operates as                                                               repair, and produces a seed annotated with mutable regions to
+a runtime correction module. It performs immediate syntax                                                                   support fuzzing. Specifically, when a transferred seed Qtarget
+validation on generated fragments, and when a target database
+parser rejects a fragment, it identifies and localizes the error                                                                       Syntactic Feedback                                       Semantic Feedback
+                                                                                                                                                                                                                       DB::Exception: Illegal
+                                                                                                                                                                                                                       type String of argument
+using both the compiler feedback and the AST context. To                                                                                                                                                               2 of function date_diff
+                                                                                                                             SELECT (date_diﬀ(                      SELECT date_diﬀ(                                     Error Information
+prevent degenerate repairs such as clause removal, its correction                                                               'year',
+                                                                                                                                c_time,
+                                                                                                                                                                       'year',
+                                                                                                                                                                       c_time,
+                                                                                                                                                                                                       Error-Guided
+                                                                                                                                                                                                          Repair          In ClickHouse
+                                                                                                                                now()))                                now())
+process explicitly favors structure-preserving rewrites through                                                              FROM t_data ;                          FROM t_data ;
+                                                                                                                                                                                         Target DBMS
+                                                                                                                                                                                                                      SELECT date_diﬀ(
+                                                                                                                                                   Adaptive Query                                                        'year',
+constrained few-shot examples, ensuring that the final output                                                                Compatible Seeds
+                                                                                                                                                     Sanitizer
+                                                                                                                                                                      Mutable Seed
+                                                                                                                                                                                                                         toDateTime(c_time),
+                                                                                                                                                                                                                         now())
+                                                                                                                                                                    Excess parentheses
+remains a Compatible Seed while preserving the original test-                                                                                                          are removed
+                                                                                                                                                                                                       Mutable Seed
+                                                                                                                                                                                                                      FROM t_data ;
+
+                                                                                                                                                                                                        Generation          Final Seed
+
+
+
+
+            Input Context
+                                                                                                                                                Fig. 5. Feedback-driven adaptive fuzzing workflow.
+                                             Task Planner            Test-Oriented Skill Executor
+                                                                          (LLM empowerment)          Compatible Seeds
+    AQT     SELECT                                                                                  SELECT date_diff(
+                                                   1   Order:           SQL Translator
+            WHERE
+                                  ID:3
+                                         3
+                                                       ID2→ID1
+                                                       ID2→ID3
+                                                                       (Index-Guided Fusion)           '1 year',
+                                                                                                       u.created_at,
+                                                                                                                            is fed into the fuzzer, it may still contain subtle syntax
+               >                                   2   ID1→ID3                                         now())
+                                                                        Rule Generator
+    SUBQUERY       u.created_at
+                                                                       (Zero-shot Reasoning)
+                                                                                                    FROM users ...          incompatibilities not captured by the static translation phase.
+                                                  Topological Sort
+        ID:1 → [..., <Ptr:2>]
+      ID:2 → [<AggMin>, ...]
+                                                                          Error Fixer
+                                                                        (Interative Repair)
+                                                                                                    1. Dialect Aligned
+                                                                                                    2. Semantically Valid
+                                                                                                                            Instead of discarding these seeds or destructively commenting
+                                                   1
+
+ Sseg SELECT * FROM t0
+                                         3
+                                                       Order:
+                                                       ID2→ID1                                                              out unparsable tokens (as in S EDAR [19]), the sanitizer captures
+                                                       ID1→ID3              Hybrid KB
+      WHERE AGE(t0.c1, NOW())                      2
+              > '1 year'::INTERVAL;
+                                                                        Vector
+                                                                        Index
+                                                                                  Pattern
+                                                                                   Store
+                                                                                                      Verification
+                                                                                                                            the parser error message, localizes the unsupported dialect-
+                                                                                                                            specific construct to the corresponding AQT node, and repairs
+                Fig. 4. RAG-enhanced AQT-Guided Dialect Instantiation.                                                      it using syntactic feedback. For instance, in Figure 5, it
+automatically removes excess brackets around the date_diff                                        TABLE I
+function to produce a syntactically valid Mutable Seed. When         S TATISTICS OF COLLECTED OPEN - SOURCE TEST CASES FROM SOURCE
+                                                                                                  DBMS S .
+an error signal is received (e.g., “Syntax error near SELECT”),
+M ORPH applies four fallbacks in order. First, it checks the               Source DBMS Test Cases Statements            Size
+sanitization dictionary and applies an existing mapping when
+                                                                           SQLite              2,643       308,292    31 MiB
+the unsupported construct has a known target-compatible form.              MySQL               2,685        98,862    15 MiB
+Second, if no exact mapping exists, it uses RAG to retrieve                PostgreSQL          1,367       19,814    8.4 MiB
+candidate replacements from dialect evidence and validates the
+                                                                           Total               6,695       426,968   54.4 MiB
+rewritten fragment with the fuzzer parser. Third, if no suitable
+replacement can be found, M ORPH executes the original source-
+side construct in the source DBMS and substitutes the returned
+value as a constant, preserving the surrounding query structure (e.g., MySQL and PostgreSQL) from the target list, as they
+whenever possible. Finally, only if these structure-preserving serve as the source DBMSs for seed collection. Instead, we
+attempts fail, M ORPH comments out the minimal offending prioritized OLAP and multi-model architectures to rigorously
+construct. This ordering makes destructive commenting a last evaluate M ORPH’s capability in bridging significant dialectal
+resort rather than the default sanitization strategy. Once a seed and architectural gaps (i.e., from Row-store like MySQL to
+passes the fuzzer’s parser, it is designated as a Mutable Seed. Column-store like DuckDB). All experiments were conducted
+M ORPH then identifies data-dependent components, such as on a Linux server equipped with an Intel Xeon CPU and 256
+literals and predicates, and marks them as mutable regions. This GB of RAM. To ensure reproducibility and isolation, each
+directs the fuzzer’s mutation engine to focus on logic-altering DBMS instance ran within a separate Docker container.
+variations rather than the fixed syntactic skeleton, accelerating     Collected Test Cases. Following the prior methodology [19],
+the discovery of deep logic bugs.                                 we   collected built-in test cases from mature DBMS repositories
+                                                                  (i.e., SQLite [33], MySQL [34], and PostgreSQL [35]) for
+                        IV. E VALUATION                           transfer. Table I shows the statistics on collected test cases in
+   M ORPH is implemented in Python and integrates G RIF - each DBMS. Specifically, the dataset aggregates 426,968 SQL
+FIN [10], a coverage-guided mutation fuzzer, as the down- statements across 6,695 files, totaling 54.4 MiB of query text.
+stream execution engine. For the LLM backbone powering                Baselines and Evaluation Metrics. For translation effec-
+the Dynamic Skill Executor and Rule Generator, we employ tiveness, we compare M ORPH against six baselines, including
+Gemini 2.5-flash-lite [28] as the primary language model No translation, SQLGlot [20], jOOQ [21], CrackSQL [36],
+due to its strong code understanding capabilities and cost RISE [22], and S EDAR [19]. The No translation strategy
+efficiency. We set the temperature parameter to 0.2 to balance directly executes the original test cases collected from source
+determinism and output diversity, as justified by the sensitivity DBMSs without modification. SQLGlot and jOOQ represent
+analysis discussion in Section V. We evaluate M ORPH to assess off-the-shelf SQL dialect translators, while CrackSQL and RISE
+its performance in cross-dialect seed transformation and its represent recent SQL translation systems. S EDAR represents the
+practical impact on DBMS fuzzing effectiveness. Specifically, current state-of-the-art LLM-based transfer tool in constructing
+our evaluation focuses on the following research questions:       initial seeds in fuzzing. We reproduced S EDAR’s complete
+• RQ1: Can M ORPH find previously unknown bugs in                 pipeline, including schema capture, end-to-end LLM translation,
+   DBMSs?                                                         and its comment-out sanitization strategy.
+• RQ2: How does M ORPH compare to other fuzzing tools?                We employ three metrics to evaluate M ORPH. First, to assess
+• RQ3: How does M ORPH compare to other translation               transfer quality, we measure Syntactic Correctness (the propor-
+   methods in terms of seed validity and semantic richness?       tion of seeds passing the parser) and Semantic Correctness (the
+• RQ4: What is the contribution of each component in M ORPH       proportion executing without runtime errors). Formally, given
+   to the overall performance?                                    a generated seed set Q, we compute Syn. = |Qparse |/|Q| and
+We first describe the experimental setup, and then answer Sem. = |Qexec |/|Q|, where Qparse denotes parser-accepted
+RQ1–RQ4 in the following four subsections.                        seeds and Qexec denotes seeds executed without runtime
+                                                                  errors. Here, semantic correctness does not denote result
+A. Experimental Setup                                             equivalence between the source and target DBMSs; instead,
+   Target DBMSs and Environment. To evaluate the general- it captures whether a transferred seed is executable in the
+ization of M ORPH across diverse architectures, we selected four target DBMS without runtime errors. We separately measure
+widely used DBMSs according to the DB-Engines Ranking [29]: semantic richness by counting valid functions, data types, and
+MonetDB [30] v11.51, Virtuoso [31] v7.2, DuckDB [15] keywords preserved in executable transferred seeds. Second,
+v1.1.3, and ClickHouse [32] v24.8 LTS. These systems span to quantify the effectiveness in improving fuzzing, we utilize
+a broad spectrum of architectures, from embedded OLAP LLVM’s SanitizerCoverage to track Branch Coverage
+engines to distributed columnar stores, and while they share the over 24-hour campaigns. We report the average results across
+relational data model, each implements a distinct SQL dialect. five independent runs to mitigate randomness. Third, regarding
+We explicitly excluded traditional row-store OLTP systems real-world bug discovery, we present the detected number of
+bugs. The bugs are deduplicated from raw crash logs using in SQL dialects, join operations and subqueries are standard;
+stack hashes and error signatures, ensuring that the reported however, the structural interaction between specific join types
+numbers reflect unique bugs. We report bug counts under two and aliased subqueries can induce a crash bug in DuckDB
+complementary scopes. RQ1 reports the full real-world bug- when executing the statement shown in the PoC. In this
+discovery campaign of M ORPH, including all unique previously case, the source logic was derived from a PostgreSQL test
+unknown bugs we detected and their confirmation/fix status. case featuring a CREATE TABLE statement with DOUBLE
+RQ2 reports only the bugs found under the controlled 24-hour PRECISION and a query containing a nested CROSS JOIN.
+baseline-comparison setting, where all tools run with the same
+time budget and deduplication procedure. Thus, the 28 detected
+bugs in RQ1 measure practical impact, whereas the 22 bugs
+in RQ2 measure fair 24-hour comparative effectiveness.
+
+B. RQ1: Real-World Bug Detection
+   We deployed M ORPH with the backend fuzzer G RIFFIN [10]
+on the latest development versions of the four target DBMSs.
+This RQ reports the full real-world bug-discovery campaign,
+not the restricted 24-hour baseline-comparison setting used
+in RQ2. As summarized in Table II, M ORPH uncovered 28                   Fig. 6. An internal error in DuckDB(Bug #205xx) triggered by a transferred
+unique bugs. Among these issues, 20 have been confirmed and              PostgreSQL test case.
+are pending patches, and 14 critical bugs have already been
+                                                                            M ORPH’s effectiveness stems from its structure-aware trans-
+fixed by the vendors. For instance, regarding the fixed bug
+                                                                         fer. Take the case as an example, in PostgreSQL, nested joins
+in DuckDB (#205xx), the developers appreciated the report
+                                                                         involving a table with DOUBLE PRECISION and a subquery
+exposing an intricate type inference flaw in the Executor, which
+                                                                         are well tested, whereas DuckDB lacks sufficient coverage for
+was triggered by preserving complex cross-table correlations
+                                                                         such combinations. Conventional approaches often simplify
+from PostgreSQL. They merged a fix within days, further
+                                                                         schemas (e.g., converting DOUBLE to INT) or flatten nested
+validating that M ORPH successfully identified deep-seated
+                                                                         queries to ensure compatibility, sacrificing semantic fidelity.
+bugs missed by existing test suites. Moreover, all reported
+                                                                         In contrast, M ORPH preserves the full structural complexity
+bugs of MonetDB have been incorporated into its official
+                                                                         of the original seed, forcing DuckDB to perform precise type
+N EXT R ELEASE milestone [25]. The detected bugs are not
+                                                                         inference and vector allocation for correlated joins and thereby
+limited to the surface level (e.g., Parser) but penetrate deep
+                                                                         exercising execution paths that simplified queries would not
+into the DBMS kernels. As shown in the Component column
+                                                                         reach. This high-fidelity transfer exposes a critical flaw in
+of Table II, the bugs span critical subsystems including the
+                                                                         the executor logic that remains undetected when structural
+Optimizer, Binder, and Storage Engine.
+                                                                         complexity is removed.
+   Case Study: An internal error in DuckDB. To illustrate the
+effectiveness of M ORPH, we examine a fixed bug in DuckDB
+                                                                          Answer to RQ1: In the full real-world bug-discovery
+(#205xx) triggered by a complex query involving a nested
+                                                                          campaign, M ORPH successfully exposed 28 unknown
+CROSS JOIN and specific DDL configurations. Generally,
+                                                                          bugs in four popular DBMSs, affecting core components
+                                                                          including the Optimizer and Storage Engine. Among them,
+                             TABLE II
+                                                                          20 bugs have been confirmed, and 14 bugs have already
+   S TATISTICS OF PREVIOUSLY UNKNOWN BUGS IN POPULAR DBMS S               been fixed by DBMS vendors.
+   DETECTED BY M ORPH . [UAF: U SE -A FTER -F REE , AF: A SSERTION
+FAILURE , NPD: N ULL P OINTER D EREFERENCE , DBZ: D IVIDE - BY-Z ERO ,
+     SEGV: S EGMENTATION V IOLATION , OOM: O UT OF M EMORY ]
+                                                                         C. RQ2: Comparison with Other Fuzzing Tools
+                                                                            We compared M ORPH against three state-of-the-art DBMS
+ Confirmed/Detected Component            Bug Type                        testing tools: SQLancer [37] (logic/crash baseline [10], [11],
+                        optimizer        SEGV(6), NPD(1), AF(1)          [13]), S QUIRREL [13] (default built-in seed corpus [38]), and
+ MonetDB (15/17)        server           SEGV(4), DBZ(1), AF(2)          S EDAR [19]. All tools ran for 24 hours under identical settings,
+                        function         SEGV(1), NPD(1)                 so the bug count in this RQ is a controlled comparison rather
+ Virtuoso (2/5)         server           SEGV(4), UAF(1)                 than the full real-world count in RQ1. We normalized coverage
+                                                                         through a unified dry run and deduplicated crashes using stack-
+                        executor         AF(1), DBZ(1)
+ DuckDB (2/4)           binder           SEGV(1)                         trace hashing plus manual inspection.
+                        function         OOM(1)                             As illustrated in Table III, M ORPH achieves the highest
+                                                                         branch coverage across all evaluated DBMSs. Specifically,
+                        function         SEGV(1)
+ ClickHouse (1/2)                                                        M ORPH covers a total of 422,130 branches, representing
+                        server           AF(1)
+                                                                         overall improvements of 528%, 60%, and 14% over SQLancer,
+ Total                  7 components 20 confirmed, 28 detected
+                                                                         S QUIRREL, and S EDAR, respectively, on their supported targets.
+                                             TABLE III                                                                                  TABLE V
+                        N UMBER OF BRANCHES COVERED BY DIFFERENT TOOLS (24 H ).                            S YNTACTIC AND SEMANTIC CORRECTNESS ACROSS TARGET DBMS S . S YN .
+                                                                                                               AND S EM . DENOTE SYNTACTIC AND SEMANTIC CORRECTNESS ; “-”
+                                                                                                           DENOTES UNSUPPORTED DIALECTS . B OLD MARKS THE BEST RESULT; THE
+    DBMS                             SQLancer          S QUIRREL                  S EDAR         M ORPH                LAST ROW REPORTS IMPROVEMENT OVER S EDAR .
+    MonetDB                               -                 43,747                 76,142         81,486
+    Virtuoso                              -                 26,302                 36,583        40,183                    MonetDB         Virtuoso        DuckDB         ClickHouse
+                                                                                                           Method
+    DuckDB                             22,188               96,434                114,876        144,822                  Syn. Sem.       Syn. Sem.       Syn. Sem.       Syn. Sem.
+    ClickHouse                         25,618                  -                  141,215        155,639
+                                                                                                           No translation 0.589   0.236   0.324   0.097   0.674   0.284   0.613   0.182
+    Total                              47,806             166,483                 368,816        422,130   SQLGlot          -       -       -       -     0.738   0.186   0.665   0.193
+    Improvement∗                       528%↑               60%↑                    14%↑             -      jOOQ             -       -       -       -     0.652   0.136   0.554   0.175
+    ∗ Calculated only for commonly supported DBMSs.                                                        CrackSQL         -       -       -       -     0.740   0.211   0.717   0.264
+                                                                                                           RISE           0.830   0.266   0.545   0.178   0.857   0.314   0.764   0.278
+                                             TABLE IV                                                      S EDAR         0.781   0.388   0.562   0.169   0.895   0.365   0.821   0.315
+                         N UMBER OF BUGS DETECTED BY DIFFERENT TOOLS (24 H ).                              M ORPH         0.929   0.776   0.670   0.629   0.939   0.748   0.895   0.694
+                                                                                                           vs. S EDAR    +19% +100% +19% +272% +5% +105% +9% +120%
+    DBMS                          SQLancer             S QUIRREL                  S EDAR         M ORPH
+    MonetDB                                -                     0                   3             14
+    Virtuoso                               -                     0                   2             3       bypass early engine rejections, exercise deeper optimizer and
+    DuckDB                                 0                     0                   1             3
+    ClickHouse                             0                     -                   0             2
+                                                                                                           executor logic, and trigger critical vulnerabilities.
+
+    Total                               0                     0                     6              22       Answer to RQ2: Under the controlled 24-hour comparison,
+    Increment                          22↑                   22↑                   16↑              -
+                                                                                                            M ORPH covers 528%, 60%, and 14% more branches, and
+                                                                                                            discovers 22, 22, and 16 more bugs than SQLancer, S QUIR -
+                                   Morph       Sedar   Griffin         Squirrel   Sqlancer                  REL, and S EDAR, respectively. The results demonstrate the
+                                 MonetDB                                              Virtuoso              effectiveness of M ORPH in enhancing DBMS fuzzing.
+                                                                 40k
+                  80k
+                                                                 35k
+
+                  60k
+                                                                 30k                                       D. RQ3: Effectiveness of Translation of M ORPH
+   Branches (k)
+                                                                 25k
+                  40k                                            20k             We evaluate M ORPH against untranslated seeds, SQL dialect
+                                                                 15k
+      20k                                    10k
+                                                                              translators, recent SQL translation systems, and S EDAR from
+                                              5k                              two aspects: transferred-seed validity and SQL-feature richness.
+       0k                                     0k
+               5    10
+                      Time (h)
+                               15 20                  5      10
+                                                               Time (h)
+                                                                        15 20 This evaluation targets fuzzing seed quality rather than cross-
+                                                                              DBMS result equivalence: valid seeds must execute on the
+                     DuckDB                                 ClickHouse
+                                            160k                              target DBMS, and rich seeds should retain diverse SQL features
+     140k
+     120k
+                                            140k                              for mutation.
+                                            120k
+     100k                                                                        Validity of the Translated Test Cases. As shown in
+Branches (k)
+                                            100k
+      80k
+                                             80k                              Table V, directly executing source seeds yields low semantic
+      60k                                    60k
+      40k                                    40k
+                                                                              correctness, dropping to 0.097 on Virtuoso and reaching only
+      20k                                    20k                              0.284 even in the best case. Existing translators improve
+       0k                                     0k                              syntactic acceptance but still leave a semantic gap; on DuckDB,
+               5    10         15 20                  5      10         15 20
+                      Time (h)                                 Time (h)
+                                                                              SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic
+    Fig. 7. Coverage growth over time in 24-hour fuzzing campaigns. Griffin   correctness, yet no more than 0.314 semantic correctness.
+    denotes the downstream fuzzer with its original seed corpus.              RISE’s statement-level design is especially limited for seed
+                                                                              transfer: in SQLite-to-DuckDB, M ORPH improves semantic
+                                                                              correctness from 0.314 to 0.776. When the translated outputs
+    Figure 7 further shows that M ORPH reaches higher coverage are used as initial seeds for fuzzing, M ORPH further achieves
+    earlier and continues to gain branches after 12 hours, while 34% higher branch coverage than RISE and detects three
+    several baselines plateau sooner. The coverage improvement bugs in DuckDB, whereas RISE triggers none. Compared with
+    also brings more detected bugs. As shown in Table IV, S EDAR, M ORPH achieves the best result in every column, with
+    M ORPH exposes significantly more unique bugs than baselines. 5%–19% higher syntactic correctness and 100%–272% higher
+    Moreover, M ORPH detects a total of 16 more bugs than S EDAR semantic correctness across the tested DBMSs.
+    on all four DBMSs. This proves that coverage gains are                       These gains confirm that AQT-Guided Dialect Instantiation
+    not merely statistical but functionally impactful, enabling the maps source intent into target-dialect constraints while preserv-
+    detection of bugs that remain unreachable to baselines. Unlike ing parsability and executability.
+    S EDAR, which sacrifices semantic depth through destructive                  Semantic Richness of the Translated Test Cases. Beyond
+    sanitization, M ORPH employs structure-aware transfer to retain validity, we measure whether transferred seeds retain testing
+    the full logical complexity of source test cases. By ensuring value by counting valid functions, data types, and keywords.
+    high semantic correctness (RQ3), M ORPH enables fuzzers to As shown in Table VI, M ORPH preserves 1,036 functions, 180
+                                                                                                     (a) Average Syntax Correctness Rate                                                            (b) Average Semantic Correctness Rate
+                            TABLE VI                                                           100                                                                                            100
+VALID SQL FEATURES IN TRANSFERRED SEEDS . F, DT, AND K DENOTE
+
+
+
+
+                                                                      Syntax Correctness (%)                                                                       Semantic Correctness (%)
+FUNCTIONS , DATA TYPES , AND KEYWORDS ; “-” DENOTES UNSUPPORTED                                 80                                                                                             80
+ DIALECTS . B OLD MARKS THE BEST RESULT; THE LAST ROW REPORTS                                   60                                                                                             60
+                   IMPROVEMENT OVER S EDAR .                                                                                                          95.2%
+                                                                                                                       86.0%          87.3%
+                                                                                                40                                                                                             40
+                                                                                                                                                                                                                     58.9%                         65.1%
+                                                                                                         50.7%                                                                                                                     48.6%
+                 MonetDB     Virtuoso       DuckDB ClickHouse                                   20                                                                                             20
+                                                                                                                                                                                                       27.4%
+Method
+                 F DT K     F DT K          F DT K F DT K                                        0                                                                                              0
+                                                                                                     (1) Morphbase (2) Morphabs     (3) Morphrag   (4) Morphfull                                    (1) Morphbase (2) Morphabs   (3) Morphrag   (4) Morphfull
+No translation   107 29 235 28   16   102   185   34 291 83 36 124                                   (c) Distribution of Fix Iterations                                                             (d) Average Token Consumption
+                                                                                                                                                                                              250
+SQLGlot           - - - -         -    -    195   28 288 103 35 142                            225
+jOOQ              - - - -         -    -    187   22 253 94 34 104
+
+
+                                                                                                                                                                   Average Total Tokens
+                                                                                                                                                                                              200
+                                                                                               200
+
+
+
+                                                                      Fix Iterations
+CrackSQL          - - - -         -    -    198   32 329 146 46 136                            175                                                                                            150
+RISE             145 27 236 45   18   122   251   34 314 155 54 160                            150                                                                                                                    244            232            241
+S EDAR           132 29 244 52   17   136   214   39 340 227 61 152                            125
+                                                                                                                                                                                              100       200
+M ORPH           161 29 370 87   24   335   456   63 476 332 64 187                            100                                                                                             50
+vs. S EDAR (%) +22 +0 +52 +67 +41 +146 +113 +62 +40 +46 +5 +23                                  75
+                                                                                                                                                                                                0
+                                                                                                      (1) Morphbase (2) Morphabs    (3) Morphrag   (4) Morphfull                                    (1) Morphbase (2) Morphabs   (3) Morphrag   (4) Morphfull
+
+
+                                                                                                                    Fig. 8. Ablation analysis of M ORPH components.
+data types, and 1,368 keywords, exceeding S EDAR by 411, 34,
+                                                                                                                                   TABLE VII
+and 496, respectively (66%, 23%, and 57%).                                                                       S ANITIZER ABLATION ON BRANCH COVERAGE (24 H ).
+   The diversity gap mainly comes from sanitization strategy:
+S EDAR may comment out unparsable casts or function calls,                DBMS                                                     M ORPHdirect                                                     M ORPHfull                       Improvement
+whereas M ORPH constructively instantiates abstract structures            MonetDB                                                      67,620                                                          81,486                               +21%
+into target-compliant forms, preserving more feature-rich inputs          Virtuoso                                                     37,213                                                          40,183                               +8%
+for downstream mutation.                                                  DuckDB                                                      118,453                                                         144,822                               +22%
+                                                                          ClickHouse                                                  112,083                                                         155,639                               +39%
+
+ Answer to RQ3: M ORPH achieves the strongest validity and
+ feature-richness results, improving semantic correctness by     correctness also increases to 32%. Moreover, with AQT-Guided
+ up to 272% over S EDAR and preserving 411 more functions,       Dialect Instantiation, M ORPHrag further enhances syntactic
+ 34 more data types, and 496 more keywords.                      correctness to 87%, and increases semantic correctness to
+                                                                 49% (+21%) by grounding generation in retrieved dialect
+E. RQ4: Contribution of Individual Components                    evidence. The Full framework M ORPHfull achieves the optimal
+   To analyze the specific contributions of the individual balance, reaching 95% syntactic correctness and 65% semantic
+components within M ORPH, we conducted an ablation study correctness. Figure 8(c) and (d) show that M ORPHfull incurs
+across two phases. For the translation phase, we evaluated four more repair iterations and token overhead, but delivers the best
+variants using the task of PostgreSQL-to-DuckDB transfer: (1) trade-off between generation quality and efficiency.
+M ORPHbase : the baseline using direct zero-shot LLM translation    Contribution of Feedback-Driven Adaptive Sanitizer.
+(i.e., prompting the LLM with the raw SQL and asking for a       To  evaluate the component, we compare M ORPHfull with
+                                 −
+direct translation, unlike the S baseline which executes the     M  ORPH   direct , which disables runtime feedback and discards
+raw, untranslated SQL directly); (2) M ORPHabs : equipped solely seeds  that fail parsing. Table VII presents M ORPH covers 8% to
+with Syntax-Aware Query Abstraction; (3) M ORPHrag : equipped    39%   more   branches across four DBMSs than M ORPHdirect over
+solely with AQT-Guided Dialect Instantiation; (4) M ORPHfull :   a  24-hour   campaign. Without adaptive repair, M ORPHdirect
+the complete framework integrating both components.              suffers   high   parser-stage rejection. M ORPHfull repairs such
+   For the fuzzing phase, since the Feedback-Driven Adap-        errors,  recovers   invalid seeds, and lets fuzzers explore deeper
+tive Sanitizer operates independently during runtime fuzzing     target  states.
+and does not affect translation quality, we further introduce
+M ORPHstatic as a controlled variant where the runtime feedback    Answer to RQ4: All components are critical: M ORPHabs
+loop is disabled and invalid seeds are directly discarded, and     improves syntactic correctness by 37%, M ORPHrag boosts
+compare it against M ORPHfull where the sanitizer actively         semantic correctness by 21%, and M ORPHfull improves
+repairs parsing errors to maximize seed acceptance.                syntax/semantic correctness by 44%/38%. The sanitizer
+   Contribution of Syntax-Aware Query Abstraction and              further increases branch coverage by up to 39%.
+AQT-Guided Dialect Instantiation. As shown in Figure 8 (a)
+and (b), when both the Syntax-Aware Query Abstraction and the                               V. D ISCUSSION
+AQT-Guided Dialect Instantiation are disabled, the syntactic        LLM Parameter Selection. We use T=0.2 because it
+correctness is 51% and the semantic correctness of M ORPHbase achieves 95% translation success and 91% first-attempt stability,
+is 27%. With Syntax-Aware Query Abstraction, M ORPHabs outperforming T=0.5 (92%/78%) and T=0.8 (85%/70%).
+improves syntactic correctness to 86% (+35%) by leveraging          Impact of the Underlying LLM. Table VIII supports
+AQT to provide a more stable structural skeleton. The semantic Gemini 2.5-flash-lite: Qwen3.5-27B is more semantically
+                           TABLE VIII                                  A. DBMS Fuzzing
+               LLM COMPARISON . TS DENOTES T EST S UITE .
+                                                                          Fuzzing is one of the most effective automated testing
+Model                        Syn.      Sem.    Cost/TS      Time/TS    techniques for identifying DBMS vulnerabilities. Generation-
+                                                                       based tools, such as SQLsmith [9], SQLancer [37], [39],
+Gemini 2.5-Flash-Lite       0.929      0.776      0.003      146.80
+GPT-3.5-Turbo               0.890      0.533      0.015      208.66    and DynSQL [12], construct SQL queries from hard-coded
+DeepSeek-V3                 0.986      0.699      0.003      231.11    rules or semantic oracles, while recent clause-guided and
+Qwen3.5-27B∗                0.971      0.852      0.119      1395.6    differential methods further improve logic-bug detection [40]–
+∗ Qwen3.5-27B with depth thinking mode                                 [44]. However, predefined templates can limit complex sce-
+                                                                       narios [45]. Mutation-based fuzzers instead evolve seed pools:
+                                                                       S QUIRREL [13] uses IR-based mutations, G RIFFIN [10] uses
+                              TABLE IX
+        M ANUAL EFFORT FOR EXTENDING M ORPH TO TARGET DBMS S .         grammar-free metadata replacement, and LEGO [11] combines
+                                                                       SQL statement sequences. These fuzzers are effective once
+Target DBMS              Auto Rules            Manual          Ratio   suitable seeds or generation rules are available, but they do not
+DuckDB                           534               42          7.3%    directly address how to obtain high-quality seeds for emerging
+ClickHouse                     1,362               46          3.3%    DBMSs. Unlike these works, M ORPH focuses on the upstream
+MonetDB                          398               26          6.1%
+Virtuoso                         782               22          2.7%
+                                                                       seed acquisition problem by transferring mature DBMS test
+                                                                       cases into target-compatible seed sequences.
+Total                          3,076              136          4.2%
+                                                                       B. LLM-Based Seed Generation
+                                                                          Recent work has explored LLMs for generating or enriching
+correct but costs 36× more and takes 9.5× longer. With                 testing inputs. Fuzz4All [17] uses LLMs as a general input
+GPT-3.5-Turbo, M ORPH still outperforms S EDAR (0.890/0.533            generator, and ShQveL [46] synthesizes SQL fragments for
+vs. 0.781/0.388), showing that gains mainly come from the              database testing. S EDAR [19] is the closest work to M ORPH
+method. Extensibility and Manual Effort. To extend M ORPH              because it also transfers existing DBMS test cases into fuzzing
+to another DBMS, we first automatically extract lexical and            seeds. However, these methods largely rely on direct text
+syntactic features from grammar specifications and register the        generation or post-generation filtering and sanitization. In
+corresponding mapping rules into the Hybrid KB. For features           particular, S EDAR feeds schema information and raw SQL to
+that cannot be mapped automatically, M ORPH uses the LLM               an LLM, then repairs incompatibilities by sanitizing unparsable
+to generate candidate rules, followed by manual review and             fragments. In contrast, M ORPH confines LLM use to AQT-
+correction. Table IX summarizes the extension effort across            guided instantiation, where explicit schema dependencies,
+four target DBMSs. Overall, only 4.2% (136/3,212) of transfer          nested structures, and clause-level relationships support local
+rules require manual correction, and each correction typically         repair without discarding context.
+takes 1–3 minutes for an engineer with DBMS expertise.
+                                                                       C. Cross-Dialect SQL Translation
+   These results show that most dialect support is obtained
+automatically, while manual review is limited to a small number           General-purpose SQL dialect translators, such as SQL-
+of unmapped or ambiguous constructs. To quantify the benefit           Glot [20] and jOOQ [21], convert SQL syntax across DBMS
+of this manual effort, we remove the 42 manually corrected             dialects for query migration and application compatibility.
+DuckDB rules and rerun M ORPH on DuckDB. The manually                  Recent research systems further improve SQL translation
+reviewed rules allow M ORPH to cover 14,087 additional                 through learned or rule-driven mechanisms: CrackSQL [36]
+branches and find two more bugs than the fully automated               studies LLM-based dialect translation, RISE [22] performs
+version. Thus, manual review provides additional gains, but the        rule-driven SELECT translation via query reduction, and
+majority of coverage and bug-finding capability comes from             QTRAN [47] extends metamorphic-oracle based testing across
+the automated extraction, instantiation, and repair pipeline.          DBMS dialects. These systems provide useful statement-
+                                                                       level mappings, but their goal is query migration, semantic-
+                                                                       equivalent translation, or oracle portability rather than fuzzing-
+                       VI. R ELATED W ORK                              seed construction. They therefore do not explicitly model a
+                                                                       seed as an ordered test case with DDL/DML dependencies,
+   Related work falls into three categories: DBMS fuzzing,             evolving schema context, and downstream fuzzer compatibility
+LLM-based seed generation, and cross-dialect SQL translation.          constraints. In particular, although the AQT may appear to
+The first category improves how DBMS inputs are generated,             resemble the query-reduction (“skeleton”) step of RISE [22],
+mutated, or checked; the second uses LLMs to synthesize or             the two constructs differ in both scope and representation.
+transfer testing inputs; and the third translates SQL across           In scope, RISE operates on a single SELECT statement,
+dialects for migration or compatibility. M ORPH builds on              whereas an AQT spans an ordered, multi-statement test case
+these lines of work but targets a different problem: structure-        and therefore captures cross-statement read/write dependencies
+preserving transfer of whole SQL test cases into high-quality          ∆ and an evolving schema context D that do not arise within a
+fuzzing seeds.                                                         single statement. In representation, RISE encodes a dialect as
+a statement-local AST rewrite rule ⟨Pat src , Pat tar ⟩, whereas                     [17] C. S. Xia, M. Paltenghi, J. Le Tian, M. Pradel, and L. Zhang, “Fuzz4all:
+M ORPH treats such token-level mappings as local operators that                           Universal fuzzing with large language models,” in Proceedings of the
+                                                                                          IEEE/ACM 46th International Conference on Software Engineering, 2024,
+instantiate nodes of the AQT five-tuple (Definition III.2); the                           pp. 1–13.
+dialect abstraction the two share is thus only the per-statement                     [18] Y. Deng, C. S. Xia, H. Peng, C. Yang, and L. Zhang, “Large language
+        i                                                                                 models are zero-shot fuzzers: Fuzzing deep-learning libraries via large
+field Snorm   of the AQT, not the representation itself. M ORPH
+                                                                                          language models,” in Proceedings of the 32nd ACM SIGSOFT interna-
+differs by treating cross-dialect transfer as test-case-level AQT                         tional symposium on software testing and analysis, 2023, pp. 423–435.
+instantiation: it preserves cross-statement dependencies while                       [19] J. Fu, J. Liang, Z. Wu, and Y. Jiang, “Sedar: Obtaining high-quality
+constructing target-compliant seed sequences for mutation-                                seeds for dbms fuzzing via cross-dbms sql transfer,” in Proceedings of
+                                                                                          the IEEE/ACM 46th International Conference on Software Engineering,
+based DBMS fuzzing.                                                                       2024, pp. 1–12.
+                                                                                     [20] SQLGlot Contributors, “SQLGlot: Python sql parser and transpiler,”
+                           VII. C ONCLUSION                                               2026, accessed: 2026-06-20. [Online]. Available: https://github.com/tob
+                                                                                          ymao/sqlglot
+   We propose M ORPH, an automated fuzzing framework that
+                                                                                     [21] jOOQ Contributors, “jOOQ: Type safe sql in java,” 2026, accessed:
+extracts dialect-agnostic AQTs, instantiates them through AQT-                            2026-06-20. [Online]. Available: https://www.jooq.org/
+Guided Dialect Instantiation, and applies adaptive sanitization                      [22] X. Xie, Y. Zhang, W. Dou, Y. Gao, Z. Cui, J. Song, R. Yang, and J. Wei,
+for cross-dialect DBMS fuzzing. Across four DBMSs, M ORPH                                 “Rise: Rule-driven sql dialect translation via query reduction,” arXiv
+                                                                                          preprint arXiv:2601.05579, 2026.
+improves semantic correctness by up to 272%, achieves higher                         [23] N. Mündler, J. He, H. Wang, K. Sen, D. Song, and M. Vechev, “Type-
+coverage than S EDAR, and detects 28 unknown bugs. Future                                 constrained code generation with language models,” Proceedings of the
+work will extend this transfer paradigm to non-relational                                 ACM on Programming Languages, vol. 9, no. PLDI, pp. 601–626, 2025.
+                                                                                     [24] L. Lin, Z. Hao, C. Wang, Z. Wang, R. Wu, and G. Fan, “Sqless: Dialect-
+systems.                                                                                  agnostic sql query simplification,” in Proceedings of the 33rd ACM
+                                                                                          SIGSOFT International Symposium on Software Testing and Analysis,
+                      VIII. DATA AVAILABILITY                                             2024, pp. 743–754.
+                                                                                     [25] “MonetDB NextRelease milestone,” https://github.com/MonetDB/Monet
+   Artifacts and data are available in an anonymous Zenodo                                DB/milestone/1?closed=1, 2025, accessed: 2026-03-25.
+archive [48].                                                                        [26] M. Wang, Z. Wu, X. Xu, J. Liang, C. Zhou, H. Zhang, and Y. Jiang,
+                                                                                          “Industry practice of coverage-guided enterprise-level dbms fuzzing,” in
+                               R EFERENCES                                                2021 IEEE/ACM 43rd International Conference on Software Engineering:
+                                                                                          Software Engineering in Practice (ICSE-SEIP). IEEE, 2021, pp. 328–
+ [1] T. P. G. D. Group, “pgsql-bugs,” https://www.postgresql.org/list/pgsql-              337.
+     bugs/, 2025, accessed: June 25, 2026.                                           [27] C. Zhang, M. Bai, Y. Zheng, Y. Li, W. Ma, X. Xie, Y. Li, L. Sun,
+ [2] MySQL, “Mysql bug home,” https://bugs.mysql.com/, 2025, accessed:                    and Y. Liu, “Understanding large language model based fuzz driver
+     June 25, 2026.                                                                       generation,” arXiv e-prints, pp. arXiv–2307, 2023.
+ [3] M. Zalewski, “american fuzzy lop,” http://lcamtuf.coredump.cx/afl/,             [28] Google, “Gemini 2.5: Pushing the frontier with advanced reasoning,
+     accessed: June 25, 2026.                                                             multimodality, long context, and next generation agentic capabilities,”
+ [4] “Libfuzzer,” https://www.llvm.org/docs/LibFuzzer.html, accessed: June                2025. [Online]. Available: https://arxiv.org/abs/2507.06261
+     25, 2026.                                                                       [29] “Db-engines ranking — popularity ranking of database management
+ [5] A. Fioraldi, D. Maier, H. Eißfeldt, and M. Heuse, “Afl++ : Combining                 systems,” https://db-engines.com/en/ranking, accessed: June 25, 2026.
+     incremental steps of fuzzing research,” in USENIX Workshop on Offensive
+                                                                                     [30] “The database system to speed up your analytical jobs,” https://www.mo
+     Technologies (WOOT), 2020.
+                                                                                          netdb.org/, 1 2024, accessed: June 25, 2026.
+ [6] J. Liang, Y. Jiang, Y. Chen, M. Wang, C. Zhou, and J. Sun, “Pafl: Extend
+                                                                                     [31] “Virtuoso github.” https://github.com/openlink/virtuoso-opensource, ac-
+     fuzzing optimizations of single mode to industrial parallel mode,” 2018.
+                                                                                          cessed: June 25, 2026.
+ [7] “Sqlsmith score list,” https://github.com/anse1/sqlsmith/wiki#score-list,
+                                                                                     [32] “Query billions of rows in milliseconds,” https://clickhouse.com/, 1 2024,
+     accessed: June 25, 2026.
+                                                                                          accessed: June 25, 2026.
+ [8] “Bugs found in database management systems,” https://www.manuelrigg
+     er.at/dbms-bugs, accessed: June 25, 2026.                                       [33] S. Bhosale, M. T. Patil, and M. P. Patil, “Sqlite: Light database system,”
+ [9] SQLsmith Contributors, “Sqlsmith,” 2015, accessed: 2026-01-26.                       Int. J. Comput. Sci. Mob. Comput, vol. 44, no. 4, pp. 882–885, 2015.
+     [Online]. Available: https://github.com/anse1/sqlsmith                          [34] “Mysql,” https://www.mysql.com/, 1 2024, accessed: June 25, 2026.
+[10] J. Fu, J. Liang, Z. Wu, M. Wang, and Y. Jiang, “Griffin: Grammar-free           [35] “Postgresql,” https://www.postgresql.org/, 1 2024, accessed: June 25,
+     dbms fuzzing,” in Proceedings of the 37th IEEE/ACM International                     2026.
+     Conference on Automated Software Engineering, 2022, pp. 1–12.                   [36] W. Zhou, Y. Gao, X. Zhou, and G. Li, “Cracking sql barriers: An
+[11] J. Liang, Y. Chen, Z. Wu, J. Fu, M. Wang, Y. Jiang, X. Huang, T. Chen,               llm-based dialect translation system,” Proceedings of the ACM on
+     J. Wang, and J. Li, “Sequence-oriented dbms fuzzing,” in 2023 IEEE                   Management of Data, vol. 3, no. 3, pp. 1–26, 2025.
+     39th International Conference on Data Engineering (ICDE). IEEE,                 [37] M. Rigger and Z. Su, “Sqlancer,” 2023, accessed: 2026-01-26. [Online].
+     2023, pp. 668–681.                                                                   Available: https://github.com/sqlancer/sqlancer
+[12] Z.-M. Jiang, J.-J. Bai, and Z. Su, “{DynSQL}: Stateful fuzzing for              [38] C. chen, “Squirrel website,” https://github.com/s3team/Squirrel, accessed:
+     database management systems with complex and valid {SQL} query                       June 25, 2026.
+     generation,” in 32nd USENIX Security Symposium (USENIX Security                 [39] M. Rigger and Z. Su, “Testing database engines via pivoted query
+     23), 2023, pp. 4949–4965.                                                            synthesis,” in 14th USENIX Symposium on Operating Systems Design
+[13] R. Zhong, Y. Chen, H. Hu, H. Zhang, W. Lee, and D. Wu, “Squirrel:                    and Implementation (OSDI 20), 2020, pp. 667–682.
+     Testing database management systems with language validity and                  [40] J. Wei, P. Chen, K. Lu, J. Dai, and X. Sun, “Sqlaser: Detecting dbms
+     coverage feedback,” in Proceedings of the 2020 ACM SIGSAC Conference                 logic bugs with clause-guided fuzzing,” arXiv preprint arXiv:2407.04294,
+     on Computer and Communications Security, 2020, pp. 955–970.                          2024.
+[14] “Postgresql github,” https://github.com/postgres/postgres, accessed: June       [41] J. Ba and M. Rigger, “Testing database engines via query plan guid-
+     25, 2026.                                                                            ance,” in 2023 IEEE/ACM 45th International Conference on Software
+[15] “Duckdb github,” https://github.com/duckdb/duckdb, accessed: June 25,                Engineering (ICSE). IEEE, 2023, pp. 2060–2071.
+     2026.                                                                           [42] J. Song, W. Dou, Z. Cui, Q. Dai, W. Wang, J. Wei, H. Zhong, and
+[16] X. Zhou, C. Chai, G. Li, and J. Sun, “Database meets artificial intelligence:        T. Huang, “Testing database systems via differential query execution,” in
+     A survey,” IEEE Transactions on Knowledge and Data Engineering,                      2023 IEEE/ACM 45th International Conference on Software Engineering
+     vol. 34, no. 3, pp. 1096–1116, 2020.                                                 (ICSE). IEEE, 2023, pp. 2072–2084.
+[43] Z. Cui, W. Dou, Q. Dai, J. Song, W. Wang, J. Wei, and D. Ye, “Differ-
+     entially testing database transactions for fun and profit,” in Proceedings
+     of the 37th IEEE/ACM International Conference on Automated Software
+     Engineering, 2022, pp. 1–12.
+[44] Z. Hao, Q. Huang, C. Wang, J. Wang, Y. Zhang, R. Wu, and C. Zhang,
+     “Pinolo: Detecting logical bugs in database management systems with
+     approximate query synthesis,” in 2023 USENIX Annual Technical
+     Conference (USENIX ATC 23), 2023, pp. 345–358.
+[45] X. Gao, Z. Liu, J. Cui, H. Li, H. Zhang, K. Wei, and K. Zhao,
+     “A comprehensive survey on database management system fuzzing:
+     Techniques, taxonomy and experimental comparison,” arXiv preprint
+     arXiv:2311.06728, 2023.
+[46] S. Zhong and M. Rigger, “Testing database systems with large language
+     model synthesized fragments,” arXiv preprint arXiv:2505.02012, 2025.
+[47] L. Lin, Q. Zhu, H. Chen, Z. Wang, R. Wu, and X. Xie, “Qtran: Extending
+     metamorphic-oracle based logical bug detection techniques for multiple-
+     dbms dialect support,” Proceedings of the ACM on Software Engineering,
+     vol. 2, no. ISSTA, pp. 731–752, 2025.
+[48] “Morph artifact and experimental data,” Anonymous Zenodo archive,
+     2026. [Online]. Available: https://doi.org/10.5281/zenodo.19251660
+
