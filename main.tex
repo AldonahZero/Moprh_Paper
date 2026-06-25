@@ -103,8 +103,11 @@
 %% end of the preamble, start of the body of the document source.
 \begin{document}
 
-\title{Structure-Aware Cross-Dialect SQL Transfer for Constructing High-Quality Seeds in DBMS Fuzzing}
-\author{\IEEEauthorblockN{Anonymous Author(s)}}
+% \title{Structure-Aware Cross-Dialect SQL Transfer for Constructing High-Quality Seeds in DBMS Fuzzing}
+\title{Structure-Aware Cross-Dialect SQL Transfer for DBMS Fuzzing Seed Construction}
+% \title{\tool{}: Constructing DBMS Fuzzing Seeds via Structure-Aware SQL Transfer}
+
+% \author{\IEEEauthorblockN{Anonymous Author(s)}}
 
 \maketitle
 
@@ -119,8 +122,9 @@
 % - 现有 LLM 翻译的问题分两层：翻译错误导致目标 DBMS 不能执行；fuzzer grammar 限制导致语义结构被删。
 % - 方法句只保留三步主线：AQT abstraction -> AQT-Guided Dialect Instantiation -> parser-feedback adaptation。
 % - 结果句写 semantic correctness、branch coverage、bug discovery 三类数字，支撑“seed quality + fuzzing effectiveness”。
-DBMS fuzzing mutates initial seed queries into new ones to explore execution paths and trigger crash bugs, making the quality and diversity of the initial seeds critical.
-In practice, built-in test suites are typically used as initial seeds, but many DBMSs lack such suites, especially for emerging database engines. 
+DBMS fuzzing relies on mutating initial seed queries into new ones to explore state space and trigger crash bugs, making the quality and diversity of the initial seeds critical.
+In practice, many DBMSs, especially emerging engines, lack comprehensive test suites that can serve as high-quality seeds.
+% In practice, built-in test suites are typically used as initial seeds, but many DBMSs lack such suites, especially for emerging database engines. 
 Recent studies have applied LLMs to end-to-end translate test queries across DBMSs. However, such translation may introduce syntax and semantic errors due to hallucination and limited dialect knowledge. 
 Moreover, even with available seeds, current fuzzers struggle to effectively mutate them because of limited support for SQL grammar, often leading to the loss of important query semantics.
 
