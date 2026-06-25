@@ -128,11 +128,9 @@ Nevertheless, many DBMSs, especially emerging engines, lack comprehensive test s
 % In practice, built-in test suites are typically used as initial seeds, but many DBMSs lack such suites, especially for emerging database engines. 
 A practical solution is to transfer test cases from mature DBMSs to target systems as initial fuzzing seeds.
 However, existing SQL dialect translation methods are primarily designed for DQL translation and struggle to handle entire test cases that contain interdependent statements, including DDL, DML, and DQL.
-Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. Nevertheless, without explicit modeling of test-case structure and dialect constraints, such approaches often introduce syntactic errors, semantic inconsistencies, and fuzzer-incompatible outputs.
-
-
-Recent studies have applied LLMs to end-to-end translate test queries across DBMSs. However, such translation may introduce syntax and semantic errors due to hallucination and limited dialect knowledge. 
-Moreover, even with available seeds, current fuzzers struggle to effectively mutate them because of limited support for SQL grammar, often leading to the loss of important query semantics.
+Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. Nevertheless, due to hallucination and limited structure and dialect knowledge, such methods often introduce syntax and semantic errors and produce fuzzer-incompatible outputs.
+% Recent studies have applied LLMs to end-to-end translate test queries across DBMSs. However, such translation may introduce syntax and semantic errors due to hallucination and limited dialect knowledge. 
+% Moreover, even with available seeds, current fuzzers struggle to effectively mutate them because of limited support for SQL grammar, often leading to the loss of important query semantics.
 
 In this paper, we propose \tool{}, a test-case-level structure-aware cross-dialect SQL transfer framework designed for constructing high-quality initial seeds and enabling effective mutation in DBMS fuzzing. 
 It follows a three-step workflow.
@@ -189,11 +187,14 @@ While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suite
 % - 先承认 SQL dialect translation 和 LLM transfer 是自然方案。
 % - 明确 SQLGlot/jOOQ/RISE 偏 statement-level/query migration，不能建模 fuzzing seed 的 whole-test-case 依赖和 mutability。
 % - 再引出 SedaR 作为 fuzzing-oriented baseline，为后文区分 Morph 和 SedaR 做铺垫。
-To overcome this limitation, existing studies and tools have used SQL dialect translation to transfer SQL across DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
+% To overcome this limitation, existing studies and tools have used SQL dialect translation to transfer SQL across DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
+To overcome this limitation, a natural direction is SQL dialect translation, which transfers SQL statements across DBMS dialects~\cite{zhou2020database}.
 General-purpose translators such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, as well as recent systems such as RISE~\cite{xie2026rise}, mainly focus on statement-level translation for query migration or semantic-equivalent SELECT rewriting.
 However, fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent DDL, DML, and query statements, and the transferred results must remain parsable and mutable by downstream fuzzers.
 Thus, directly applying statement-level translators may lose cross-statement dependencies or produce fuzzer-incompatible structures.
+% Some fuzzing-oriented methods instead aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
 Among fuzzing-oriented systems, \sedar{}~\cite{fu2024sedar} explicitly migrates high-quality test seeds from mature DBMSs to target systems by converting existing SQL test cases into initial fuzzing seeds compatible with the target DBMS dialect.
+% A typical example is \sedar{}~\cite{fu2024sedar}, which follows an LLM-centric \textit{Translate-and-Sanitize} pipeline. It first executes existing test cases on the source DBMS to collect schema information, then directly feeds the schema and raw SQL text to an LLM for target-dialect translation. To ensure compatibility with fuzzers, \sedar{} relies on \textit{Unparsable Commenting}, which temporarily comments out unparsable parts during mutation.
 It follows an LLM-centric \textit{Translate-and-Sanitize} pipeline: it first executes existing test cases on the source DBMS to collect schema information, then directly feeds the schema and raw SQL text to an LLM for target-dialect translation. To ensure compatibility with fuzzers, \sedar{} relies on \textit{Unparsable Commenting}, which temporarily comments out unparsable parts during mutation.
 
 % Paragraph 4 写作逻辑：
@@ -281,7 +282,8 @@ The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial 
 Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs) are often confined to shallow parsing logic, thus leaving many bugs undetected~\cite{wang2021industry}.
 
 To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}. 
-Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{deng2023large, zhang2023understanding}. \sedar{}~\cite{fu2024sedar}, the current state-of-the-art, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
+% Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{deng2023large, zhang2023understanding}. \sedar{}~\cite{fu2024sedar}, the current state-of-the-art, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
+\sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
 \begin{figure}[b]
   \centering
   \includegraphics[scale=1.0, width=\linewidth]{media/motivating_ase.pdf}
