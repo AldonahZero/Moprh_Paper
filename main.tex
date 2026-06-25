@@ -193,8 +193,8 @@ To overcome this limitation, existing studies and tools have used SQL dialect tr
 General-purpose translators such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, as well as recent systems such as RISE~\cite{xie2026rise}, mainly focus on statement-level translation for query migration or semantic-equivalent SELECT rewriting.
 However, fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent DDL, DML, and query statements, and the transferred results must remain parsable and mutable by downstream fuzzers.
 Thus, directly applying statement-level translators may lose cross-statement dependencies or produce fuzzer-incompatible structures.
-Some fuzzing-oriented methods instead aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
-A typical example is \sedar{}~\cite{fu2024sedar}, which follows an LLM-centric \textit{Translate-and-Sanitize} pipeline. It first executes existing test cases on the source DBMS to collect schema information, then directly feeds the schema and raw SQL text to an LLM for target-dialect translation. To ensure compatibility with fuzzers, \sedar{} relies on \textit{Unparsable Commenting}, which temporarily comments out unparsable parts during mutation.
+Among fuzzing-oriented systems, \sedar{}~\cite{fu2024sedar} explicitly migrates high-quality test seeds from mature DBMSs to target systems by converting existing SQL test cases into initial fuzzing seeds compatible with the target DBMS dialect.
+It follows an LLM-centric \textit{Translate-and-Sanitize} pipeline: it first executes existing test cases on the source DBMS to collect schema information, then directly feeds the schema and raw SQL text to an LLM for target-dialect translation. To ensure compatibility with fuzzers, \sedar{} relies on \textit{Unparsable Commenting}, which temporarily comments out unparsable parts during mutation.
 
 % Paragraph 4 写作逻辑：
 % - 把现有方法的缺陷写成两个因果问题，别写成 weakness 清单。
