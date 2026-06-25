@@ -920,11 +920,12 @@ Thus, manual review provides additional gains, but the majority of coverage and 
 \label{sec:related_work}
 
 % Related Work 写作逻辑：
-% Review A-Novelty/B-Q1/C-Q2 回应位置：Related Work 集中比较 SQLGlot/jOOQ/RISE/Sedar，补足 Introduction 中的简短提名。
+% Review A-Novelty/B-Q1/C-Q2 回应位置：Related Work 集中比较 SQLGlot/jOOQ/RISE/CrackSQL/QTRAN/Sedar，补足 Introduction 中的简短提名。
 % 回应逻辑：先把相关工作分成三类，再分别介绍代表工作，最后强调 Morph 的不同。
 % - DBMS Fuzzing：现有 generation/mutation/oracle fuzzers 解决如何生成或变异 query，但不解决 emerging DBMS 的 high-quality seed acquisition。
-% - LLM-Based Seed Generation：LLM 可用于直接合成、片段合成或 test-case transfer，但常依赖文本生成和后处理 sanitizer。
-% - Cross-Dialect SQL Translation：SQLGlot/jOOQ/RISE/CrackSQL 等面向 statement/query migration，不建模 fuzzing seed 的 test-case-level dependency 和 fuzzer compatibility。
+% - LLM-Based Seed Generation：LLM 可用于直接合成、片段合成或 test-case transfer（Fuzz4All/ShQveL/Sedar），但常依赖文本生成和后处理 sanitizer；Morph 把 LLM 限制在 AQT-guided instantiation。
+% - Cross-Dialect SQL Translation：SQLGlot/jOOQ/CrackSQL/RISE/QTRAN 等面向 statement/query migration 或 oracle portability，不建模 fuzzing seed 的 test-case-level dependency 和 fuzzer compatibility。
+% - Review A-Novelty(vs RISE) 回应位置：本节末尾用 scope（single SELECT vs ordered multi-statement，含 Δ 和 schema context D）与 representation（statement-local rewrite rule vs AQT five-tuple 的局部 instantiation operator）两点区分 AQT 与 RISE 的 query-reduction skeleton。
 % - Related Work 不复述 RQ 数字，只保留 conceptual difference。
 Related work falls into three categories: DBMS fuzzing, LLM-based seed generation, and cross-dialect SQL translation.
 The first category improves how DBMS inputs are generated, mutated, or checked; the second uses LLMs to synthesize or transfer testing inputs; and the third translates SQL across dialects for migration or compatibility.
