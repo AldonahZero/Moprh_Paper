@@ -701,7 +701,7 @@ When the translated outputs are used as initial seeds for fuzzing, \tool{} furth
 Compared with \sedar{}, \tool{} achieves the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
 \begin{table}[!t]
 \centering
-\caption{Syntactic and semantic correctness across target DBMSs. Syn. and Sem. denote syntactic and semantic correctness; ``-'' denotes unsupported dialects. Bold marks the best result; the last row reports improvement over \sedar{}.}
+\caption{Syntactic and semantic correctness of transferred seeds.}
 \label{tab:validity}
 \renewcommand\arraystretch{1}
 \scriptsize
@@ -738,7 +738,7 @@ Beyond validity, we measure whether transferred seeds retain testing value by co
 As shown in Table~\ref{tab:diversity}, \tool{} preserves 1,036 functions, 180 data types, and 1,368 keywords, exceeding \sedar{} by 411, 34, and 496, respectively (66\%, 23\%, and 57\%).
 \begin{table}[!t]
 \centering
-\caption{Valid SQL features in transferred seeds. F, DT, and K denote functions, data types, and keywords; ``-'' denotes unsupported dialects. Bold marks the best result; the last row reports improvement over \sedar{}.}
+\caption{Valid SQL features in transferred seeds.}
 \label{tab:diversity}
 {\footnotesize
 \setlength{\tabcolsep}{0.8pt}
