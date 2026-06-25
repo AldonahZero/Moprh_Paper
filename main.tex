@@ -130,7 +130,7 @@ First, \tool{} builds an Abstract Query Template (AQT) with dialect-independent 
 Second, \tool{} performs AQT-Guided Dialect Instantiation to construct a target seed sequence under target-dialect constraints.
 Finally, \tool{} uses parser feedback to fix remaining incompatibilities, ensuring queries are fuzzer-parsable and mutable.
 We evaluate \tool{} on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}. 
-Compared with the state-of-the-art seeds transforming approach \sedar{}, \tool{} covers up to 26\% more branches, finds 16 more bugs in 24 hours, and achieves 100\%--272\% higher semantic correctness for transferred seeds.
+Compared with the state-of-the-art seeds transforming approach \sedar{}, \tool{} covers 26\% more branches, finds 16 more bugs in 24 hours, and achieves 100\%--272\% higher semantic correctness for transferred seeds.
 Moreover, \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed.
 
 \end{abstract}
@@ -330,9 +330,8 @@ The two formal objects are defined as follows:
     Abstraction rules map from one dialect-specific construct to abstract representations. A rule has the form:
     \[
     \begin{aligned}
-        [\textit{Function} \mid \textit{Type} \mid \cdots]
-        &\rightarrow [\langle \textit{FuncTag} \rangle \mid{} \\
-        &\quad \langle \textit{TypeCast} \rangle \mid \cdots]
+        \underbrace{[\textit{Function} \mid \textit{Type} \mid \cdots]}_{\textit{Source}}
+        &\rightarrow \underbrace{[\langle \textit{FuncTag} \rangle \mid \langle \textit{TypeCast} \rangle \mid \cdots]}_{\textit{Target}}
     \end{aligned}
     \]
     where \textit{Source} is a dialect-specific SQL element and \textit{Target} is its corresponding abstract label that represents the semantic intent. For example, $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$ abstracts interval computation.
@@ -426,7 +425,7 @@ $\mathcal{Q}_{target} \leftarrow [\,]$; $C_s \leftarrow \mathcal{D}$; $C_t \left
 To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}. The algorithm first derives a stable dependency order over $\mathcal{G}_{tc}$, which respects cross-statement dependencies while preserving the source order for independent statements (Line~\ref{line:alg2:tc_sort}). For each statement, it invokes \textsc{InstantiateStmt} with source-side constraints and the current target context, and then propagates the updated target context to subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}).
 Inside \textsc{InstantiateStmt}, \tool{} follows the intra-statement structure graph in bottom-up order, substitutes instantiated child fragments, retrieves or generates local dialect mappings from the Hybrid KB, and validates the resulting fragments with the target DBMS parser before caching new rules. If validation fails, the Error Fixer repairs the fragment and rule using parser feedback; unverified candidates are discarded rather than reused. This mechanism avoids degenerate fixes such as clause removal and preserves testing-relevant SQL features.
 Finally, the instantiated statements form the target seed sequence $\mathcal{Q}_{target}$.
-\textbf{Skill Executor.} The above instantiation procedure is implemented by the \textit{Skill Executor},
+\textbf{Test-Oriented Skill Executor.} The above instantiation procedure is implemented by the \textit{Test-Oriented Skill Executor},
 which acts as the reasoning core of the agent, with three specialized skills.
 \textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering \texttt{<TimeDiff>}, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
 \textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
@@ -480,7 +479,7 @@ Once a seed passes the fuzzer's parser, it is designated as a \textit{Mutable Se
 % - RQ2 对比 fuzzing tools，回答 coverage/bug discovery 是否优于现有 fuzzing pipeline。
 % - RQ3 对比 translation/transfer methods，回答 seed validity 与 semantic richness；这里的 semantic correctness 区别于源/目标结果等价。
 % - RQ4 做 ablation，解释 AQT abstraction、AQT-Guided Dialect Instantiation、feedback sanitizer 各自贡献。
-\tool{} is implemented in Python and integrates \griffin{}~\cite{fu2022griffin}, a coverage-guided mutation fuzzer, as the downstream execution engine. For the LLM backbone powering the Skill Executor and Rule Generator, we employ Gemini 2.5-flash-lite~\cite{gemini-2.5-flash} as the primary language model due to its strong code understanding capabilities and cost efficiency. We set the temperature parameter to 0.2 to balance determinism and output diversity, as justified by the sensitivity analysis discussion in Section~\ref{sec:llm-params}.
+\tool{} is implemented in Python and integrates \griffin{}~\cite{fu2022griffin}, a coverage-guided mutation fuzzer, as the downstream execution engine. For the LLM backbone powering the Test-Oriented Skill Executor and Rule Generator, we employ Gemini 2.5-flash-lite~\cite{gemini-2.5-flash} as the primary language model due to its strong code understanding capabilities and cost efficiency. We set the temperature parameter to 0.2 to balance determinism and output diversity, as justified by the sensitivity analysis discussion in Section~\ref{sec:llm-params}.
 We evaluate \tool{} to assess its performance in cross-dialect seed transformation and its practical impact on DBMS fuzzing effectiveness. Specifically, our evaluation focuses on the following research questions:
 \begin{itemize}[leftmargin=*]
 \item \textbf{RQ1:} Can \tool{} find previously unknown bugs in DBMSs?
@@ -835,7 +834,7 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 \end{table}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 37\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, and $\tool{}_{\textit{full}}$ improves syntax/semantic correctness by 44\%/38\%. The sanitizer further increases branch coverage by up to 39\%.
+\textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, and $\tool{}_{\textit{full}}$ improves syntax/semantic correctness by 44\%/38\%. The sanitizer further increases branch coverage by up to 39\%.
 \end{answerbox}
 
 \section{Discussion}
