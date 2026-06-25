@@ -122,9 +122,15 @@
 % - 现有 LLM 翻译的问题分两层：翻译错误导致目标 DBMS 不能执行；fuzzer grammar 限制导致语义结构被删。
 % - 方法句只保留三步主线：AQT abstraction -> AQT-Guided Dialect Instantiation -> parser-feedback adaptation。
 % - 结果句写 semantic correctness、branch coverage、bug discovery 三类数字，支撑“seed quality + fuzzing effectiveness”。
-DBMS fuzzing relies on mutating initial seed queries into new ones to explore state space and trigger crash bugs, making the quality and diversity of the initial seeds critical.
-In practice, many DBMSs, especially emerging engines, lack comprehensive test suites that can serve as high-quality seeds.
+% into new ones
+DBMS fuzzing relies on mutating initial seed queries to explore state space and trigger crash bugs, making the quality and diversity of the initial seeds critical.
+Nevertheless, many DBMSs, especially emerging engines, lack comprehensive test suites that can serve as high-quality seeds.
 % In practice, built-in test suites are typically used as initial seeds, but many DBMSs lack such suites, especially for emerging database engines. 
+A practical solution is to transfer test cases from mature DBMSs to target systems as initial fuzzing seeds.
+However, existing SQL dialect translation methods are primarily designed for DQL translation and struggle to handle entire test cases that contain interdependent statements, including DDL, DML, and DQL.
+Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. Nevertheless, without explicit modeling of test-case structure and dialect constraints, such approaches often introduce syntactic errors, semantic inconsistencies, and fuzzer-incompatible outputs.
+
+
 Recent studies have applied LLMs to end-to-end translate test queries across DBMSs. However, such translation may introduce syntax and semantic errors due to hallucination and limited dialect knowledge. 
 Moreover, even with available seeds, current fuzzers struggle to effectively mutate them because of limited support for SQL grammar, often leading to the loss of important query semantics.
 
