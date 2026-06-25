@@ -726,8 +726,10 @@ Compared with \sedar{}, \tool{} achieves the best result in every column, with \
         \sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
         \tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\ \midrule
         vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \\ \bottomrule
-    \end{tabular}
-}
+	    \end{tabular}
+	}
+\par\vspace{0.2em}
+{\footnotesize Syn./Sem.: syntactic/semantic correctness; ``-'': unsupported dialects.}
 \end{table}
 
 These gains confirm that AQT-Guided Dialect Instantiation maps source intent into target-dialect constraints while preserving parsability and executability.
@@ -764,8 +766,10 @@ As shown in Table~\ref{tab:diversity}, \tool{} preserves 1,036 functions, 180 da
     \tool{} & \textbf{161} & \textbf{29} & \textbf{370} & \textbf{87} & \textbf{24} & \textbf{335} & \textbf{456} & \textbf{63} & \textbf{476} & \textbf{332} & \textbf{64} & \textbf{187} \\ \midrule
     vs. \sedar{} (\%) & +22 & +0 & +52 & +67 & +41 & +146 & +113 & +62 & +40 & +46 & +5 & +23 \\ \bottomrule
 \end{tabular}
-}
-}
+	}
+	}
+\par\vspace{0.2em}
+{\footnotesize F/DT/K: functions/data types/keywords; ``-'': unsupported dialects.}
 \end{table}
 
 The diversity gap mainly comes from sanitization strategy: \sedar{} may comment out unparsable casts or function calls, whereas \tool{} constructively instantiates abstract structures into target-compliant forms, preserving more feature-rich inputs for downstream mutation.
