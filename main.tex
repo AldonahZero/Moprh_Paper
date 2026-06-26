@@ -128,11 +128,7 @@ Nevertheless, many DBMSs, especially emerging engines, lack comprehensive test s
 % In practice, built-in test suites are typically used as initial seeds, but many DBMSs lack such suites, especially for emerging database engines. 
 A practical solution is to transfer test cases from mature DBMSs to target systems as initial fuzzing seeds.
 However, existing SQL dialect translation methods are primarily designed for DQL translation and struggle to handle entire test cases that contain interdependent statements, including DDL, DML, and DQL.
-Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. Nevertheless, due to hallucination and limited structure and dialect knowledge, such methods often introduce syntax and semantic errors and produce 
-
-
-
-fuzzer-incompatible outputs.
+Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. Nevertheless, due to hallucination and limited structure and dialect knowledge, such methods often introduce syntax and semantic errors and produce fuzzer-incompatible outputs.
 % Recent studies have applied LLMs to end-to-end translate test queries across DBMSs. However, such translation may introduce syntax and semantic errors due to hallucination and limited dialect knowledge. 
 % Moreover, even with available seeds, current fuzzers struggle to effectively mutate them because of limited support for SQL grammar, often leading to the loss of important query semantics.
 
@@ -337,36 +333,75 @@ When a generated structure is rejected by the target parser or executor, \tool{}
 The step aims to separate the logic of test cases from their dialect-specific representations. The challenge lies in extracting such logic from tightly coupled SQL dialects. To address this, we formalize the seed structure to enable precise manipulation of the extracted logic. We first give some formal definitions of basic concepts.
 \numberwithin{equation}{section} % 公式按章节编号（可选）
 \newtheorem{definition}{Definition}[section] % Definition 按 section 编号
-\textbf{Formal Definition.} To support syntax-aware query abstraction and decouple the logical intent of a test case, we introduce SQL abstraction rules and AQT.
-A SQL test case is an ordered sequence of DDL, DML, and query statements; $R_i$ and $W_i$ denote the objects read/referenced and written/created by statement $s_i$, respectively.
-The two formal objects are defined as follows:
-\vspace{-0.4cm}
-\begin{list}{}{\setlength{\leftmargin}{0.5em}}
-\item
-    \begin{definition}[SQL Abstraction Rule]\label{def:rules}
-    Abstraction rules map from one dialect-specific construct to abstract representations. A rule has the form:
-    \[
-    \begin{aligned}
-        \underbrace{[\textit{Function} \mid \textit{Type} \mid \cdots]}_{\textit{Source}}
-        &\rightarrow \underbrace{[\langle \textit{FuncTag} \rangle \mid \langle \textit{TypeCast} \rangle \mid \cdots]}_{\textit{Target}}
-    \end{aligned}
-    \]
-    where \textit{Source} is a dialect-specific SQL element and \textit{Target} is its corresponding abstract label that represents the semantic intent. For example, $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$ abstracts interval computation.
-    \end{definition}
-\item
-    \vspace{-0.5cm}
-    \begin{definition}[Abstract Query Template]\label{def:aqt}
-    Given a SQL test case $\mathcal{C} = \langle s_1, \ldots, s_n \rangle$, its AQT is defined as a 5-tuple:
-    $$\mathcal{T} = \langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle$$
-    \begin{itemize}
-        \item $\mathbf{U} = \langle \mathcal{U}_1, \ldots, \mathcal{U}_n \rangle$ is the ordered sequence of statement templates. Each $\mathcal{U}_i = \langle kind_i, S^i_{norm}, \mathcal{G}^i, R_i, W_i \rangle$ records the statement type, normalized skeleton, intra-statement graph, read set, and write set of $s_i$.
-        \item $\Delta \subseteq \{(i,j) \mid i < j\}$ is the cross-statement dependency set, where $(i,j) \in \Delta$ iff $R_j \cap W_i \neq \emptyset$.
-        \item $\mathcal{D}$ is the cumulative schema context after executing $\langle s_1,\ldots,s_n \rangle$ in order, including table definitions, column types, constraints, and object-state summaries needed for target-side instantiation.
-        \item $\mathcal{G}_{tc} = (V_{tc}, E_{tc})$ is the test-case dependency graph, where $V_{tc} = \{1,\ldots,n\}$ and $E_{tc} = \Delta$.
-        \item $\mathcal{H}$ is a structural hash for deduplication, computed over the ordered normalized skeletons and dependency edges.
-    \end{itemize}
-    \end{definition}
-\end{list}
+% \textbf{Formal Definition.} To support syntax-aware query abstraction and decouple the logical intent of a test case, we introduce SQL abstraction rules and AQT.
+% A SQL test case is an ordered sequence of DDL, DML, and query statements; $R_i$ and $W_i$ denote the objects read/referenced and written/created by statement $s_i$, respectively.
+% The two formal objects are defined as follows:
+% \vspace{-0.4cm}
+% \begin{list}{}{\setlength{\leftmargin}{0.5em}}
+% \item
+%     \begin{definition}[SQL Abstraction Rule]\label{def:rules}
+%     Abstraction rules map from one dialect-specific construct to abstract representations. A rule has the form:
+%     \[
+%     \begin{aligned}
+%         \underbrace{[\textit{Function} \mid \textit{Type} \mid \cdots]}_{\textit{Source}}
+%         &\rightarrow \underbrace{[\langle \textit{FuncTag} \rangle \mid \langle \textit{TypeCast} \rangle \mid \cdots]}_{\textit{Target}}
+%     \end{aligned}
+%     \]
+%     where \textit{Source} is a dialect-specific SQL element and \textit{Target} is its corresponding abstract label that represents the semantic intent. For example, $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$ abstracts interval computation.
+%     \end{definition}
+% \item
+%     \vspace{-0.5cm}
+%     \begin{definition}[Abstract Query Template]\label{def:aqt}
+%     Given a SQL test case $\mathcal{C} = \langle s_1, \ldots, s_n \rangle$, its AQT is defined as a 5-tuple:
+%     $$\mathcal{T} = \langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle$$
+%     \begin{itemize}
+%         \item $\mathbf{U} = \langle \mathcal{U}_1, \ldots, \mathcal{U}_n \rangle$ is the ordered sequence of statement templates. Each $\mathcal{U}_i = \langle kind_i, S^i_{norm}, \mathcal{G}^i, R_i, W_i \rangle$ records the statement type, normalized skeleton, intra-statement graph, read set, and write set of $s_i$.
+%         \item $\Delta \subseteq \{(i,j) \mid i < j\}$ is the cross-statement dependency set, where $(i,j) \in \Delta$ iff $R_j \cap W_i \neq \emptyset$.
+%         \item $\mathcal{D}$ is the cumulative schema context after executing $\langle s_1,\ldots,s_n \rangle$ in order, including table definitions, column types, constraints, and object-state summaries needed for target-side instantiation.
+%         \item $\mathcal{G}_{tc} = (V_{tc}, E_{tc})$ is the test-case dependency graph, where $V_{tc} = \{1,\ldots,n\}$ and $E_{tc} = \Delta$.
+%         \item $\mathcal{H}$ is a structural hash for deduplication, computed over the ordered normalized skeletons and dependency edges.
+%     \end{itemize}
+%     \end{definition}
+% \end{list}
+
+\textbf{Formalization.}
+To support syntax-aware query abstraction and decouple the logical intent of a
+test case from dialect-specific syntax, we introduce SQL abstraction rules and
+abstract query templates (AQTs).
+A SQL test case is an ordered sequence of DDL, DML, and query statements,
+denoted as $\mathcal{C}=\langle s_1,\ldots,s_n\rangle$.
+For each statement $s_i$, $R_i$ and $W_i$ denote the objects it
+reads/references and writes/creates, respectively.
+
+An abstraction rule maps a dialect-specific SQL construct to an abstract
+semantic label:
+\[
+    [\textit{Function} \mid \textit{Type} \mid \cdots]
+    \rightarrow
+    [\langle \textit{FuncTag} \rangle \mid
+     \langle \textit{TypeCast} \rangle \mid \cdots].
+\]
+For example, $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$
+abstracts interval computation.
+
+Given a SQL test case $\mathcal{C}$, its AQT is represented as:
+\[
+    \mathcal{T}=\langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{H} \rangle .
+\]
+Here, $\mathbf{U}=\langle \mathcal{U}_1,\ldots,\mathcal{U}_n\rangle$ is the
+ordered sequence of statement templates, where each
+$\mathcal{U}_i=\langle kind_i,S^i_{norm},\mathcal{G}^i,R_i,W_i\rangle$
+records the statement type, normalized skeleton, intra-statement structure,
+read set, and write set of $s_i$.
+$\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies,
+where $(i,j)\in\Delta$ iff $R_j\cap W_i\neq\emptyset$.
+$\mathcal{D}$ records the cumulative schema context after executing
+$\langle s_1,\ldots,s_n\rangle$, including table definitions, column types,
+constraints, and object-state summaries needed for target-side instantiation.
+Finally, $\mathcal{H}$ is a structural hash computed over the ordered
+normalized skeletons and dependency edges for deduplication.
+
+
 \textbf{Structure-Aware AQT Generation.} 
 Unlike prior statement-level translators that process each SQL statement in isolation and emit a statement-local rewrite rule, \tool{} treats the whole test case as the abstraction unit, representing it as the AQT five-tuple of Definition~\ref{def:aqt}. 
 Algorithm~\ref{alg:aqt_extraction} scans the ordered statement sequence, extracts a statement template for each statement, records cross-statement dependencies, and propagates the evolving schema context across the whole test case.
@@ -397,9 +432,8 @@ $\mathcal{H} \leftarrow \textsc{SHA256}(\bigoplus_i \textsc{Skeleton}(\mathcal{U
 \begin{figure}[b]
 \centering
 \includegraphics[width=0.95\columnwidth]{media/aqt.pdf}
-    \caption{An example of the per-statement component in AQT extraction. 
-    It detects nested SQL boundaries and normalizes dialect-specific features to abstract labels, producing the statement template used by the full test-case representation.
-    }    
+    \caption{AQT extraction: boundary detection and dialect normalization 
+for one statement.}
     \label{fig:aqt_trans}
 \end{figure}
 For example, Figure~\ref{fig:aqt_trans} shows one statement from a source SQL test case containing a nested subquery, where the outer query filters records using an interval computation, e.g., ``\texttt{SELECT ... WHERE u.created\_at} > \texttt{(SELECT AGE(...) FROM ...)}''.
@@ -499,7 +533,8 @@ Once a seed passes the fuzzer's parser, it is designated as a \textit{Mutable Se
 \tool{} is implemented in Python and integrates \griffin{}~\cite{fu2022griffin}, a coverage-guided mutation fuzzer, as the downstream execution engine. For the LLM backbone powering the Test-Oriented Skill Executor and Rule Generator, we employ Gemini 2.5-flash-lite~\cite{gemini-2.5-flash} as the primary language model due to its strong code understanding capabilities and cost efficiency. We set the temperature parameter to 0.2 to balance determinism and output diversity, as justified by the sensitivity analysis discussion in Section~\ref{sec:llm-params}.
 We evaluate \tool{} to assess its performance in cross-dialect seed transformation and its practical impact on DBMS fuzzing effectiveness. Specifically, our evaluation focuses on the following research questions:
 \begin{itemize}[leftmargin=*]
-\item \textbf{RQ1:} Can \tool{} find previously unknown bugs in DBMSs?
+% \item \textbf{RQ1:} Can \tool{} find previously unknown bugs in DBMSs?
+\item \textbf{RQ1:} Can \tool{} find unknown bugs in DBMSs?
 \item \textbf{RQ2:} How does \tool{} compare to other fuzzing tools?
 \item \textbf{RQ3:} How does \tool{} compare to other translation methods in terms of seed validity and semantic richness?
 \item \textbf{RQ4:} What is the contribution of each component in \tool{} to the overall performance?
@@ -984,7 +1019,8 @@ In representation, RISE encodes a dialect as a statement-local AST rewrite rule 
 % - 保持和全文术语一致：AQT-Guided Dialect Instantiation + adaptive sanitization。
 We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them through AQT-Guided Dialect Instantiation, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic correctness by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend \tool{} beyond relational DBMSs.
 
-\section{Data Availability} Artifacts and data are available in an anonymous Zenodo archive~\cite{morph-artifact}.
+\section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
+% \section{Data Availability} Artifacts and data are available in an anonymous Zenodo archive~\cite{morph-artifact}.
 % we also provide an anonymous mirror at \url{https://anonymous.4open.science/r/Morph-82DE}. Both links contain the same artifact content.
 
 
