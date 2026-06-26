@@ -634,51 +634,56 @@ In the full real-world bug-discovery campaign, \tool{} successfully exposed \bug
 % - 目标：回答 transferred seeds 是否带来更深 fuzzing，不能只停留在 translation metrics。
 % - 对比对象分三类：generation/oracle fuzzer SQLancer、mutation fuzzer SQUIRREL、seed-transfer SOTA SedaR。
 % - 解释逻辑：branch coverage 提升 -> 更多 unique bugs -> structure-aware transfer 保留复杂语义，使 fuzzer 能绕过早期 rejection。
-We compared \tool{} against three state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), and \sedar{}~\cite{fu2024sedar}.
+We compared \tool{} against four state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), and \sedar{}~\cite{fu2024sedar}.
 All tools ran for 24 hours under identical settings, so the bug count in this RQ is a controlled comparison rather than the full real-world count in RQ1.
 We normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
 \begin{table}[!t]
 \centering
 \caption{Number of branches covered by different tools (24h).}
 \label{tab:coverage}
-{\small
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
+{\scriptsize
+\setlength{\tabcolsep}{2pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
     \toprule
-    \textbf{DBMS} & \sqlancer{} & \squirrel{} & \sedar{} & \textsc{Morph} \\
+    \textbf{DBMS} & \sqlancer{} & \squirrel{} & \griffin{} & \sedar{} & \textsc{Morph} \\
     \midrule
-    MonetDB    & - & 43,747 & 76,142 & \textbf{81,486} \\
-    Virtuoso   & - & 26,302 & 36,583 & \textbf{40,183} \\
-    DuckDB     & 22,188 & 96,434 & 114,876 & \textbf{144,822} \\
-    ClickHouse & 25,618 & - & 141,215 & \textbf{155,639} \\
+    MonetDB    & - & 43,747 & 61,981 & 76,142 & \textbf{81,486} \\
+    Virtuoso   & - & 26,302 & 28,017 & 36,583 & \textbf{40,183} \\
+    DuckDB     & 22,188 & 96,434 & 96,512 & 114,876 & \textbf{144,822} \\
+    ClickHouse & 25,618 & - & 87,388 & 141,215 & \textbf{155,639} \\
     \midrule
-    Total      & 47,806 & 166,483 & 368,816 & 422,130 \\
-    Improvement$^*$ & 528\%$\uparrow$ & 60\%$\uparrow$ & 14\%$\uparrow$ & - \\
+    Total      & 47,806 & 166,483 & 273,898 & 368,816 & 422,130 \\
+    Improvement$^*$ & 528\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & - \\
     \bottomrule
-    \multicolumn{5}{@{}l}{\footnotesize $^*$ Calculated only for commonly supported DBMSs.}
-\end{tabular*}
+\end{tabular}
+}
+\par\raggedright{\scriptsize $^*$ Calculated only for commonly supported DBMSs.}
 }
 \par\vspace{0.3em}
 
 \caption{Number of bugs detected by different tools (24h).}
 \label{tab:bugs}
 {\small
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
     \toprule
-    \textbf{DBMS} & \sqlancer{} & \squirrel{} & \sedar{} & \textsc{Morph} \\
+    \textbf{DBMS} & \sqlancer{} & \squirrel{} & \griffin{} & \sedar{} & \textsc{Morph} \\
     \midrule
-    MonetDB    & - & 0 & 3 & \textbf{14} \\
-    Virtuoso   & - & 0 & 2 & \textbf{3} \\
-    DuckDB     & 0 & 0 & 1 & \textbf{3} \\
-    ClickHouse & 0 & - & 0 & \textbf{2} \\
+    MonetDB    & - & 0 & 0 & 3 & \textbf{14} \\
+    Virtuoso   & - & 0 & 0 & 2 & \textbf{3} \\
+    DuckDB     & 0 & 0 & 0 & 1 & \textbf{3} \\
+    ClickHouse & 0 & - & 0 & 0 & \textbf{2} \\
     \midrule
-    Total      & 0 & 0 & 6 & 22 \\
-    Increment  & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & - \\
+    Total      & 0 & 0 & 0 & 6 & 22 \\
+    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & - \\
     \bottomrule
-\end{tabular*}
+\end{tabular}
+}
 }
 \end{table}
 
-As illustrated in Table~\ref{tab:coverage}, \tool{} achieves the highest branch coverage across all evaluated DBMSs. Specifically, \tool{} covers a total of 422,130 branches, representing overall improvements of 528\%, 60\%, and 14\% over \sqlancer{}, \squirrel{}, and \sedar{}, respectively, on their supported targets.
+As illustrated in Table~\ref{tab:coverage}, \tool{} achieves the highest branch coverage across all evaluated DBMSs. Specifically, \tool{} covers a total of 422,130 branches, representing overall improvements of 528\%, 60\%, 54\%, and 14\% over \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, on their supported targets.
 Figure~\ref{fig:coverage_over_time} further shows that \tool{} reaches higher coverage earlier and continues to gain branches after 12 hours, while several baselines plateau sooner.
 
 The coverage improvement also brings more detected bugs.
@@ -688,7 +693,7 @@ This proves that coverage gains are not merely statistical but functionally impa
 Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By ensuring high semantic correctness (RQ3), \tool{} enables fuzzers to bypass early engine rejections, exercise deeper optimizer and executor logic, and trigger critical vulnerabilities.
 
 \begin{answerbox}
-\textbf{Answer to RQ2:} Under the controlled 24-hour comparison, \tool{} covers 528\%, 60\%, and 14\% more branches, and discovers 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, and \sedar{}, respectively. 
+\textbf{Answer to RQ2:} Under the controlled 24-hour comparison, \tool{} covers 528\%, 60\%, 54\%, and 14\% more branches than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, and discovers 22, 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
 
