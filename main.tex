@@ -128,7 +128,11 @@ Nevertheless, many DBMSs, especially emerging engines, lack comprehensive test s
 % In practice, built-in test suites are typically used as initial seeds, but many DBMSs lack such suites, especially for emerging database engines. 
 A practical solution is to transfer test cases from mature DBMSs to target systems as initial fuzzing seeds.
 However, existing SQL dialect translation methods are primarily designed for DQL translation and struggle to handle entire test cases that contain interdependent statements, including DDL, DML, and DQL.
-Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. Nevertheless, due to hallucination and limited structure and dialect knowledge, such methods often introduce syntax and semantic errors and produce fuzzer-incompatible outputs.
+Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. Nevertheless, due to hallucination and limited structure and dialect knowledge, such methods often introduce syntax and semantic errors and produce 
+
+
+
+fuzzer-incompatible outputs.
 % Recent studies have applied LLMs to end-to-end translate test queries across DBMSs. However, such translation may introduce syntax and semantic errors due to hallucination and limited dialect knowledge. 
 % Moreover, even with available seeds, current fuzzers struggle to effectively mutate them because of limited support for SQL grammar, often leading to the loss of important query semantics.
 
@@ -178,7 +182,8 @@ Timely detection of such bugs is therefore crucial for maintaining the reliabili
 
 In recent years, fuzzing has emerged as an effective technique for uncovering crashes and detecting hidden errors~\cite{afl, libfuzzer, aflpp, pafl}. 
 Many DBMS fuzzers have already discovered lots of bugs in popular DBMSs~\cite{sqlsmithbug, DBbugs, sqlsmith}. 
-These fuzzers typically generate new test cases by repeatedly mutating a set of initial seed queries to explore more execution paths. Consequently, the effectiveness of fuzzing largely depends on the quality and diversity of the initial seeds~\cite{fu2022griffin, liang2023sequence, jiang2023dynsql, zhong2020squirrel}.
+% These fuzzers typically generate new test cases by repeatedly mutating a set of initial seed queries to explore more execution paths. Consequently, the effectiveness of fuzzing largely depends on the quality and diversity of the initial seeds~\cite{fu2022griffin, liang2023sequence, jiang2023dynsql, zhong2020squirrel}.
+These fuzzers typically generate new test cases by repeatedly mutating a set of initial seed queries to explore more execution paths. Consequently, the effectiveness of fuzzing largely depends on the quality and diversity of the initial seeds~\cite{fu2022griffin, liang2023sequence, zhong2020squirrel}.
 While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suites serving as ideal seeds, emerging engines like \duckdb{}~\cite{duckdb_git} often lack such assets, creating a critical bottleneck that restricts the testing depth of existing fuzzers.
 
 % Paragraph 3 写作逻辑 / Reviewer 修改逻辑（SQL translators 是否能解决 seed generation）：
