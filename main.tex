@@ -133,6 +133,10 @@ Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer acros
 % Moreover, even with available seeds, current fuzzers struggle to effectively mutate them because of limited support for SQL grammar, often leading to the loss of important query semantics.
 
 In this paper, we propose \tool{}, a test-case-level structure-aware cross-dialect SQL transfer framework designed for constructing high-quality initial seeds and enabling effective mutation in DBMS fuzzing. 
+
+
+
+Unlike statement-level query migration, DBMS fuzzing requires transferred seeds to preserve both state-building dependencies across statements and mutation opportunities for downstream fuzzers.
 It follows a three-step workflow.
 First, \tool{} builds an Abstract Query Template (AQT) with dialect-independent structure extraction, preserving statement order and cross-statement dependencies.
 Second, \tool{} performs AQT-Guided Dialect Instantiation to construct a target seed sequence under target-dialect constraints.
@@ -258,7 +262,8 @@ In summary, the paper makes the following contributions:
 
 \begin{enumerate}[leftmargin=*]
 \item We find that many DBMS fuzzers lack high-quality initial seeds. LLM-based end-to-end translation often introduces errors, and limited SQL grammar support further hinders mutation and degrades query semantics, reducing testing effectiveness.
-\item We propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality seeds. Instead of direct translation, \tool{} extracts AQTs and performs AQT-Guided Dialect Instantiation with a retrieval-augmented knowledge base. Moreover, \tool{} enables effective fuzzing through parser feedback-driven adaptation.
+% \item We propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality seeds. Instead of direct translation, \tool{} extracts AQTs and performs AQT-Guided Dialect Instantiation with a retrieval-augmented knowledge base. Moreover, \tool{} enables effective fuzzing through parser feedback-driven adaptation.
+\item We propose \tool{}, a dependency-preserving whole-test-case seed transfer framework. Instead of translating isolated SQL statements, \tool{} encodes each source test case as an AQT, instantiates it under target-dialect constraints, and adapts remaining incompatibilities into fuzzer-parsable forms while preserving testing-relevant structures.
 \item \tool{} uncovered \bugcnt{} previously unknown bugs on four diverse DBMSs, with \bugconfirmcnt{} confirmed and \bugfixcnt{} fixed. 
 Compared to the state-of-the-art method \sedar{}, \tool{} improves semantic correctness by 100\%--272\%, achieving up to a 26\% increase in branch coverage.
 \end{enumerate}
@@ -319,7 +324,7 @@ By maintaining these complex semantics during transfer, \tool{} ensures the gene
 \tool{} is a structure-aware cross-dialect DBMS fuzzing framework for generating effective seeds for the target DBMSs.
 As Figure~\ref{fig:workflow} shows, it takes source SQL test cases from mature DBMSs as input, transforms them across dialects into initial seed sequences for the target DBMS, and then mutates these seeds to discover bugs.
 Unlike LLM-centric text translation, \tool{} treats transfer as an AQT-Guided Dialect Instantiation process.
-It first abstracts each source test case into an AQT that records statement order, schema dependencies, nested query structures, and clause-level relationships; then it recursively instantiates abstract nodes with rules retrieved or generated under target-dialect constraints.
+It first abstracts each source test case into an AQT that records statement templates, cross-statement dependencies, cumulative schema context, intra-statement graphs, and an inter-statement dependency graph, together with a structural identifier for deduplication; then it recursively instantiates abstract nodes with rules retrieved or generated under target-dialect constraints.
 When a generated structure is rejected by the target parser or executor, \tool{} performs feedback-driven local repair instead of destructively discarding the invalid structure, producing fuzzer-compatible seeds while retaining testing-relevant SQL features.
 % 组件一写作逻辑：
 % Review A-Soundness1/C-Soundness 回应位置：Structure-Preserving Abstraction 的 definition、Algorithm 1 和图例一起回答 boundary detection 与 dialect-specific construct recognition。
@@ -384,29 +389,42 @@ semantic label:
 For example, $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$
 abstracts interval computation.
 
-Given a SQL test case $\mathcal{C}$, its AQT is represented as:
+\begin{definition}[Abstract Query Template]\label{def:aqt}
+Given a SQL test case $\mathcal{C}$, its AQT is represented as the
+five-tuple:
 \[
-    \mathcal{T}=\langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{H} \rangle .
+    \mathcal{T}=\langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle .
 \]
 Here, $\mathbf{U}=\langle \mathcal{U}_1,\ldots,\mathcal{U}_n\rangle$ is the
 ordered sequence of statement templates, where each
 $\mathcal{U}_i=\langle kind_i,S^i_{norm},\mathcal{G}^i,R_i,W_i\rangle$
-records the statement type, normalized skeleton, intra-statement structure,
-read set, and write set of $s_i$.
+records the statement type, normalized skeleton, statement-level
+intra-statement graph, read set, and write set of $s_i$.
 $\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies,
 where $(i,j)\in\Delta$ iff $R_j\cap W_i\neq\emptyset$.
 $\mathcal{D}$ records the cumulative schema context after executing
 $\langle s_1,\ldots,s_n\rangle$, including table definitions, column types,
-constraints, and object-state summaries needed for target-side instantiation.
+constraints, and object-state summaries that are propagated as source-side
+constraints during target-side instantiation.
+$\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where
+$V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency
+set and $\mathcal{G}_{tc}$ is its graph representation for dependency-preserving
+statement ordering.
 Finally, $\mathcal{H}$ is a structural hash computed over the ordered
-normalized skeletons and dependency edges for deduplication.
+normalized skeletons and dependency edges; it serves as a stable structural
+identifier for deduplicating equivalent AQTs before instantiation and for
+indexing cached artifacts under the same target dialect.
+\end{definition}
 
 
 \textbf{Structure-Aware AQT Generation.} 
 Unlike prior statement-level translators that process each SQL statement in isolation and emit a statement-local rewrite rule, \tool{} treats the whole test case as the abstraction unit, representing it as the AQT five-tuple of Definition~\ref{def:aqt}. 
 Algorithm~\ref{alg:aqt_extraction} scans the ordered statement sequence, extracts a statement template for each statement, records cross-statement dependencies, and propagates the evolving schema context across the whole test case.
 For each statement, \textsc{ExtractStmtTemplate} parses the statement with the current context, detects scoped SQL boundaries such as CTE bodies and nested subqueries, and applies abstraction rules $\mathcal{R}$ to replace dialect-specific constructs with generic representations.
-It also returns read/write sets $(R_i,W_i)$, which are used to add dependency edges from earlier statements (Line~\ref{line:alg1:dep}). Finally, \tool{} updates the cumulative context after each statement and assembles the AQT with the ordered statement units, dependency graph, cumulative schema context, and structural hash (Lines~\ref{line:alg1:schema}--\ref{line:alg1:return}). This representation enables SQL test cases to be manipulated as structured graph-based objects rather than flat strings.
+During this parsing, it constructs $\mathcal{G}^i$ by creating nodes for scoped AST fragments such as query blocks, CTE bodies, and nested subqueries, and edges for containment and fragment-dependency relations needed by bottom-up instantiation.
+It also returns read/write sets $(R_i,W_i)$, which are used to add dependency edges from earlier statements (Line~\ref{line:alg1:dep}).
+Here, $Ctx$ is the mutable extraction-time context: Algorithm~\ref{alg:aqt_extraction} updates it after each statement and stores its final snapshot as $\mathcal{D}$, while Algorithm~\ref{alg:translation} initializes the source-side constraint context $C_s$ from $\mathcal{D}$ and evolves only the target context $C_t$.
+Finally, \tool{} assembles the AQT with the ordered statement units, dependency graph, cumulative schema context, and structural hash (Lines~\ref{line:alg1:schema}--\ref{line:alg1:return}). This representation enables SQL test cases to be manipulated as structured graph-based objects rather than flat strings.
 \begin{algorithm}[ht]
 \small
 \caption{AQT Extraction}
@@ -451,10 +469,10 @@ Finally, a statement template is constructed, capturing the parent-child relatio
 \subsection{AQT-Guided Dialect Instantiation}
 \label{sec:translation}
 This step instantiates AQTs into syntactically valid target seed sequences while preserving semantic-rich structures from the source seed.
-The instantiation respects the dependency order in $\mathcal{G}_{tc}$: DDL and DML statements are instantiated before queries that depend on them, and the evolving target context is propagated across statements to maintain cross-statement type, reference, and state consistency.
+The instantiation respects the dependency order in $\mathcal{G}_{tc}$, the graph representation of $\Delta$: DDL and DML statements are instantiated before queries that depend on them, and the evolving target context is propagated across statements to maintain cross-statement type, reference, and state consistency.
 The challenge is preserving target-side semantic correctness during recursive AQT-node instantiation without breaking the original test-case order.
 To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on a Retrieval-Augmented Generation (RAG) architecture, which grounds LLM outputs in retrieved dialect-specific evidence to reduce hallucinations. 
-We formulate dialect translation as a two-level instantiation problem: the outer level walks the statement dependency graph while preserving the original sequence for independent statements, and the inner level recursively instantiates each statement's structure graph in a bottom-up manner.
+We formulate dialect translation as a two-level instantiation problem: the outer level walks the statement dependency graph while preserving the original sequence for independent statements, and the inner level recursively instantiates each statement-level graph $\mathcal{G}^i$ in a bottom-up manner.
 \begin{algorithm}[htbp]
 \small
 \caption{AQT Instantiation}
@@ -471,10 +489,11 @@ $\mathcal{Q}_{target} \leftarrow [\,]$; $C_s \leftarrow \mathcal{D}$; $C_t \left
     $\mathcal{Q}_{target}.\textsc{Append}(Q_i)$\;
     $C_t \leftarrow \textsc{UpdateContext}(C_t, Q_i)$ \label{line:alg2:schema_prop} \tcp*{Propagate context}
 }
+$\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Dedup/cache key outside recursion}
 \Return $\mathcal{Q}_{target}$\;
 \end{algorithm}
-To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}. The algorithm first derives a stable dependency order over $\mathcal{G}_{tc}$, which respects cross-statement dependencies while preserving the source order for independent statements (Line~\ref{line:alg2:tc_sort}). For each statement, it invokes \textsc{InstantiateStmt} with source-side constraints and the current target context, and then propagates the updated target context to subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}).
-Inside \textsc{InstantiateStmt}, \tool{} follows the intra-statement structure graph in bottom-up order, substitutes instantiated child fragments, retrieves or generates local dialect mappings from the Hybrid KB, and validates the resulting fragments with the target DBMS parser before caching new rules. If validation fails, the Error Fixer repairs the fragment and rule using parser feedback; unverified candidates are discarded rather than reused. This mechanism avoids degenerate fixes such as clause removal and preserves testing-relevant SQL features.
+To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}. The algorithm derives a stable dependency order over $\mathcal{G}_{tc}$, the graph representation of $\Delta$, which respects cross-statement dependencies while preserving the source order for independent statements (Line~\ref{line:alg2:tc_sort}). For each statement, it invokes \textsc{InstantiateStmt} with source-side constraints carried by $\mathcal{D}$ and the current target context, and then propagates the updated target context to subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}). After recursive instantiation, $\mathcal{H}$ is paired with the target dialect $D_t$ as a stable key for deduplicating structurally equivalent AQTs and indexing cached artifacts outside the main instantiation loop.
+Inside \textsc{InstantiateStmt}, \tool{} follows the statement-level intra-statement graph $\mathcal{G}^i$ in bottom-up order, substitutes instantiated child fragments, retrieves or generates local dialect mappings from the Hybrid KB, and validates the resulting fragments with the target DBMS parser before caching new rules. If validation fails, the Error Fixer repairs the fragment and rule using parser feedback; unverified candidates are discarded rather than reused. This mechanism avoids degenerate fixes such as clause removal and preserves testing-relevant SQL features.
 Finally, the instantiated statements form the target seed sequence $\mathcal{Q}_{target}$.
 \textbf{Test-Oriented Skill Executor.} The above instantiation procedure is implemented by the \textit{Test-Oriented Skill Executor},
 which acts as the reasoning core of the agent, with three specialized skills.
@@ -492,7 +511,7 @@ To reduce semantic drift, \tool{} uses a Hybrid Knowledge Base with two compleme
 The \textit{Abstract Pattern Store} keeps deduplicated structural skeletons extracted during AQT generation (e.g., \texttt{JOIN}/\texttt{WINDOW} templates), preserving query topology across dialects. 
 The \textit{Vector Index} stores embedded dialect evidence (documentation, function signatures, and operator semantics) and retrieves top-$k$ relevant constraints for each abstract token $\tau$, thereby grounding generation in concrete dialect evidence rather than free-form synthesis.
 % Review C-Presentation 回应位置：Figure 4 example 统一使用 $id_1$/$id_2$ 这类符号，和算法里的 segment id 写法保持一致。
-Take Figure~\ref{fig:agent_translation} as an example, the left panel shows the abstract query graph $\mathcal{G}$, where the root segment $id_1$ depends on the nested segment $id_2$; therefore, the planner first performs a topological sort and obtains the execution order $Order=[id_2 \rightarrow id_1]$. 
+Take Figure~\ref{fig:agent_translation} as an example, the left panel shows the statement-level graph $\mathcal{G}^i$, where the root segment $id_1$ depends on the nested segment $id_2$; therefore, the planner first performs a topological sort and obtains the execution order $Order=[id_2 \rightarrow id_1]$.
 In the center panel, \tool{} first instantiates $id_2$ by concretizing its abstract tokens, including mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)} form, and validates this subquery fragment with parser feedback until it succeeds. 
 It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping \texttt{<TimeDiff>} to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
 % 组件三写作逻辑 / Comment3 修改逻辑：
@@ -924,7 +943,7 @@ GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
 DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
 Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \bottomrule
-\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with depth thinking mode}
+% \multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with depth thinking mode}
 \end{tabular*}
 \end{table}
 
