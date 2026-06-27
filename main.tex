@@ -61,6 +61,7 @@
 \usepackage{xcolor}
 \usepackage{comment}
 \usepackage{amsthm}
+\newtheorem{definition}{Definition}
 \newcommand{\cnum}[1]{\textcircled{\scriptsize #1}}
 \usepackage{enumitem}
 
@@ -337,7 +338,6 @@ When a generated structure is rejected by the target parser or executor, \tool{}
 \label{sec:abstraction}
 The step aims to separate the logic of test cases from their dialect-specific representations. The challenge lies in extracting such logic from tightly coupled SQL dialects. To address this, we formalize the seed structure to enable precise manipulation of the extracted logic. We first give some formal definitions of basic concepts.
 \numberwithin{equation}{section} % 公式按章节编号（可选）
-\newtheorem{definition}{Definition}[section] % Definition 按 section 编号
 % \textbf{Formal Definition.} To support syntax-aware query abstraction and decouple the logical intent of a test case, we introduce SQL abstraction rules and AQT.
 % A SQL test case is an ordered sequence of DDL, DML, and query statements; $R_i$ and $W_i$ denote the objects read/referenced and written/created by statement $s_i$, respectively.
 % The two formal objects are defined as follows:
