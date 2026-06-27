@@ -336,7 +336,10 @@ When a generated structure is rejected by the target parser or executor, \tool{}
 % - 图示例子要证明 AQT 保留 nested structure，并说明它怎样处理不兼容 token。
 \subsection{Structure-Preserving Abstraction}
 \label{sec:abstraction}
-The step aims to separate the logic of test cases from their dialect-specific representations. The challenge lies in extracting such logic from tightly coupled SQL dialects. To address this, we formalize the seed structure to enable precise manipulation of the extracted logic. We first give some formal definitions of basic concepts.
+This step decouples the logical intent of a test case from its dialect-specific syntax.
+The challenge is that dialect-specific constructs---such as proprietary functions, type casts, and interval operators---are embedded within hierarchical query structure (e.g., nested subqueries and CTEs), so extracting reusable logic requires preserving relational shape, scoping boundaries, and cross-statement dependencies rather than performing surface-level text replacement.
+We address this by formalizing the seed as an abstract query template (AQT) that records ordered statement templates, dependency relations, and cumulative schema context as a structured object amenable to manipulation.
+We begin with the following definitions.
 \numberwithin{equation}{section} % 公式按章节编号（可选）
 % \textbf{Formal Definition.} To support syntax-aware query abstraction and decouple the logical intent of a test case, we introduce SQL abstraction rules and AQT.
 % A SQL test case is an ordered sequence of DDL, DML, and query statements; $R_i$ and $W_i$ denote the objects read/referenced and written/created by statement $s_i$, respectively.
@@ -423,7 +426,8 @@ For each statement, \textsc{ExtractStmtTemplate} parses the statement with the c
 During this parsing, it constructs $\mathcal{G}^i$ by creating nodes for scoped AST fragments such as query blocks, CTE bodies, and nested subqueries, and edges for containment and fragment-dependency relations needed by bottom-up instantiation.
 It also returns read/write sets $(R_i,W_i)$, which are used to add dependency edges from earlier statements (Line~\ref{line:alg1:dep}).
 Here, $Ctx$ is the mutable extraction-time context: Algorithm~\ref{alg:aqt_extraction} updates it after each statement and stores its final snapshot as $\mathcal{D}$, while Algorithm~\ref{alg:translation} initializes the source-side constraint context $C_s$ from $\mathcal{D}$ and evolves only the target context $C_t$.
-Finally, \tool{} assembles the AQT with the ordered statement units, dependency graph, cumulative schema context, and structural hash (Lines~\ref{line:alg1:schema}--\ref{line:alg1:return}). This representation enables SQL test cases to be manipulated as structured graph-based objects rather than flat strings.
+After the loop completes, \tool{} snapshots the evolved context as $\mathcal{D}$, constructs the test-case dependency graph $\mathcal{G}_{tc}$, computes the structural hash $\mathcal{H}$, and returns the AQT five-tuple (Lines~\ref{line:alg1:finalize_d}--\ref{line:alg1:return}).
+This representation enables SQL test cases to be manipulated as structured graph-based objects rather than flat strings.
 \begin{algorithm}[ht]
 \small
 \caption{AQT Extraction}
@@ -441,9 +445,9 @@ $\mathbf{U} \leftarrow [\,]$; $\Delta \leftarrow \emptyset$; $Ctx \leftarrow \ma
     $\mathbf{U}.\textsc{Append}(\mathcal{U}_i)$\;
     $Ctx \leftarrow \textsc{UpdateContext}(Ctx, s_i)$ \label{line:alg1:schema} \tcp*{Evolve schema/state}
 }
-$\mathcal{D} \leftarrow Ctx$\;
-$\mathcal{G}_{tc} \leftarrow (\{1,\ldots,|\mathbf{U}|\}, \Delta)$\;
-$\mathcal{H} \leftarrow \textsc{SHA256}(\bigoplus_i \textsc{Skeleton}(\mathcal{U}_i) \oplus \Delta)$\;
+$\mathcal{D} \leftarrow Ctx$ \label{line:alg1:finalize_d}\;
+$\mathcal{G}_{tc} \leftarrow (\{1,\ldots,|\mathbf{U}|\}, \Delta)$ \label{line:alg1:finalize_gtc}\;
+$\mathcal{H} \leftarrow \textsc{SHA256}(\bigoplus_i \textsc{Skeleton}(\mathcal{U}_i) \oplus \Delta)$ \label{line:alg1:finalize_h}\;
 \Return $\langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle$\; \label{line:alg1:return}
 \end{algorithm}
 \begin{figure}[b]
@@ -457,7 +461,7 @@ For example, Figure~\ref{fig:aqt_trans} shows one statement from a source SQL te
 The statement is first parsed into an AST, and structural boundaries are identified during recursive traversal. 
 The \texttt{SUBQUERY} root node is recognized as a boundary, decomposing the query into an outer block (ID 1) and an inner subquery (ID 2).
 The abstraction engine then applies rules $\mathcal{R}$ to normalize dialect-specific constructs, mapping \texttt{AGE(...)}, \texttt{::INT}, and \texttt{MIN(.)} into <TimeDiff>, <TypeCast>, and <AggMin>.
-Finally, a statement template is constructed, capturing the parent-child relationship via a pointer <Ptr:2> and producing a normalized skeleton $S_{norm}$ that preserves logic while abstracting dialect differences.
+Finally, a statement template is constructed, capturing the parent-child relationship via a pointer <Ptr:2> and producing a normalized skeleton $S^i_{norm}$ that preserves logic while abstracting dialect differences.
 % 组件二写作逻辑 / Reviewer A、B、Comment2 修改逻辑：
 % Review C-RuleVerification 回应位置：Algorithm 2 的 generate/translate/fix/cache lines 和 Rule Generator 段。
 % 回应逻辑：LLM 产生 candidate local rule；先实例化并经过 target parser validation，repair 成功后进入 Hybrid KB。
@@ -488,10 +492,13 @@ $\mathcal{Q}_{target} \leftarrow [\,]$; $C_s \leftarrow \mathcal{D}$; $C_t \left
     $\mathcal{Q}_{target}.\textsc{Append}(Q_i)$\;
     $C_t \leftarrow \textsc{UpdateContext}(C_t, Q_i)$ \label{line:alg2:schema_prop} \tcp*{Propagate context}
 }
-$\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Dedup/cache key outside recursion}
+$\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \label{line:alg2:index} \tcp*{Dedup/cache key outside recursion}
 \Return $\mathcal{Q}_{target}$\;
 \end{algorithm}
-To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}. The algorithm derives a stable dependency order over $\mathcal{G}_{tc}$, the graph representation of $\Delta$, which respects cross-statement dependencies while preserving the source order for independent statements (Line~\ref{line:alg2:tc_sort}). For each statement, it invokes \textsc{InstantiateStmt} with source-side constraints carried by $\mathcal{D}$ and the current target context, and then propagates the updated target context to subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}). After recursive instantiation, $\mathcal{H}$ is paired with the target dialect $D_t$ to deduplicate structurally equivalent AQTs and index cached instantiation results outside the main instantiation loop.
+To guarantee that the generated queries remain semantically consistent with the target dialect during test-case instantiation, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}.
+The algorithm derives a stable dependency order over $\mathcal{G}_{tc}$, the graph representation of $\Delta$, which respects cross-statement dependencies while preserving the source order for independent statements (Line~\ref{line:alg2:tc_sort}).
+For each statement, it invokes \textsc{InstantiateStmt} with source-side constraints carried by $\mathcal{D}$ and the current target context, and then propagates the updated target context to subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}).
+After all statements are instantiated, $\mathcal{H}$ is paired with the target dialect $D_t$ to deduplicate structurally equivalent AQTs and index cached results (Line~\ref{line:alg2:index}).
 Inside \textsc{InstantiateStmt}, \tool{} follows the statement-level intra-statement graph $\mathcal{G}^i$ in bottom-up order, substitutes instantiated child fragments, retrieves or generates local dialect mappings from the Hybrid KB, and validates the resulting fragments with the target DBMS parser before caching new rules. If validation fails, the Error Fixer repairs the fragment and rule using parser feedback; unverified candidates are discarded rather than reused. This mechanism avoids degenerate fixes such as clause removal and preserves testing-relevant SQL features.
 Finally, the instantiated statements form the target seed sequence $\mathcal{Q}_{target}$.
 \textbf{Test-Oriented Skill Executor.} The above instantiation procedure is implemented by the \textit{Test-Oriented Skill Executor},
