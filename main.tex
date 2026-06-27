@@ -410,10 +410,9 @@ $\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where
 $V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency
 set and $\mathcal{G}_{tc}$ is its graph representation for dependency-preserving
 statement ordering.
-Finally, $\mathcal{H}$ is a structural hash computed over the ordered
-normalized skeletons and dependency edges; it serves as a stable structural
-identifier for deduplicating equivalent AQTs before instantiation and for
-indexing cached artifacts under the same target dialect.
+Finally, $\mathcal{H}$ is a structural hash over the ordered normalized
+skeletons and dependency edges, acting as a fingerprint for deduplication and
+cache indexing.
 \end{definition}
 
 
@@ -492,7 +491,7 @@ $\mathcal{Q}_{target} \leftarrow [\,]$; $C_s \leftarrow \mathcal{D}$; $C_t \left
 $\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Dedup/cache key outside recursion}
 \Return $\mathcal{Q}_{target}$\;
 \end{algorithm}
-To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}. The algorithm derives a stable dependency order over $\mathcal{G}_{tc}$, the graph representation of $\Delta$, which respects cross-statement dependencies while preserving the source order for independent statements (Line~\ref{line:alg2:tc_sort}). For each statement, it invokes \textsc{InstantiateStmt} with source-side constraints carried by $\mathcal{D}$ and the current target context, and then propagates the updated target context to subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}). After recursive instantiation, $\mathcal{H}$ is paired with the target dialect $D_t$ as a stable key for deduplicating structurally equivalent AQTs and indexing cached artifacts outside the main instantiation loop.
+To guarantee that the generated queries remain semantically consistent with the target dialect during recursive construction, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}. The algorithm derives a stable dependency order over $\mathcal{G}_{tc}$, the graph representation of $\Delta$, which respects cross-statement dependencies while preserving the source order for independent statements (Line~\ref{line:alg2:tc_sort}). For each statement, it invokes \textsc{InstantiateStmt} with source-side constraints carried by $\mathcal{D}$ and the current target context, and then propagates the updated target context to subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}). After recursive instantiation, $\mathcal{H}$ is paired with the target dialect $D_t$ to deduplicate structurally equivalent AQTs and index cached instantiation results outside the main instantiation loop.
 Inside \textsc{InstantiateStmt}, \tool{} follows the statement-level intra-statement graph $\mathcal{G}^i$ in bottom-up order, substitutes instantiated child fragments, retrieves or generates local dialect mappings from the Hybrid KB, and validates the resulting fragments with the target DBMS parser before caching new rules. If validation fails, the Error Fixer repairs the fragment and rule using parser feedback; unverified candidates are discarded rather than reused. This mechanism avoids degenerate fixes such as clause removal and preserves testing-relevant SQL features.
 Finally, the instantiated statements form the target seed sequence $\mathcal{Q}_{target}$.
 \textbf{Test-Oriented Skill Executor.} The above instantiation procedure is implemented by the \textit{Test-Oriented Skill Executor},
@@ -607,13 +606,9 @@ We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end
 We employ three metrics to evaluate \tool{}.
 First, to assess transfer quality, we measure \textit{Syntactic Correctness} (the proportion of seeds passing the parser) and \textit{Semantic Correctness} (the proportion executing without runtime errors). 
 Formally, given a generated seed set $\mathcal{Q}$, we compute $\mathrm{Syn.}=|\mathcal{Q}_{parse}|/|\mathcal{Q}|$ and $\mathrm{Sem.}=|\mathcal{Q}_{exec}|/|\mathcal{Q}|$, where $\mathcal{Q}_{parse}$ denotes parser-accepted seeds and $\mathcal{Q}_{exec}$ denotes seeds executed without runtime errors.
-Here, semantic correctness does not denote result equivalence between the source and target DBMSs; instead, it captures whether a transferred seed is executable in the target DBMS without runtime errors. We separately measure semantic richness by counting valid functions, data types, and keywords preserved in executable transferred seeds.
+Here, semantic correctness is defined by executability in the target DBMS without runtime errors, not by result equivalence between the source and target DBMSs. We separately measure semantic richness by counting valid functions, data types, and keywords preserved in executable transferred seeds.
 Second, to quantify the effectiveness in improving fuzzing, we utilize LLVM's \texttt{SanitizerCoverage} to track \textit{Branch Coverage} over 24-hour campaigns. We report the average results across five independent runs to mitigate randomness. Third, regarding real-world bug discovery, we present the detected number of bugs. 
 The bugs are deduplicated from raw crash logs using stack hashes and error signatures, ensuring that the reported numbers reflect unique bugs.
-We report bug counts under two complementary scopes.
-RQ1 reports the full real-world bug-discovery campaign of \tool{}, including all unique previously unknown bugs we detected and their confirmation/fix status.
-RQ2 reports only the bugs found under the controlled 24-hour baseline-comparison setting, where all tools run with the same time budget and deduplication procedure.
-Thus, the 28 detected bugs in RQ1 measure practical impact, whereas the 22 bugs in RQ2 measure fair 24-hour comparative effectiveness.
 
 \subsection{RQ1: Real-World Bug Detection}
 % RQ1 写作逻辑：
@@ -657,7 +652,7 @@ Total & 7 components & \textbf{20 confirmed, 28 detected} \\
 {\footnotesize \textbf{UAF}: Use-After-Free; \textbf{AF}: Assertion Failure; \textbf{NPD}: Null Pointer Dereference; \textbf{DBZ}: Divide-by-Zero; \textbf{SEGV}: Segfault; \textbf{OOM}: Out of Memory.}
 \end{table}
 
-We deployed \tool{} with the backend fuzzer \griffin{}~\cite{fu2022griffin} on the latest development versions of the four target DBMSs. This RQ reports the full real-world bug-discovery campaign, not the restricted 24-hour baseline-comparison setting used in RQ2. As summarized in Table~\ref{tab:real-world-bugs}, \tool{} uncovered \bugcnt{} unique bugs. 
+RQ1 evaluates \tool{}'s real-world bug-finding impact over the full campaign. We deployed \tool{} with the backend fuzzer \griffin{}~\cite{fu2022griffin} on the latest development versions of the four target DBMSs. As summarized in Table~\ref{tab:real-world-bugs}, \tool{} uncovered \bugcnt{} unique bugs. 
 Among these issues, \bugconfirmcnt{} have been confirmed by the vendors, of which \bugfixcnt{} critical bugs have already been fixed. For instance, regarding the fixed bug in DuckDB (\#205xx), the developers appreciated the report exposing an intricate type inference flaw in the \textit{Executor}, which was triggered by preserving complex cross-table correlations from \pg{}. 
 They merged a fix within days, further validating that \tool{} successfully identified deep-seated bugs missed by existing test suites.
 Moreover, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
@@ -678,7 +673,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 
 \begin{answerbox}
 \textbf{Answer to RQ1:} 
-In the full real-world bug-discovery campaign, \tool{} successfully exposed \bugcnt{} unknown bugs in four popular DBMSs, affecting core components including the Optimizer and Storage Engine. Among them, \bugconfirmcnt{} bugs have been confirmed, and \bugfixcnt{} bugs have already been fixed by DBMS vendors.
+\tool{} successfully exposed \bugcnt{} unknown bugs in four popular DBMSs, affecting core components including the Optimizer and Storage Engine. Among them, \bugconfirmcnt{} bugs have been confirmed, and \bugfixcnt{} bugs have already been fixed by DBMS vendors.
 \end{answerbox}
 
 \subsection{RQ2: Comparison with Other Fuzzing Tools}
@@ -688,8 +683,7 @@ In the full real-world bug-discovery campaign, \tool{} successfully exposed \bug
 % - 目标：回答 transferred seeds 是否带来更深 fuzzing，不能只停留在 translation metrics。
 % - 对比对象分三类：generation/oracle fuzzer SQLancer、mutation fuzzer SQUIRREL、seed-transfer SOTA SedaR。
 % - 解释逻辑：branch coverage 提升 -> 更多 unique bugs -> structure-aware transfer 保留复杂语义，使 fuzzer 能绕过早期 rejection。
-We compared \tool{} against four state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), and \sedar{}~\cite{fu2024sedar}.
-All tools ran for 24 hours under identical settings, so the bug count in this RQ is a controlled comparison rather than the full real-world count in RQ1.
+RQ2 evaluates \tool{}'s comparative effectiveness under the controlled 24-hour setting. We compared \tool{} against four state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), and \sedar{}~\cite{fu2024sedar}.
 We normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
 \begin{table}[!t]
 \centering
@@ -747,7 +741,7 @@ This proves that coverage gains are not merely statistical but functionally impa
 Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By ensuring high semantic correctness (RQ3), \tool{} enables fuzzers to bypass early engine rejections, exercise deeper optimizer and executor logic, and trigger critical vulnerabilities.
 
 \begin{answerbox}
-\textbf{Answer to RQ2:} Under the controlled 24-hour comparison, \tool{} covers 528\%, 60\%, 54\%, and 14\% more branches than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, and discovers 22, 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively. 
+\textbf{Answer to RQ2:} \tool{} covers 528\%, 60\%, 54\%, and 14\% more branches than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, and discovers 22, 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
 
