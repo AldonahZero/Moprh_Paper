@@ -1053,15 +1053,18 @@ Table~\ref{tab:translation-capability} summarizes how these systems differ from 
 \vspace{0.2em}
 \parbox{\columnwidth}{\scriptsize\raggedright\textit{Note.} \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
-The \partmark entries indicate that a tool may handle the corresponding SQL category in restricted forms, but not as a full dependency-preserving seed-transfer capability.
-For example, during test-case migration from PostgreSQL to a target DBMS, a source test case may contain DDL that creates a table with dialect-specific schema features such as an auto-increment column, DML that relies on default-value insertion to populate that table, and a final DQL statement that filters the inserted rows using PostgreSQL-specific date/interval expressions.
-RISE~\cite{xie2026rise} can apply dialect-aware query reduction to the final DQL statement: given a complex query $Q_c$ with a dialect-specific element, it obtains a simplified query $Q_s$, translates $Q_s$, extracts a local rule $r_d$, and applies the rule back to $Q_c$.
-However, translating only the query-side dialect element is insufficient for test-case migration.
-If the DDL prefix is not rewritten into a target-supported schema definition, or the DML prefix is dropped or rewritten inconsistently, the final DQL statement either references missing or ill-typed state or executes over a different data state.
-Thus, even a correctly translated query fragment may not yield a valid, mutable fuzzing seed unless the DDL, DML, and DQL statements are migrated together with their dependencies.
 Overall, these systems provide useful statement-level mappings, but their goal is query migration, semantic-equivalent translation, or oracle portability rather than structure-preserving fuzzing-seed construction.
-They therefore do not explicitly model a seed as an ordered test case with DDL/DML dependencies, evolving schema context, and downstream fuzzer compatibility constraints.
-In \tool{}, the skeleton is not a reduced query for isolating one dialect element; it is the normalized per-statement form $S^{i}_{norm}$ inside an AQT built for an ordered seed sequence.
+The \partmark entries indicate restricted, fragment-level support.
+Specifically, they do not cover dependency-sensitive seed-transfer cases where DDL creates schema state later used by DML/DQL, DML relies on schema-specific behaviors such as default values or auto-increment columns, \texttt{ALTER}/\texttt{CREATE INDEX} changes the object state before later queries, or the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
+
+RISE~\cite{xie2026rise} illustrates this boundary.
+During test-case migration from PostgreSQL to a target DBMS, a source test case may contain DDL with dialect-specific schema features, DML that relies on those schema features to populate state, and a final DQL statement that uses PostgreSQL-specific date/interval expressions.
+RISE can apply dialect-aware query reduction to the final DQL statement: given a complex query $Q_c$ with a dialect-specific element, it obtains a simplified query $Q_s$, translates $Q_s$, extracts a local rule $r_d$, and applies the rule back to $Q_c$.
+However, if the DDL/DML prefix is not migrated consistently, the translated DQL statement may reference missing or ill-typed state, or execute over a different data state.
+Thus, RISE's query-level reduction does not by itself provide full test-case migration with cross-statement dependency preservation.
+
+\tool{} addresses this gap by making the whole seed sequence the transferred unit.
+Its skeleton is not RISE's reduced query for isolating one dialect element; it is the normalized per-statement form $S^{i}_{norm}$ inside an AQT built for an ordered test case.
 The AQT further records cross-statement read/write dependencies $\Delta$ and the evolving schema context $\mathcal{D}$, so local dialect rules serve as AQT-node instantiation operators inside whole-test-case transfer rather than as the transferred unit itself.
 
 \section{Conclusion}
