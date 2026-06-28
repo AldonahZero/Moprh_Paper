@@ -1053,7 +1053,8 @@ Table~\ref{tab:translation-capability} summarizes how these systems differ from 
 \vspace{0.2em}
 \parbox{\columnwidth}{\scriptsize\raggedright\textit{Note.} \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
-The entries marked \partmark indicate restricted, fragment-level support: such tools may translate isolated DDL, DML, or DQL fragments, but they do not support ordered DDL--DML--DQL seed migration where earlier schema, data, or object-state changes must be preserved for later statements and the migrated sequence must remain parsable and mutable by a downstream fuzzer.
+The entries marked \partmark indicate restricted, fragment-level support.
+They do not support the following test-case-level migration scenarios: (i) DDL-created schema state must be preserved for later DML/DQL statements; (ii) DML depends on schema-specific behaviors such as default values or auto-increment columns; (iii) \texttt{ALTER TABLE} or \texttt{CREATE INDEX} changes object state before later queries; or (iv) the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
 Overall, these systems provide useful statement-level mappings, but their goal is query migration, semantic-equivalent translation, or oracle portability rather than dependency-preserving test-case-level seed transfer.
 
 RISE~\cite{xie2026rise} is the closest comparison for this gap.
