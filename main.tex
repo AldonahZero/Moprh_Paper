@@ -1053,19 +1053,13 @@ Table~\ref{tab:translation-capability} summarizes how these systems differ from 
 \vspace{0.2em}
 \parbox{\columnwidth}{\scriptsize\raggedright\textit{Note.} \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
-The entries marked \partmark indicate restricted, fragment-level support.
-They do not support test-case-level migration in which (i) DDL-created schema state must be preserved for later DML/DQL statements, (ii) DML depends on schema-specific behaviors such as default values or auto-increment columns, (iii) \texttt{ALTER TABLE} or \texttt{CREATE INDEX} changes object state before later queries, or (iv) the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
-Overall, these systems provide useful statement-level mappings, but their goal is query migration, semantic-equivalent translation, or oracle portability rather than structure-preserving fuzzing-seed construction.
+The entries marked \partmark indicate restricted, fragment-level support: such tools may translate isolated DDL, DML, or DQL fragments, but they do not support ordered DDL--DML--DQL seed migration where earlier schema, data, or object-state changes must be preserved for later statements and the migrated sequence must remain parsable and mutable by a downstream fuzzer.
+Overall, these systems provide useful statement-level mappings, but their goal is query migration, semantic-equivalent translation, or oracle portability rather than dependency-preserving test-case-level seed transfer.
 
-RISE~\cite{xie2026rise} illustrates the boundary between query-level translation and test-case-level seed transfer.
-Consider a PostgreSQL source seed to be migrated to a target DBMS: it may contain DDL with dialect-specific schema features, DML that relies on those schema features to populate state, and a final DQL statement that uses PostgreSQL-specific date/interval expressions.
-RISE can apply dialect-aware query reduction to the final DQL statement: given a complex query $Q_c$ with a dialect-specific element, it obtains a simplified query $Q_s$, translates $Q_s$, extracts a local rule $r_d$, and applies the rule back to $Q_c$.
-However, if the DDL/DML prefix is not migrated consistently, the translated DQL statement may reference missing or ill-typed state, or execute over a different data state.
-Thus, RISE's query-level reduction does not by itself provide full test-case migration with cross-statement dependency preservation.
-
-\tool{} addresses this gap by making the whole seed sequence the transferred unit.
-Its skeleton is not RISE's reduced query for isolating one dialect element; it is the normalized per-statement form $S^{i}_{norm}$ inside an AQT built for an ordered test case.
-The AQT further records cross-statement read/write dependencies $\Delta$ and the evolving schema context $\mathcal{D}$, so local dialect rules serve as AQT-node instantiation operators inside whole-test-case transfer rather than as the transferred unit itself.
+RISE~\cite{xie2026rise} is the closest comparison for this gap.
+Its dialect-aware query reduction translates a query by simplifying a complex query $Q_c$ into $Q_s$, extracting a local rule $r_d$, and applying it back to $Q_c$.
+However, in a source seed to be migrated, the final DQL statement may depend on schema features and data state created by earlier DDL/DML statements; translating the query alone does not guarantee a valid seed if this prefix is not migrated consistently.
+\tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form $S^{i}_{norm}$ inside an AQT that also records cross-statement dependencies $\Delta$ and evolving schema context $\mathcal{D}$.
 
 \section{Conclusion}
 \label{sec:conclusion}
