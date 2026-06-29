@@ -291,7 +291,7 @@ Compared to the state-of-the-art method \sedar{}, \tool{} improves semantic corr
 % - Basic Idea 收束到 AQT：把 logical intent 从 dialect-specific syntax 中抽离，再实例化到目标 DBMS。
 \textbf{SQL Dialects.} 
 \textit{Database Management Systems (DBMSs)} underpin modern data-driven applications and expose high-level declarative query languages for data interaction. Although SQL is standardized, real-world DBMSs implement diverse \textit{SQL dialects} with substantial syntactic and semantic variations.
-For example, PostgreSQL uses \texttt{AGE(timestamp)} for date arithmetic, whereas DuckDB requires \texttt{date\_diff()}. Similarly, type casting syntax varies between \texttt{::INTERVAL} in PostgreSQL and \texttt{CAST(... AS INTERVAL)} in standard SQL. 
+e.g., PostgreSQL uses \texttt{AGE(timestamp)} for date arithmetic, whereas DuckDB requires \texttt{date\_diff()}. Similarly, type casting syntax varies between \texttt{::INTERVAL} in PostgreSQL and \texttt{CAST(... AS INTERVAL)} in standard SQL. 
 These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
 
 \textbf{DBMS Fuzzing and Cross-Dialect Seed Transfer.} 
@@ -535,10 +535,12 @@ Finally, the instantiated statements form the target seed sequence $\mathcal{Q}_
 a method that coordinates three specialized skills under the target-dialect constraints.
 
 % SQL Translator：负责 token->方言实例化，靠 Vector Index 的函数签名落地（TimeDiff->date_diff 例子）。
-\textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering $<$\texttt{TimeDiff}$>$, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
+% \textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering $<$\texttt{TimeDiff}$>$, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
+\textit{SQL Translator:} This skill instantiates a token into a dialect-compliant fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, it maps $<$\texttt{TimeDiff}$>$ to \duckdb{}'s \texttt{date\_diff} signature.
 
 % Rule Generator：检索置信度低时触发，只产 candidate local rule；经 target parser 验证/修复成功后才 cache（回应 Comment2）。
-\textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
+% \textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
+\textit{Rule Generator:} When retrieval confidence for a feature falls below a threshold, this skill synthesizes a candidate local rule via the LLM's zero-shot reasoning over the AST context and few-shot examples. The candidate is cached in the Hybrid KB only after it passes target-parser validation.
 \begin{figure}[b]
     \centering
     \includegraphics[scale=1.0, width=1\linewidth]{media/rule.pdf}
@@ -546,8 +548,10 @@ a method that coordinates three specialized skills under the target-dialect cons
     }
     \label{fig:agent_translation}
 \end{figure}
+
 % Error Fixer：运行时纠错，用 parser 报错 + AST 上下文定位并做 structure-preserving 重写，避免 clause removal 式退化修复。
-\textit{Error Fixer:} This skill operates as a runtime correction module. It performs immediate syntax validation on generated fragments, and when a target database parser rejects a fragment, it identifies and localizes the error using both the compiler feedback and the AST context. To prevent degenerate repairs such as clause removal, its correction process explicitly favors structure-preserving rewrites through constrained few-shot examples, ensuring that the final output remains a \textit{Compatible Seed} while preserving the original test-case complexity.
+% \textit{Error Fixer:} This skill operates as a runtime correction module. It performs immediate syntax validation on generated fragments, and when a target database parser rejects a fragment, it identifies and localizes the error using both the compiler feedback and the AST context. To prevent degenerate repairs such as clause removal, its correction process explicitly favors structure-preserving rewrites through constrained few-shot examples, ensuring that the final output remains a \textit{Compatible Seed} while preserving the original test-case complexity.
+\textit{Error Fixer:} When the target parser rejects a fragment, this skill localizes the error using both the compiler feedback and the AST context, then applies structure-preserving rewrites via constrained few-shot examples. This avoids degenerate repairs such as clause removal, keeping the output a \textit{Compatible Seed} with its original complexity.
 
 % Hybrid Knowledge Base 段：解释支撑三个 skill 的知识库，两个 store 互补——
 % Abstract Pattern Store 存结构骨架保拓扑，Vector Index 存方言证据做 top-k 检索，避免 free-form synthesis。
@@ -561,10 +565,12 @@ The \textit{Vector Index} stores embedded dialect evidence (documentation, funct
 % - 中图：先实例化 id_2（AggMin/TypeCast）并 parser 验证，再代回 id_1 实例化外层 TimeDiff->date_diff。
 % - 右图：得到保留嵌套时间窗逻辑的 Compatible Seed。
 % Review C-Presentation 回应位置：Figure 4 example 统一使用 $id_1$/$id_2$ 这类符号，和算法里的 segment id 写法保持一致。
+% \textbf{Walk-Through Example.}
+% Take Figure~\ref{fig:agent_translation} as an example, the left panel shows the statement-level graph $\mathcal{G}^i$, where the root segment $id_1$ depends on the nested segment $id_2$; therefore, the planner first performs a topological sort and obtains the execution order $Order=[id_2 \rightarrow id_1]$.
+% In the center panel, \tool{} first instantiates $id_2$ by concretizing its abstract tokens, including mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)} form, and validates this subquery fragment with parser feedback until it succeeds.
+% It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
 \textbf{Walk-Through Example.}
-Take Figure~\ref{fig:agent_translation} as an example, the left panel shows the statement-level graph $\mathcal{G}^i$, where the root segment $id_1$ depends on the nested segment $id_2$; therefore, the planner first performs a topological sort and obtains the execution order $Order=[id_2 \rightarrow id_1]$.
-In the center panel, \tool{} first instantiates $id_2$ by concretizing its abstract tokens, including mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)} form, and validates this subquery fragment with parser feedback until it succeeds. 
-It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
+As shown in Figure~\ref{fig:agent_translation}, since $id_1$ depends on the nested segment $id_2$ ($Order=[id_2 \rightarrow id_1]$), \tool{} first instantiates the inner subquery $id_2$---mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)}---and validates it via parser feedback. It then substitutes the validated fragment into the outer predicate of $id_1$, mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}, yielding a \textit{Compatible Seed} that preserves the nested time-window logic.
 % 组件三写作逻辑 / Comment3 修改逻辑：
 % Review A-Soundness3 回应位置：Feedback-Driven Adaptive Fuzzing 的 fallback 段。
 % 回应逻辑：unsupported constructs 先查已有 mapping，再用 RAG candidate，再 source DBMS 常量替换，最后才最小范围 comment out；这样回应“没有对应语义时如何处理”。
