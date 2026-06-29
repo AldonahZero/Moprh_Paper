@@ -536,7 +536,7 @@ a method that coordinates three specialized skills under the target-dialect cons
 
 % SQL Translator：负责 token->方言实例化，靠 Vector Index 的函数签名落地（TimeDiff->date_diff 例子）。
 % \textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering $<$\texttt{TimeDiff}$>$, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
-\textit{SQL Translator:} This skill instantiates a token into a dialect-compliant fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, it maps $<$\texttt{TimeDiff}$>$ to \duckdb{}'s \texttt{date\_diff} signature.
+\textit{SQL Translator:} This skill instantiates a token into a dialect-compliant fragment by integrating the input segment with function signatures from the \textit{Vector Index}. For example, it maps $<$\texttt{TimeDiff}$>$ to \duckdb{}'s \texttt{date\_diff} signature.
 
 % Rule Generator：检索置信度低时触发，只产 candidate local rule；经 target parser 验证/修复成功后才 cache（回应 Comment2）。
 % \textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
@@ -582,21 +582,53 @@ As shown in Figure~\ref{fig:agent_translation}, since $id_1$ depends on the nest
 % - 强调 comment out 是最后兜底，和 SedaR 式默认 sanitization 拉开距离。
 \subsection{Feedback-Driven Adaptive Fuzzing}
 \label{sec:mutation_loop}
-Some DBMS features lie beyond the grammatical scope supported by existing fuzzers, making mutation difficult.
-To enable mutation over such seeds, the challenge is to translate or adapt advanced DBMS features into fuzzer-compatible forms, or to mark mutable regions, while preserving both syntax correctness and semantic consistency.
-To address that,
-\tool{} iteratively leverages parsing and execution feedback to rewrite or encapsulate unsupported constructs into valid equivalents through a structure-preserving fallback process. 
-As Figure~\ref{fig:feedback-driven} shows, upon receiving compatible seeds, \tool{} sanitizes and executes them in the target DBMS, using execution results to either proceed to mutation or trigger error-guided semantic repair, and produces a seed annotated with mutable regions to support fuzzing.
+% 段落写作逻辑：
+% - 本小节对应 challenge 3：目标 DBMS 可执行的 seed 仍可能不被 fuzzer grammar 接受。
+% - 写作顺序：先讲 fuzzer-compatibility challenge，再讲 feedback-guided adaptation，最后讲 sanitizer、fallback 和 mutable-region annotation。
+% - 旧版把 challenge、流程、sanitizer、fallback 和 mutable-region 全挤在一起；新版用显式小标题拆开，避免 PDF 中形成大段。
+% 旧版（保留备查）：
+% Some DBMS features lie beyond the grammatical scope supported by existing fuzzers, making mutation difficult.
+% To enable mutation over such seeds, the challenge is to translate or adapt advanced DBMS features into fuzzer-compatible forms, or to mark mutable regions, while preserving both syntax correctness and semantic consistency.
+% To address that,
+% \tool{} iteratively leverages parsing and execution feedback to rewrite or encapsulate unsupported constructs into valid equivalents through a structure-preserving fallback process. 
+% As Figure~\ref{fig:feedback-driven} shows, upon receiving compatible seeds, \tool{} sanitizes and executes them in the target DBMS, using execution results to either proceed to mutation or trigger error-guided semantic repair, and produces a seed annotated with mutable regions to support fuzzing.
+
+Some DBMS features exceed the grammar supported by existing fuzzers, making otherwise executable target seeds difficult to mutate.
+The challenge is to adapt such features into fuzzer-compatible forms while preserving syntax correctness, semantic consistency, and mutation opportunities.
+
+\smallskip
+\noindent\textbf{Feedback-Guided Adaptation.}\\
+\tool{} addresses this challenge by using parsing and execution feedback to repair unsupported constructs through a structure-preserving fallback process.
+As shown in Figure~\ref{fig:feedback-driven}, compatible seeds are sanitized, executed in the target DBMS, repaired when necessary, and finally annotated with mutable regions for fuzzing.
+
 \begin{figure}[htbp]
   \centering
   \includegraphics[scale=1.0, width=\linewidth]{media/feedback-driven.pdf}
   \caption{Feedback-driven adaptive fuzzing workflow.}
   \label{fig:feedback-driven}
 \end{figure}
-Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities not captured by the static translation phase. Instead of discarding these seeds or destructively commenting out unparsable tokens (as in \sedar{}~\cite{fu2024sedar}), the sanitizer captures the parser error message, localizes the unsupported dialect-specific construct to the corresponding AQT node, and repairs it using syntactic feedback. For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed.
+
+\smallskip
+\noindent\textbf{Error-Guided Sanitization.}\\
+% 旧版（保留备查）：
+% Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities not captured by the static translation phase. Instead of discarding these seeds or destructively commenting out unparsable tokens (as in \sedar{}~\cite{fu2024sedar}), the sanitizer captures the parser error message, localizes the unsupported dialect-specific construct to the corresponding AQT node, and repairs it using syntactic feedback. For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed.
+When a transferred seed $Q_{target}$ still violates the fuzzer grammar, the sanitizer localizes the unsupported construct to its AQT node and repairs it using parser feedback rather than discarding it.
+For example, it removes excess brackets around \texttt{date\_diff} in Figure~\ref{fig:feedback-driven}, producing a syntactically valid Mutable Seed.
+
 % Review C-Presentation 回应位置：error message example 用完整的 ``SELECT''，处理原稿 ``SELEC'' typo。
-When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order. First, it checks the sanitization dictionary and applies an existing mapping when the unsupported construct has a known target-compatible form. Second, if no exact mapping exists, it uses RAG to retrieve candidate replacements from dialect evidence and validates the rewritten fragment with the fuzzer parser. Third, if no suitable replacement can be found, \tool{} executes the original source-side construct in the source DBMS and substitutes the returned value as a constant, preserving the surrounding query structure whenever possible. Finally, only if these structure-preserving attempts fail, \tool{} comments out the minimal offending construct. This ordering makes destructive commenting a last resort rather than the default sanitization strategy.
-Once a seed passes the fuzzer's parser, it is designated as a \textit{Mutable Seed}. \tool{} then identifies data-dependent components, such as literals and predicates, and marks them as mutable regions. This directs the fuzzer's mutation engine to focus on logic-altering variations rather than the fixed syntactic skeleton, accelerating the discovery of deep logic bugs.
+\smallskip
+\noindent\textbf{Tiered Fallback Strategy.}\\
+% 旧版（保留备查）：
+% When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order. First, it checks the sanitization dictionary and applies an existing mapping when the unsupported construct has a known target-compatible form. Second, if no exact mapping exists, it uses RAG to retrieve candidate replacements from dialect evidence and validates the rewritten fragment with the fuzzer parser. Third, if no suitable replacement can be found, \tool{} executes the original source-side construct in the source DBMS and substitutes the returned value as a constant, preserving the surrounding query structure whenever possible. Finally, only if these structure-preserving attempts fail, \tool{} comments out the minimal offending construct. This ordering makes destructive commenting a last resort rather than the default sanitization strategy.
+When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order: existing sanitization mappings, RAG-retrieved replacements, source-side execution followed by constant substitution, and finally minimal commenting.
+Thus, destructive commenting is used only after structure-preserving repairs fail.
+
+\smallskip
+\noindent\textbf{Mutable-Region Annotation.}\\
+% 旧版（保留备查）：
+% Once a seed passes the fuzzer's parser, it is designated as a \textit{Mutable Seed}. \tool{} then identifies data-dependent components, such as literals and predicates, and marks them as mutable regions. This directs the fuzzer's mutation engine to focus on logic-altering variations rather than the fixed syntactic skeleton, accelerating the discovery of deep logic bugs.
+Once a seed passes the fuzzer parser, \tool{} marks data-dependent literals and predicates as mutable regions.
+This guides mutation toward logic-altering changes while keeping the repaired syntactic skeleton stable.
 \section{Evaluation}
 \label{sec:evaluation}
 
