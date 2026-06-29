@@ -475,7 +475,9 @@ Finally, a statement template is constructed, capturing the parent-child relatio
 \subsection{AQT-Guided Dialect Instantiation}
 \label{sec:translation}
 This step instantiates AQTs into syntactically valid target seed sequences while preserving semantic-rich structures from the source seed.
-The instantiation respects the dependency order in $\mathcal{G}_{tc}$, the graph representation of $\Delta$: DDL and DML statements are instantiated before queries that depend on them, and the evolving target context is propagated across statements to maintain cross-statement type, reference, and state consistency.
+The instantiation respects the dependency order in $\mathcal{G}_{tc}$%
+% , the graph representation of $\Delta$
+: DDL and DML statements are instantiated before queries that depend on them, and the evolving target context is propagated across statements to maintain cross-statement type, reference, and state consistency.
 The challenge is preserving target-side semantic correctness during recursive AQT-node instantiation without breaking the original test-case order.
 To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on a Retrieval-Augmented Generation (RAG) architecture, which grounds LLM outputs in retrieved dialect-specific evidence to reduce hallucinations. 
 We formulate dialect translation as a two-level instantiation problem: the outer level walks the statement dependency graph while preserving the original sequence for independent statements, and the inner level recursively instantiates each statement-level graph $\mathcal{G}^i$ in a bottom-up manner.
