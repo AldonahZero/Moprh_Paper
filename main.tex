@@ -1013,7 +1013,7 @@ Thus, manual review provides additional gains, but the majority of coverage and 
 % - Review A-Novelty(vs RISE) 回应位置：本节末尾用 scope（single SELECT vs ordered multi-statement，含 Δ 和 schema context D）与 representation（statement-local rewrite rule vs AQT five-tuple 的局部 instantiation operator）两点区分 AQT 与 RISE 的 query-reduction skeleton。
 % - Related Work 不复述 RQ 数字，只保留 conceptual difference。
 Related work falls into three categories: DBMS fuzzing, LLM-based seed generation, and cross-dialect SQL translation.
-The first category improves how DBMS inputs are generated, mutated, or checked; the second uses LLMs to synthesize or transfer testing inputs; and the third translates SQL across dialects for migration or compatibility.
+The first category improves how DBMS inputs are generated, mutated, or checked; the second uses LLMs to synthesize or transfer testing inputs; and the third translates SQL across dialects.
 \tool{} builds on these lines of work but targets a different problem: structure-preserving whole-test-case SQL transfer for fuzzing.
 
 \subsection{DBMS Fuzzing}
