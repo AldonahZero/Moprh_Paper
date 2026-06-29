@@ -574,7 +574,7 @@ As illustrated in Figure~\ref{fig:workflow}, \tool{} takes the original queries 
 %     The process begins with the static analysis engine receiving source SQL test cases. By leveraging schema information and AST parsing techniques, the engine strips away dialect-specific syntax details (e.g., type modifiers or specific function names). It extracts \textit{AQT} that preserve the core logical skeleton, such as query topology and data flow dependencies. This stage effectively achieves the decoupling of logical intent from syntactic representation.
 
 %     \item \textbf{Rule-Guided Dialect Translation:} 
-%     As shown in the middle panel of Figure~\ref{fig:workflow}, the extracted AQT are fed into the translation engine. A \textit{Task Planner} decomposes the complex instantiation task and coordinates a \textit{Hybrid Knowledge Base} with an \textit{Test-Oriented Skill Executor}. Through the collaborative execution of sub-skills, specifically the \textit{SQL Translator}, \textit{Rule Generator}, and \textit{Error Fixer}, the engine recursively instantiates abstract nodes into concrete target dialect syntax, generating syntactically \textit{Compatible Seeds}.
+%     As shown in the middle panel of Figure~\ref{fig:workflow}, the extracted AQT are fed into the translation engine. A \textit{Task Planner} decomposes the complex instantiation task and coordinates a \textit{Hybrid Knowledge Base} with \textit{Test-Oriented Skill Execution}. Through the collaborative execution of sub-skills, specifically the \textit{SQL Translator}, \textit{Rule Generator}, and \textit{Error Fixer}, the engine recursively instantiates abstract nodes into concrete target dialect syntax, generating syntactically \textit{Compatible Seeds}.
 
 %     \item \textbf{Feedback-Driven Mutation Loop:} 
 %     In the final stage, the compatible seeds enter the fuzzing loop (right panel of Figure~\ref{fig:workflow}). An \textit{Adaptive Query Sanitizer} interacts with the downstream DBMS Fuzzers (e.g., Squirrel\cite{zhong2020squirrel} or Griffin~\cite{fu2022griffin}). Instead of destructively removing unparsable tokens, it adapts the seeds into \textit{Mutable Seeds} that are strictly parsable by the fuzzer's internal grammar. These seeds are then continuously mutated and executed, ultimately triggering hidden \textbf{BUGS} in the target system.
@@ -724,8 +724,7 @@ The challenge is preserving semantic correctness in recursive SQL substitution.
 To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on an RAG architecture. 
 As illustrated in Figure~\ref{fig:agent_translation}, the process takes the AQTs as its input context and follows a three-stage pipeline. 
 (i) First, the \textit{Task Planner} coordinates the execution flow according to structural dependencies. 
-(ii) Second, a \textit{Test-Oriented Skill Executor} 
-Our Skill Executor synthesizes concrete SQL fragments by retrieving and incorporating relevant context from the hybrid KB, drawing on patterns similar to those in modern agent extension frameworks~\cite{anthropic-skills-2025}.
+(ii) Second, \textit{Test-Oriented Skill Execution} synthesizes concrete SQL fragments by retrieving and incorporating relevant context from the hybrid KB, drawing on patterns similar to those in modern agent extension frameworks~\cite{anthropic-skills-2025}.
 % synthesizes concrete SQL fragments with support from a hybrid knowledge base to enable precise context retrieval. 
 (iii) Finally, \tool{} assembles these fragments into \textit{compatible seeds} and verifies their syntactic and semantic correctness.
 
@@ -734,9 +733,9 @@ Our Skill Executor synthesizes concrete SQL fragments by retrieving and incorpor
     \includegraphics[scale=1.0, width=0.9\linewidth]{media/rule.pdf}
     \caption{\textbf{The RAG-enhanced Rule-Guided Translation Architecture.} 
     \cnum{1} \textit{Task Planning:} The Planner conducts a bottom-up topological sort on graph $\mathcal{G}$ to schedule the instantiation order. 
-    \cnum{2} \textit{Knowledge-Augmented Execution:} The Skill Executor (Translator, Generator, and Fixer) instantiates abstract segments using context retrieved from the Hybrid KB. 
+    \cnum{2} \textit{Knowledge-Augmented Execution:} The skill-execution method coordinates the Translator, Generator, and Fixer to instantiate abstract segments using context retrieved from the Hybrid KB. 
     \cnum{3} \textit{Seed Generation:} The system synthesizes \textit{Compatible Seeds} with guaranteed dialect alignment and semantic correctness.}
-    \Description{An architecture diagram showing the RAG-enhanced translation system with three components: Task Planner performing topological sorting, Skill Executor using hybrid KB for instantiation, and seed generation producing compatible queries.}
+    \Description{An architecture diagram showing the RAG-enhanced translation system with three stages: task planning, knowledge-augmented skill execution using the hybrid KB, and seed generation producing compatible queries.}
     \vspace{-0.5cm}
     \label{fig:agent_translation}
 \end{figure}
@@ -749,7 +748,7 @@ Specifically, the planner treats each extracted segment $S_{seg}$ as a node in $
 
 
 
-\textit{Example.} In the scenario depicted in Figure~\ref{fig:agent_translation}, the planner identifies that the main query ($id_1$) depends on the aggregate result of a subquery (Segment $id_2$). Following the topological order $[id_2 \to id_1]$, the \textit{Skill Executor} first instantiates Segment 2 to calculate the minimum timestamp. This fragment is then encapsulated and passed to the next stage as a known entity, allowing the planner to complete the outer query's construction without semantic ambiguity.
+\textit{Example.} In the scenario depicted in Figure~\ref{fig:agent_translation}, the planner identifies that the main query ($id_1$) depends on the aggregate result of a subquery (Segment $id_2$). Following the topological order $[id_2 \to id_1]$, the skill-execution method first instantiates Segment 2 to calculate the minimum timestamp. This fragment is then encapsulated and passed to the next stage as a known entity, allowing the planner to complete the outer query's construction without semantic ambiguity.
 
 \subsubsection{Hybrid Knowledge Base}%+什么是hkb
 To mitigate semantic hallucinations and drifts common in LLM-based code generation, \tool{} designs a \textit{Hybrid Knowledge Base} (Hybrid KB). As shown in Figure~\ref{fig:agent_translation}, this component provides grounded dialect constraints through two specialized storage engines:
@@ -764,8 +763,8 @@ To mitigate semantic hallucinations and drifts common in LLM-based code generati
 \end{itemize}
 
 
-\subsubsection{Test-Oriented Skill Executor}%+LLM Skill 定义的解释
-As shown in center panel of Figure~\ref{fig:agent_translation}, the \textit{Skill Executor} acts as the reasoning core of the agent, equipped with a suite of specialized skills to handle the instantiation.
+\subsubsection{Test-Oriented Skill Execution}%+LLM Skill 定义的解释
+As shown in center panel of Figure~\ref{fig:agent_translation}, \textit{Test-Oriented Skill Execution} is the instantiation method that coordinates a suite of specialized skills under target-dialect constraints.
 
 
 
@@ -872,7 +871,7 @@ For instance, it automatically removes excess brackets around the \texttt{date\_
 \section{Evaluation}
 \label{sec:evaluation}
 
-\tool{} is implemented in Python and integrates \griffin{}~\cite{fu2022griffin}, a coverage-guided mutation fuzzer, as the downstream execution engine. For the LLM backbone powering the Dynamic Skill Executor and Rule Generator, we employ Gemini 2.5-flash-lite~\cite{gemini-2.5-flash} as the primary language model due to its strong code understanding capabilities and cost efficiency. We set the temperature parameter to 0.2 to balance determinism and output diversity, as justified by the sensitivity analysis discussion in Section~\ref{sec:llm-params}.
+\tool{} is implemented in Python and integrates \griffin{}~\cite{fu2022griffin}, a coverage-guided mutation fuzzer, as the downstream execution engine. For the LLM used in Test-Oriented Skill Execution and rule generation, we employ Gemini 2.5-flash-lite~\cite{gemini-2.5-flash} as the primary language model due to its strong code understanding capabilities and cost efficiency. We set the temperature parameter to 0.2 to balance determinism and output diversity, as justified by the sensitivity analysis discussion in Section~\ref{sec:llm-params}.
 % Research questions
 We evaluate \tool{} to assess its performance in cross-dialect seed transformation and its practical impact on DBMS fuzzing effectiveness. Specifically, our evaluation focuses on the following research questions:
 \begin{itemize}

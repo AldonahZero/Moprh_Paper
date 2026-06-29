@@ -515,8 +515,8 @@ For each statement, it invokes \textsc{InstantiateStmt} with the source constrai
 After all statements are instantiated, the generated target sequence is indexed by $(\mathcal{H},D_t)$ for future reuse.
 Inside \textsc{InstantiateStmt}, \tool{} recursively instantiates the statement-level graph using retrieved or generated local mappings and target-parser feedback to keep fragments executable.
 Finally, the instantiated statements form the target seed sequence $\mathcal{Q}_{target}$.
-\textbf{Test-Oriented Skill Executor.} The above instantiation procedure is implemented by the \textit{Test-Oriented Skill Executor},
-which acts as the reasoning core of the agent, with three specialized skills.
+\textbf{Test-Oriented Skill Execution.} The above instantiation procedure is realized through \textit{Test-Oriented Skill Execution},
+a method that coordinates three specialized skills under the target-dialect constraints.
 \textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering $<$\texttt{TimeDiff}$>$, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
 \textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
 \begin{figure}[b]
@@ -569,7 +569,7 @@ Once a seed passes the fuzzer's parser, it is designated as a \textit{Mutable Se
 % - RQ2 对比 fuzzing tools，回答 coverage/bug discovery 是否优于现有 fuzzing pipeline。
 % - RQ3 对比 translation/transfer methods，回答 seed validity 与 semantic richness；这里的 semantic correctness 区别于源/目标结果等价。
 % - RQ4 做 ablation，解释 AQT abstraction、AQT-Guided Dialect Instantiation、feedback sanitizer 各自贡献。
-\tool{} is implemented in Python and integrates \griffin{}~\cite{fu2022griffin}, a coverage-guided mutation fuzzer, as the downstream execution engine. For the LLM backbone powering the Test-Oriented Skill Executor and Rule Generator, we employ Gemini 2.5-flash-lite~\cite{gemini-2.5-flash} as the primary language model due to its strong code understanding capabilities and cost efficiency. We set the temperature parameter to 0.2 to balance determinism and output diversity, as justified by the sensitivity analysis discussion in Section~\ref{sec:llm-params}.
+\tool{} is implemented in Python and integrates \griffin{}~\cite{fu2022griffin}, a coverage-guided mutation fuzzer, as the downstream execution engine. For the LLM used in Test-Oriented Skill Execution and rule generation, we employ Gemini 2.5-flash-lite~\cite{gemini-2.5-flash} as the primary language model due to its strong code understanding capabilities and cost efficiency. We set the temperature parameter to 0.2 to balance determinism and output diversity, as justified by the sensitivity analysis discussion in Section~\ref{sec:llm-params}.
 We evaluate \tool{} to assess its performance in cross-dialect seed transformation and its practical impact on DBMS fuzzing effectiveness. Specifically, our evaluation focuses on the following research questions:
 \begin{itemize}[leftmargin=*]
 % \item \textbf{RQ1:} Can \tool{} find previously unknown bugs in DBMSs?
