@@ -656,7 +656,7 @@ We first describe the experimental setup, and then answer RQ1--RQ4 in the follow
 \label{sec:setup}
 
 \textbf{Target DBMSs and Environment.}
-To evaluate the generalization of \tool{} across diverse architectures, we selected four widely used DBMSs according to the DB-Engines Ranking~\cite{dbengines}: MonetDB~\cite{monetdb} v11.51, Virtuoso~\cite{virtuoso} v7.2, DuckDB~\cite{duckdb_git} v1.4.3, and ClickHouse~\cite{clickhouse} v24.8 LTS. These systems span a broad spectrum of architectures, from embedded OLAP engines to distributed columnar stores, and while they share the relational data model, each implements a distinct SQL dialect.
+To evaluate the generalization of \tool{} across diverse architectures, we selected four widely used DBMSs according to the DB-Engines Ranking~\cite{dbengines}: MonetDB~\cite{monetdb} v11.51, Virtuoso~\cite{virtuoso} v7.2, DuckDB~\cite{duckdb_git} v1.4.3, and ClickHouse~\cite{clickhouse} v24.8 LTS. These systems cover diverse OLAP and multi-model architectures with distinct SQL dialects.
 We explicitly excluded traditional row-store OLTP systems (e.g., MySQL and PostgreSQL) from the target list, as they serve as the source DBMSs for seed collection. Instead, we prioritized OLAP and multi-model architectures to rigorously evaluate \tool{}'s capability in bridging significant dialectal and architectural gaps (i.e., from Row-store like \mysql{} to Column-store like \duckdb{}).
 All experiments were conducted on a Linux server equipped with an Intel Xeon CPU and 256 GB of RAM. To ensure reproducibility and isolation, each DBMS instance ran within a separate Docker container.
 
