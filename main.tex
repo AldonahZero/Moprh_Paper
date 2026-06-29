@@ -130,17 +130,18 @@
 % into new ones
 DBMS fuzzing relies on mutating initial seed queries to explore state space and trigger crash bugs, making the quality and diversity of the initial seeds critical.
 Nevertheless, many DBMSs, especially emerging engines, lack comprehensive test suites that can serve as high-quality seeds.
-% In practice, built-in test suites are typically used as initial seeds, but many DBMSs lack such suites, especially for emerging database engines. 
 A practical solution is to transfer test cases from mature DBMSs to target systems as initial fuzzing seeds.
-% However, existing SQL dialect translation methods are primarily designed for DQL translation and struggle to handle entire test cases containing interdependent statements, including DDL, DML, and DQL.
-However, existing SQL dialect translation methods primarily target statement-level SQL translation and struggle to handle entire test cases containing interdependent DDL, DML, and DQL statements.
+However, existing SQL dialect translation methods focus on statement-level translation and struggle to preserve cross-statement dependencies when transferring test cases for DBMS fuzzing.
+% However, existing SQL dialect translation methods primarily focus on statement-level translation and struggle to handle entire test cases involving interdependent statements.
+% Unlike statement-level query migration, DBMS fuzzing requires transferred seeds to preserve both state-building dependencies across statements and mutation opportunities for downstream fuzzers.
 Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. 
 Nevertheless, due to limited knowledge of structure and dialect, hallucinations may occur and introduce syntactic and semantic errors or produce fuzzer-incompatible outputs.
+% In practice, built-in test suites are typically used as initial seeds, but many DBMSs lack such suites, especially for emerging database engines. 
+% However, existing SQL dialect translation methods are primarily designed for DQL translation and struggle to handle entire test cases containing interdependent statements, including DDL, DML, and DQL.
 % Recent studies have applied LLMs to end-to-end translate test queries across DBMSs. However, such translation may introduce syntax and semantic errors due to hallucination and limited dialect knowledge. 
 % Moreover, even with available seeds, current fuzzers struggle to effectively mutate them because of limited support for SQL grammar, often leading to the loss of important query semantics.
 
 In this paper, we propose \tool{}, a test-case-level structure-aware cross-dialect SQL transfer framework designed for constructing high-quality initial seeds and enabling effective mutation in DBMS fuzzing. 
-Unlike statement-level query migration, DBMS fuzzing requires transferred seeds to preserve both state-building dependencies across statements and mutation opportunities for downstream fuzzers.
 It follows a three-step workflow.
 First, \tool{} builds an Abstract Query Template (AQT) with dialect-independent structure extraction, preserving statement order and cross-statement dependencies.
 Second, \tool{} performs AQT-Guided Dialect Instantiation to construct a target seed sequence under target-dialect constraints.
@@ -286,6 +287,7 @@ Compared to the state-of-the-art method \sedar{}, \tool{} improves semantic corr
 \textit{Database Management Systems (DBMSs)} underpin modern data-driven applications and expose high-level declarative query languages for data interaction. Although SQL is standardized, real-world DBMSs implement diverse \textit{SQL dialects} with substantial syntactic and semantic variations.
 For example, PostgreSQL uses \texttt{AGE(timestamp)} for date arithmetic, whereas DuckDB requires \texttt{date\_diff()}. Similarly, type casting syntax varies between \texttt{::INTERVAL} in PostgreSQL and \texttt{CAST(... AS INTERVAL)} in standard SQL. 
 These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
+
 \textbf{DBMS Fuzzing and Cross-Dialect Seed Transfer.} 
 \textit{Fuzzing} has emerged as a core technique for discovering system crashes~\cite{sqlsmith, zhong2020squirrel}. By continuously generating and mutating inputs to traverse diverse execution paths, it effectively exposes corner cases and potential bugs.
 The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial Seeds}. 
@@ -294,7 +296,7 @@ Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds
 To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}. 
 % Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{deng2023large, zhang2023understanding}. \sedar{}~\cite{fu2024sedar}, the current state-of-the-art, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
 \sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
-\begin{figure}[b]
+\begin{figure}[tb]
   \centering
   \includegraphics[scale=1.0, width=\linewidth]{media/motivating_ase.pdf}
   \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
@@ -314,8 +316,9 @@ Existing methods typically comment out unsupported features to support seed muta
 As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
+
 As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation,
-but instead abstracts the dialect-specific \texttt{AGE} function into a generic <TimeDiff> intent. 
+but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent. 
 It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity. 
 By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}.
 \section{Approach}
@@ -460,11 +463,11 @@ $\mathcal{H} \leftarrow \textsc{SHA256}(\bigoplus_i \textsc{Skeleton}(\mathcal{U
 for one statement.}
     \label{fig:aqt_trans}
 \end{figure}
-For example, Figure~\ref{fig:aqt_trans} shows one statement from a source SQL test case containing a nested subquery, where the outer query filters records using an interval computation, e.g., ``\texttt{SELECT ... WHERE u.created\_at} > \texttt{(SELECT AGE(...) FROM ...)}''.
+For example, Figure~\ref{fig:aqt_trans} shows one statement from a source SQL test case containing a nested subquery, where the outer query filters records using an interval computation, e.g., ``\texttt{SELECT ... WHERE u.created\_at} \textgreater \texttt{(SELECT AGE(...) FROM ...)}''.
 The statement is first parsed into an AST, and structural boundaries are identified during recursive traversal. 
 The \texttt{SUBQUERY} root node is recognized as a boundary, decomposing the query into an outer block (ID 1) and an inner subquery (ID 2).
-The abstraction engine then applies rules $\mathcal{R}$ to normalize dialect-specific constructs, mapping \texttt{AGE(...)}, \texttt{::INT}, and \texttt{MIN(.)} into <TimeDiff>, <TypeCast>, and <AggMin>.
-Finally, a statement template is constructed, capturing the parent-child relationship via a pointer <Ptr:2> and producing a normalized skeleton $S^i_{norm}$ that preserves logic while abstracting dialect differences.
+The abstraction engine then applies rules $\mathcal{R}$ to normalize dialect-specific constructs, mapping \texttt{AGE(...)}, \texttt{::INT}, and \texttt{MIN(.)} into $<$TimeDiff$>$, $<$TypeCast$>$, and $<$AggMin$>$.
+Finally, a statement template is constructed, capturing the parent-child relationship via a pointer $<$Ptr:2$>$ and producing a normalized skeleton $S^i_{norm}$ that preserves logic while abstracting dialect differences.
 % 组件二写作逻辑 / Reviewer A、B、Comment2 修改逻辑：
 % Review C-RuleVerification 回应位置：Algorithm 2 的 generate/translate/fix/cache lines 和 Rule Generator 段。
 % 回应逻辑：LLM 产生 candidate local rule；先实例化并经过 target parser validation，repair 成功后进入 Hybrid KB。
@@ -508,7 +511,7 @@ Inside \textsc{InstantiateStmt}, \tool{} recursively instantiates the statement-
 Finally, the instantiated statements form the target seed sequence $\mathcal{Q}_{target}$.
 \textbf{Test-Oriented Skill Executor.} The above instantiation procedure is implemented by the \textit{Test-Oriented Skill Executor},
 which acts as the reasoning core of the agent, with three specialized skills.
-\textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering \texttt{<TimeDiff>}, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
+\textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering $<$\texttt{TimeDiff}$>$, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
 \textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
 \begin{figure}[b]
     \centering
@@ -524,7 +527,7 @@ The \textit{Vector Index} stores embedded dialect evidence (documentation, funct
 % Review C-Presentation 回应位置：Figure 4 example 统一使用 $id_1$/$id_2$ 这类符号，和算法里的 segment id 写法保持一致。
 Take Figure~\ref{fig:agent_translation} as an example, the left panel shows the statement-level graph $\mathcal{G}^i$, where the root segment $id_1$ depends on the nested segment $id_2$; therefore, the planner first performs a topological sort and obtains the execution order $Order=[id_2 \rightarrow id_1]$.
 In the center panel, \tool{} first instantiates $id_2$ by concretizing its abstract tokens, including mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)} form, and validates this subquery fragment with parser feedback until it succeeds. 
-It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping \texttt{<TimeDiff>} to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
+It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
 % 组件三写作逻辑 / Comment3 修改逻辑：
 % Review A-Soundness3 回应位置：Feedback-Driven Adaptive Fuzzing 的 fallback 段。
 % 回应逻辑：unsupported constructs 先查已有 mapping，再用 RAG candidate，再 source DBMS 常量替换，最后才最小范围 comment out；这样回应“没有对应语义时如何处理”。
@@ -1030,7 +1033,9 @@ In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explici
 \subsection{Cross-Dialect SQL Translation}
 General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
 However, constructing and maintaining these rules requires significant dialect expertise.
-Recent learning- or reduction-based systems reduce this manual effort: CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
+% Recent learning- or reduction-based systems reduce this manual effort: CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
+Recent studies have reduced the manual effort required for dialect migration.
+CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
 Table~\ref{tab:translation-capability} summarizes how these systems differ from \tool{} along five capability dimensions relevant to fuzzing-seed transfer.
 \begin{table}[!t]
 \centering
@@ -1066,7 +1071,9 @@ RISE~\cite{xie2026rise} is the closest comparison for this gap, because its dial
 It translates a query by simplifying a complex query $Q_c$ into $Q_s$, extracting a local rule $r_d$, and applying it back to $Q_c$.
 However, RISE still treats a single query as the translation unit.
 In a source seed to be migrated, the final DQL statement may depend on schema features and data state created by earlier DDL/DML statements; translating the query alone does not guarantee a valid seed if this prefix is not migrated consistently.
-\tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form $S^{i}_{norm}$ inside an AQT that also records cross-statement dependencies $\Delta$ and evolving schema context $\mathcal{D}$.
+% \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form $S^{i}_{norm}$ inside an AQT that also records cross-statement dependencies $\Delta$ and evolving schema context $\mathcal{D}$.
+% \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form inside an AQT that also records cross-statement dependencies and evolving schema context.
+Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
 
 \section{Conclusion}
 \label{sec:conclusion}
