@@ -376,8 +376,10 @@ We begin with the following definitions.
 % \end{list}
 
 \textbf{Formalization.}
-To support syntax-aware query abstraction and decouple the logical intent of a
-test case from dialect-specific syntax, we introduce SQL abstraction rules and
+% To support syntax-aware query abstraction and decouple the logical intent of a
+% test case from dialect-specific syntax, we introduce SQL abstraction rules and
+% abstract query templates (AQTs).
+We define two formal objects used in this abstraction: SQL abstraction rules and
 abstract query templates (AQTs).
 A SQL test case is an ordered sequence of DDL, DML, and query statements,
 denoted as $\mathcal{C}=\langle s_1,\ldots,s_n\rangle$.
