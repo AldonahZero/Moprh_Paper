@@ -146,9 +146,12 @@ It follows a three-step workflow.
 First, \tool{} builds an Abstract Query Template (AQT) with dialect-independent structure extraction, preserving statement order and cross-statement dependencies.
 Second, \tool{} performs AQT-Guided Dialect Instantiation to construct a target seed sequence under target-dialect constraints.
 Finally, \tool{} uses parser feedback to fix remaining incompatibilities, ensuring queries are fuzzer-parsable and mutable.
-We evaluate \tool{} on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}. 
-Compared with the state-of-the-art seeds transforming approach \sedar{}, \tool{} covers 26\% more branches, finds 16 more bugs in 24 hours, and achieves 100\%--272\% higher semantic correctness for transferred seeds.
-Moreover, \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed.
+We evaluate \tool{} and detect \bugcnt{} previously unknown bugs
+on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
+% \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed.
+Among them, \bugconfirmcnt{} have been confirmed, of which \bugfixcnt{} have already been fixed. 
+Moreover, compared with the state-of-the-art seed transforming approach \sedar{}, \tool{} covers 26\% more branches, finds 16 more bugs in 24 hours, and achieves 100\%--272\% higher semantic correctness for transferred seeds.
+
 
 \end{abstract}
 
@@ -668,7 +671,8 @@ Total & 7 components & \textbf{20 confirmed, 28 detected} \\
 \end{table}
 
 RQ1 evaluates \tool{}'s real-world bug-finding impact over the full campaign. We deployed \tool{} on the development versions of the four target DBMSs. As summarized in Table~\ref{tab:real-world-bugs}, \tool{} uncovered \bugcnt{} unique bugs. 
-Among these issues, \bugconfirmcnt{} have been confirmed by the vendors, of which \bugfixcnt{} critical bugs have already been fixed. For instance, regarding the fixed bug in DuckDB (\#205xx), the developers appreciated the report exposing an intricate type inference flaw in the \textit{Executor}, which was triggered by preserving complex cross-table correlations from \pg{}. 
+Among these issues, \bugconfirmcnt{} have been confirmed by the vendors, of which \bugfixcnt{} critical bugs have already been fixed. 
+For instance, regarding the fixed bug in DuckDB (\#205xx), the developers appreciated the report exposing an intricate type inference flaw in the \textit{Executor}, which was triggered by preserving complex cross-table correlations from \pg{}. 
 They merged a fix within days, further validating that \tool{} successfully identified deep-seated bugs missed by existing test suites.
 Moreover, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
 The detected bugs are not limited to the surface level (e.g., Parser) but penetrate deep into the DBMS kernels. As shown in the \textit{Component} column of Table~\ref{tab:real-world-bugs}, the bugs span critical subsystems including the Optimizer, Binder, and Storage Engine.
@@ -1012,7 +1016,7 @@ Thus, manual review provides additional gains, but the majority of coverage and 
 % - Cross-Dialect SQL Translation：SQLGlot/jOOQ/CrackSQL/RISE/QTRAN 等面向 statement/query migration 或 oracle portability，不建模 fuzzing seed 的 test-case-level dependency 和 fuzzer compatibility。
 % - Review A-Novelty(vs RISE) 回应位置：本节末尾用 scope（single SELECT vs ordered multi-statement，含 Δ 和 schema context D）与 representation（statement-local rewrite rule vs AQT five-tuple 的局部 instantiation operator）两点区分 AQT 与 RISE 的 query-reduction skeleton。
 % - Related Work 不复述 RQ 数字，只保留 conceptual difference。
-Related work falls into three categories: DBMS fuzzing, LLM-based seed generation, and cross-dialect SQL translation.
+Related work falls into three categories: 
 The first category improves how DBMS inputs are generated, mutated, or checked; the second uses LLMs to synthesize or transfer testing inputs; and the third translates SQL across dialects.
 \tool{} builds on these lines of work but targets a different problem: structure-preserving whole-test-case SQL transfer for fuzzing.
 
