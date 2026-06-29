@@ -291,7 +291,7 @@ Compared to the state-of-the-art method \sedar{}, \tool{} improves semantic corr
 % - Basic Idea 收束到 AQT：把 logical intent 从 dialect-specific syntax 中抽离，再实例化到目标 DBMS。
 \textbf{SQL Dialects.} 
 \textit{Database Management Systems (DBMSs)} underpin modern data-driven applications and expose high-level declarative query languages for data interaction. Although SQL is standardized, real-world DBMSs implement diverse \textit{SQL dialects} with substantial syntactic and semantic variations.
-e.g., PostgreSQL uses \texttt{AGE(timestamp)} for date arithmetic, whereas DuckDB requires \texttt{date\_diff()}. Similarly, type casting syntax varies between \texttt{::INTERVAL} in PostgreSQL and \texttt{CAST(... AS INTERVAL)} in standard SQL. 
+For example, PostgreSQL uses \texttt{AGE(timestamp)} for date arithmetic, whereas DuckDB requires \texttt{date\_diff()}. Similarly, type casting syntax varies between \texttt{::INTERVAL} in PostgreSQL and \texttt{CAST(... AS INTERVAL)} in standard SQL. 
 These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
 
 \textbf{DBMS Fuzzing and Cross-Dialect Seed Transfer.} 
@@ -403,7 +403,7 @@ semantic label:
     [\langle \textit{FuncTag} \rangle \mid
      \langle \textit{TypeCast} \rangle \mid \cdots].
 \]
-For example, $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$
+e.g., $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$
 abstracts interval computation.
 
 \begin{definition}[Abstract Query Template]\label{def:aqt}
