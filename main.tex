@@ -483,12 +483,22 @@ Finally, a statement template is constructed, capturing the parent-child relatio
 % - Comment2：LLM 只生成 candidate local rule；必须先应用到片段并通过 target parser validation/repair，成功后才 cache 到 Hybrid KB，未验证候选不缓存。
 \subsection{AQT-Guided Dialect Instantiation}
 \label{sec:translation}
+% 1) 概述段：先说这步做什么（AQT->target seed sequence），并点出依赖顺序保证跨语句一致性。
+% 2) 挑战+思路段：challenge 是递归实例化时的目标侧语义正确性；思路是 RAG 闭环 + two-level 建模。
+% 3) Two-Level Instantiation：对照 Algorithm 2，分 outer level（语句依赖排序）/ inner level（语句内递归）讲。
+% 4) Test-Oriented Skill Execution：三个 skill（Translator/Generator/Fixer）各自独立成段。
+% 5) Hybrid Knowledge Base + Walk-Through Example：先讲两个 store，再用 Figure 4 把流程串起来。
+% 概述段：本小节对应 challenge 2（目标侧语义正确性），以组件一产出的 AQT 为输入。
+% 这一段先陈述输入输出与依赖顺序约束，引出下文 challenge 与 two-level 实例化思路。
 This step instantiates AQTs into syntactically valid target seed sequences while preserving semantic-rich structures from the source seed.
 The instantiation respects the dependency order in $\mathcal{G}_{tc}$%
 % , the graph representation of $\Delta$
 : DDL and DML statements are instantiated before queries that depend on them, and the evolving target context is propagated across statements to maintain cross-statement type, reference, and state consistency.
+
+% 挑战+思路段：challenge 落在“递归实例化时目标侧语义正确 + 不打乱原测试用例顺序”；
+% 解决思路两点：RAG 闭环减少 hallucination；把翻译建模成 two-level instantiation，铺垫下面 Algorithm。
 The challenge is preserving target-side semantic correctness during recursive AQT-node instantiation without breaking the original test-case order.
-To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on a Retrieval-Augmented Generation (RAG) architecture, which grounds LLM outputs in retrieved dialect-specific evidence to reduce hallucinations. 
+To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on a Retrieval-Augmented Generation (RAG) architecture, which grounds LLM outputs in retrieved dialect-specific evidence to reduce hallucinations.
 We formulate dialect translation as a two-level instantiation problem: the outer level walks the statement dependency graph while preserving the original sequence for independent statements, and the inner level recursively instantiates each statement-level graph $\mathcal{G}^i$ in a bottom-up manner.
 \begin{algorithm}[htbp]
 \small
@@ -509,15 +519,25 @@ $\mathcal{Q}_{target} \leftarrow [\,]$; $C_s \leftarrow \mathcal{D}$; $C_t \left
 $\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Cache key outside recursion}
 \Return $\mathcal{Q}_{target}$\;
 \end{algorithm}
+% Two-Level Instantiation 段：逐行解读 Algorithm 2。
+% - outer level：先做 dependency-preserving + 保序的拓扑排序，再逐语句 InstantiateStmt 并传播 target context，最后整体 index 复用。
+% - inner level：InstantiateStmt 在语句内递归，用检索/生成的局部映射 + parser feedback 保证可执行。
+\textbf{Two-Level Instantiation.}
 To guarantee that the generated queries remain semantically consistent with the target dialect during test-case instantiation, the system employs an AQT-Guided Dialect Instantiation process as formalized in Algorithm~\ref{alg:translation}.
-The algorithm first computes a dependency-preserving statement order over $\mathcal{G}_{tc}$ while keeping the original order for independent statements (Line~\ref{line:alg2:tc_sort}).
+At the \emph{outer level}, the algorithm first computes a dependency-preserving statement order over $\mathcal{G}_{tc}$ while keeping the original order for independent statements (Line~\ref{line:alg2:tc_sort}).
 For each statement, it invokes \textsc{InstantiateStmt} with the source constraints and current target context, appends the generated query, and updates the target context for subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}).
 After all statements are instantiated, the generated target sequence is indexed by $(\mathcal{H},D_t)$ for future reuse.
-Inside \textsc{InstantiateStmt}, \tool{} recursively instantiates the statement-level graph using retrieved or generated local mappings and target-parser feedback to keep fragments executable.
+At the \emph{inner level}, \textsc{InstantiateStmt} recursively instantiates the statement-level graph using retrieved or generated local mappings and target-parser feedback to keep fragments executable.
 Finally, the instantiated statements form the target seed sequence $\mathcal{Q}_{target}$.
+
+% Test-Oriented Skill Execution 段：把抽象算法落到 agent 的三个 skill；三个 skill 各自成段便于阅读。
 \textbf{Test-Oriented Skill Execution.} The above instantiation procedure is realized through \textit{Test-Oriented Skill Execution},
 a method that coordinates three specialized skills under the target-dialect constraints.
+
+% SQL Translator：负责 token->方言实例化，靠 Vector Index 的函数签名落地（TimeDiff->date_diff 例子）。
 \textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering $<$\texttt{TimeDiff}$>$, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
+
+% Rule Generator：检索置信度低时触发，只产 candidate local rule；经 target parser 验证/修复成功后才 cache（回应 Comment2）。
 \textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
 \begin{figure}[b]
     \centering
@@ -526,11 +546,22 @@ a method that coordinates three specialized skills under the target-dialect cons
     }
     \label{fig:agent_translation}
 \end{figure}
+% Error Fixer：运行时纠错，用 parser 报错 + AST 上下文定位并做 structure-preserving 重写，避免 clause removal 式退化修复。
 \textit{Error Fixer:} This skill operates as a runtime correction module. It performs immediate syntax validation on generated fragments, and when a target database parser rejects a fragment, it identifies and localizes the error using both the compiler feedback and the AST context. To prevent degenerate repairs such as clause removal, its correction process explicitly favors structure-preserving rewrites through constrained few-shot examples, ensuring that the final output remains a \textit{Compatible Seed} while preserving the original test-case complexity.
-To reduce semantic drift, \tool{} uses a Hybrid Knowledge Base with two complementary stores. 
-The \textit{Abstract Pattern Store} keeps deduplicated structural skeletons extracted during AQT generation (e.g., \texttt{JOIN}/\texttt{WINDOW} templates), preserving query topology across dialects. 
+
+% Hybrid Knowledge Base 段：解释支撑三个 skill 的知识库，两个 store 互补——
+% Abstract Pattern Store 存结构骨架保拓扑，Vector Index 存方言证据做 top-k 检索，避免 free-form synthesis。
+\textbf{Hybrid Knowledge Base.}
+To reduce semantic drift, \tool{} uses a Hybrid Knowledge Base with two complementary stores.
+The \textit{Abstract Pattern Store} keeps deduplicated structural skeletons extracted during AQT generation (e.g., \texttt{JOIN}/\texttt{WINDOW} templates), preserving query topology across dialects.
 The \textit{Vector Index} stores embedded dialect evidence (documentation, function signatures, and operator semantics) and retrieves top-$k$ relevant constraints for each abstract token $\tau$, thereby grounding generation in concrete dialect evidence rather than free-form synthesis.
+
+% Walk-Through Example 段：用 Figure 4 把前面机制串成一个完整例子，呼应 Two-Level Instantiation。
+% - 左图：G^i 中 id_1 依赖 id_2，拓扑排序得 Order=[id_2->id_1]（对应 inner level）。
+% - 中图：先实例化 id_2（AggMin/TypeCast）并 parser 验证，再代回 id_1 实例化外层 TimeDiff->date_diff。
+% - 右图：得到保留嵌套时间窗逻辑的 Compatible Seed。
 % Review C-Presentation 回应位置：Figure 4 example 统一使用 $id_1$/$id_2$ 这类符号，和算法里的 segment id 写法保持一致。
+\textbf{Walk-Through Example.}
 Take Figure~\ref{fig:agent_translation} as an example, the left panel shows the statement-level graph $\mathcal{G}^i$, where the root segment $id_1$ depends on the nested segment $id_2$; therefore, the planner first performs a topological sort and obtains the execution order $Order=[id_2 \rightarrow id_1]$.
 In the center panel, \tool{} first instantiates $id_2$ by concretizing its abstract tokens, including mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)} form, and validates this subquery fragment with parser feedback until it succeeds. 
 It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
