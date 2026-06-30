@@ -1,4 +1,5 @@
 
+
 %%
 %% This is file `sample-acmsmall-submission.tex',
 %% generated with the docstrip utility.
@@ -350,7 +351,9 @@ To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has
 % Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{deng2023large, zhang2023understanding}. \sedar{}~\cite{fu2024sedar}, the current state-of-the-art, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
 \sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
 
-\begin{table}[H]
+Existing SQL transfer systems differ in whether they satisfy the requirements of fuzzing-seed transfer, especially when seed migration must preserve DDL/DML/DQL interactions and cross-statement dependencies.
+
+\begin{table}[t]
 \centering
 \caption{Capability gap for fuzzing-seed transfer.}
 \label{tab:translation-capability}
@@ -374,20 +377,21 @@ To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has
 }
 }
 \vspace{0.2em}
-\parbox{\columnwidth}{\scriptsize\raggedright\textit Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
+\parbox{\columnwidth}{\scriptsize\raggedright
+\textit{Cross-stmt. Deps.} denotes explicit preservation of schema, data, and state dependencies across statements.
+\cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
 
-Table~\ref{tab:translation-capability} summarizes seed-generation and translation systems along capability dimensions that are directly relevant to fuzzing-seed transfer.
+Table~\ref{tab:translation-capability} summarizes seed-generation and translation systems along capability dimensions directly relevant to fuzzing-seed transfer.
 General-purpose translators such as SQLGlot and jOOQ, together with RISE, CrackSQL, and QTRAN, primarily target statement-level or fragment-level translation.
 Even \sedar{}, which supports test-case migration, does not explicitly preserve cross-statement dependencies during migration.
-Consequently, no prior system simultaneously supports test-case migration and cross-statement dependency preservation.
-Since \sedar{} provides the strongest existing baseline in this capability matrix, the following motivating example uses \sedar{} to illustrate the practical consequence of this gap rather than to single out an isolated weakness of one tool.
+This capability gap motivates dependency-preserving whole-test-case transfer.
 
 \textbf{Motivating Example.}
+We illustrate this gap using \sedar{}, the closest existing fuzzing-oriented seed-transfer system.
 LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{semantic deviation} due to hallucinations. 
 Moreover, many fuzzers cover only a subset of SQL grammar. 
 Existing methods typically comment out unsupported features to support seed mutation after transfer, which alters the query and causes the \textit{logic loss}.
-Because \sedar{} is the strongest existing seed-transfer baseline in Table~\ref{tab:translation-capability}, its behavior provides a representative stress case for this systematic capability gap.
 \textit{Limitations of Existing Approaches.} Figure \ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring a test case from \pg{} to \duckdb{}, which contains dialect-specific features like the \texttt{AGE} function in the \texttt{WHERE} clause and the \texttt{::INTERVAL} type cast. With limited knowledge of \duckdb{}’s syntax, the LLM hallucinates and preserves \texttt{AGE}, causing syntax and semantic errors. To satisfy parsing constraints, \sedar{} comments out \texttt{AGE} and replaces the \texttt{WHERE} condition with \texttt{True}, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states. 
 As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
 \textit{Basic Idea of \tool{}.}
