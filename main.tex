@@ -128,9 +128,10 @@
 % - 方法句只保留三步主线：AQT abstraction -> Dialect-Aware AQT Instantiation -> parser-feedback adaptation。
 % - 结果句写 semantic correctness、branch coverage、bug discovery 三类数字，支撑“seed quality + fuzzing effectiveness”。
 % into new ones
-DBMS fuzzing relies on mutating initial seed queries to explore state space and trigger crash bugs, making the quality and diversity of the initial seeds critical.
-Nevertheless, many DBMSs, especially emerging engines, lack comprehensive test suites that can serve as high-quality seeds.
-A practical solution is to transfer test cases from mature DBMSs to target systems as initial fuzzing seeds.
+% Nevertheless, many DBMSs, especially emerging engines, lack comprehensive test suites that can serve as high-quality seeds.
+DBMS fuzzing mutates initial seed test cases to explore state space and trigger crash bugs, making the quality and diversity of the initial seeds critical.
+Built-in test suites are commonly used as initial seeds, yet many DBMSs, especially emerging database engines, lack such suites.
+A practical solution is to transfer test cases from mature DBMSs to target systems as initial seeds.
 However, existing SQL dialect translation methods focus on statement-level translation and struggle to preserve cross-statement dependencies when transferring test cases for DBMS fuzzing.
 % However, existing SQL dialect translation methods primarily focus on statement-level translation and struggle to handle entire test cases involving interdependent statements.
 % Unlike statement-level query migration, DBMS fuzzing requires transferred seeds to preserve both state-building dependencies across statements and mutation opportunities for downstream fuzzers.
@@ -145,9 +146,13 @@ In this paper, we propose \tool{}, a structure-aware cross-dialect SQL transfer 
 Our key idea is to decouple structural information from SQL syntax via a dialect-independent Abstract Query Template (AQT), enabling test-case-level abstraction and dialect-aware instantiation for target systems.
 % The key idea is to decouple structural information from dialect-specific syntax through an Abstract Query Template (AQT), which preserves statement ordering, object dependencies, and query semantics during transfer.
 % It follows a three-step workflow.
-Specifically, \tool{} first builds an AQT with dialect-independent structure extraction, preserving statement order and cross-statement dependencies.
-It then performs dialect-aware AQT instantiation to construct a target seed sequence under target-dialect constraints.
-Finally, \tool{} uses parser feedback to fix remaining incompatibilities, ensuring queries are fuzzer-parsable and mutable.
+% Specifically, \tool{} first builds an AQT with dialect-independent structure extraction from source case, preserving statement order and cross-statement dependencies.
+% It then performs dialect-aware AQT instantiation to construct a target seed sequence under target-dialect constraints.
+% Finally, \tool{} uses parser feedback to fix remaining incompatibilities, ensuring queries are fuzzer-parsable and mutable.
+Specifically, \tool{} first constructs a dialect-independent AQT from the source test case, preserving statement order and cross-statement dependencies.
+It then instantiates the AQT under target-dialect constraints to generate a target SQL test case.
+Finally, \tool{} leverages parser feedback from the downstream fuzzer to repair remaining incompatibilities, ensuring that the generated test cases are parsable and effectively mutable.
+
 We evaluate \tool{} on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
 % \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed.
 \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} that have been confirmed, with \bugfixcnt{} that have already been fixed.
@@ -406,7 +411,7 @@ semantic label:
 e.g., $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$
 abstracts interval computation.
 
-\begin{definition}[Abstract Query Template]\label{def:aqt}
+% \begin{definition}[Abstract Query Template]\label{def:aqt}
 Given a SQL test case $\mathcal{C}$, its AQT is represented as the
 five-tuple:
 \[
@@ -430,7 +435,7 @@ statement ordering.
 Finally, $\mathcal{H}$ is a structural hash over the ordered normalized
 skeletons and dependency edges, acting as a fingerprint for deduplication and
 cache indexing.
-\end{definition}
+% \end{definition}
 
 
 \textbf{Structure-Aware AQT Generation.} 
@@ -522,6 +527,7 @@ $\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Cache k
 % Two-Level Instantiation 段：逐行解读 Algorithm 2。
 % - outer level：先做 dependency-preserving + 保序的拓扑排序，再逐语句 InstantiateStmt 并传播 target context，最后整体 index 复用。
 % - inner level：InstantiateStmt 在语句内递归，用检索/生成的局部映射 + parser feedback 保证可执行。
+
 \textbf{Two-Level Instantiation.}
 To guarantee that the generated queries remain semantically consistent with the target dialect during test-case instantiation, the system employs an Dialect-Aware AQT Instantiation process as formalized in Algorithm~\ref{alg:translation}.
 At the \emph{outer level}, the algorithm first computes a dependency-preserving statement order over $\mathcal{G}_{tc}$ while keeping the original order for independent statements (Line~\ref{line:alg2:tc_sort}).
@@ -590,12 +596,12 @@ As shown in Figure~\ref{fig:agent_translation}, since $id_1$ depends on the nest
 % To address that,
 % \tool{} iteratively leverages parsing and execution feedback to rewrite or encapsulate unsupported constructs into valid equivalents through a structure-preserving fallback process. 
 % As Figure~\ref{fig:feedback-driven} shows, upon receiving compatible seeds, \tool{} sanitizes and executes them in the target DBMS, using execution results to either proceed to mutation or trigger error-guided semantic repair, and produces a seed annotated with mutable regions to support fuzzing.
-
 Some DBMS features exceed the grammar supported by existing fuzzers, making otherwise executable target seeds difficult to mutate.
 The challenge is to adapt such features into fuzzer-compatible forms while preserving syntax correctness, semantic consistency, and mutation opportunities.
 
-\smallskip
-\noindent\textbf{Feedback-Guided Adaptation.}\\
+% \smallskip
+% \noindent
+\textbf{Feedback-Guided Adaptation.}
 \tool{} addresses this challenge using parsing and execution feedback to repair unsupported constructs through a structure-preserving fallback process.
 As shown in Figure~\ref{fig:feedback-driven}, compatible seeds are sanitized, executed in the target DBMS, repaired when necessary, and annotated with mutable regions for fuzzing.
 
@@ -606,21 +612,24 @@ As shown in Figure~\ref{fig:feedback-driven}, compatible seeds are sanitized, ex
   \label{fig:feedback-driven}
 \end{figure}
 
-\smallskip
-\noindent\textbf{Error-Guided Sanitization.}\\
+% \smallskip
+% \noindent
+\textbf{Error-Guided Sanitization.}
 % Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities not captured by the static translation phase. Instead of discarding these seeds or destructively commenting out unparsable tokens (as in \sedar{}~\cite{fu2024sedar}), the sanitizer captures the parser error message, localizes the unsupported dialect-specific construct to the corresponding AQT node, and repairs it using syntactic feedback. For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed.
 When a transferred seed $Q_{target}$ still violates the fuzzer grammar, the sanitizer localizes the unsupported construct to its AQT node and repairs it using parser feedback rather than discarding it.
 For example, it removes excess brackets around \texttt{date\_diff} in Figure~\ref{fig:feedback-driven}, producing a syntactically valid Mutable Seed.
 
 % Review C-Presentation 回应位置：error message example 用完整的 ``SELECT''，处理原稿 ``SELEC'' typo。
-\smallskip
-\noindent\textbf{Tiered Fallback Strategy.}\\
+% \smallskip
+% \noindent
+\textbf{Tiered Fallback Strategy.}
 % When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order. First, it checks the sanitization dictionary and applies an existing mapping when the unsupported construct has a known target-compatible form. Second, if no exact mapping exists, it uses RAG to retrieve candidate replacements from dialect evidence and validates the rewritten fragment with the fuzzer parser. Third, if no suitable replacement can be found, \tool{} executes the original source-side construct in the source DBMS and substitutes the returned value as a constant, preserving the surrounding query structure whenever possible. Finally, only if these structure-preserving attempts fail, \tool{} comments out the minimal offending construct. This ordering makes destructive commenting a last resort rather than the default sanitization strategy.
 When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order: existing sanitization mappings, RAG-retrieved replacements, source-side execution followed by constant substitution, and finally minimal commenting.
 Thus, destructive commenting is used only after structure-preserving repairs fail.
 
-\smallskip
-\noindent\textbf{Mutable-Region Annotation.}\\
+% \smallskip
+% \noindent
+\textbf{Mutable-Region Annotation.}
 % Once a seed passes the fuzzer's parser, it is designated as a \textit{Mutable Seed}. \tool{} then identifies data-dependent components, such as literals and predicates, and marks them as mutable regions. This directs the fuzzer's mutation engine to focus on logic-altering variations rather than the fixed syntactic skeleton, accelerating the discovery of deep logic bugs.
 Once a seed passes the fuzzer parser, \tool{} marks data-dependent literals and predicates as mutable regions.
 This guides mutation toward logic-altering changes while keeping the repaired syntactic skeleton stable.
@@ -1145,7 +1154,8 @@ Overall, these systems improve query migration, semantic-equivalent translation,
 RISE~\cite{xie2026rise} is the closest comparison for this gap, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
 It translates a query by simplifying a complex query $Q_c$ into $Q_s$, extracting a local rule $r_d$, and applying it back to $Q_c$.
 However, RISE still treats a single query as the translation unit.
-In a source seed to be migrated, the final DQL statement may depend on schema features and data state created by earlier DDL/DML statements; translating the query alone does not guarantee a valid seed if this prefix is not migrated consistently.
+% In a source seed to be migrated, the final DQL statement may depend on schema features and data state created by earlier DDL/DML statements; translating the query alone does not guarantee a valid seed if this prefix is not migrated consistently.
+The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
 % \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form $S^{i}_{norm}$ inside an AQT that also records cross-statement dependencies $\Delta$ and evolving schema context $\mathcal{D}$.
 % \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form inside an AQT that also records cross-statement dependencies and evolving schema context.
 Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
