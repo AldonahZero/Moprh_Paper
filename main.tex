@@ -300,15 +300,7 @@ Compared to the state-of-the-art method \sedar{}, \tool{} improves semantic corr
 For example, PostgreSQL uses \texttt{AGE(timestamp)} for date arithmetic, whereas DuckDB requires \texttt{date\_diff()}. Similarly, type casting syntax varies between \texttt{::INTERVAL} in PostgreSQL and \texttt{CAST(... AS INTERVAL)} in standard SQL. 
 These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
 
-\textbf{DBMS Fuzzing and Cross-Dialect Seed Transfer.} 
-\textit{Fuzzing} has emerged as a core technique for discovering system crashes~\cite{sqlsmith, zhong2020squirrel}. By continuously generating and mutating inputs to traverse diverse execution paths, it effectively exposes corner cases and potential bugs.
-The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial Seeds}. 
-Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs) are often confined to shallow parsing logic, thus leaving many bugs undetected~\cite{wang2021industry}.
-
-To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}. 
-% Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{deng2023large, zhang2023understanding}. \sedar{}~\cite{fu2024sedar}, the current state-of-the-art, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
-\sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
-\begin{figure}[tb]
+\begin{figure}[b]
   \centering
   \includegraphics[scale=1.0, width=\linewidth]{media/motivating_ase.pdf}
   \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
@@ -320,6 +312,16 @@ To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has
   \caption{\textbf{Overview of \tool{}.} \tool{} combines structure-preserving transfer with feedback-guided fuzzing.}
   \label{fig:workflow}
 \end{figure*}
+
+\textbf{DBMS Fuzzing and Cross-Dialect Seed Transfer.} 
+\textit{Fuzzing} has emerged as a core technique for discovering system crashes~\cite{sqlsmith, zhong2020squirrel}. By continuously generating and mutating inputs to traverse diverse execution paths, it effectively exposes corner cases and potential bugs.
+The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial Seeds}. 
+Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs) are often confined to shallow parsing logic, thus leaving many bugs undetected~\cite{wang2021industry}.
+
+To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}. 
+% Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{deng2023large, zhang2023understanding}. \sedar{}~\cite{fu2024sedar}, the current state-of-the-art, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
+\sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
+
 \textbf{Motivating Example.}
 LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{semantic deviation} due to hallucinations. 
 Moreover, many fuzzers cover only a subset of SQL grammar. 
@@ -429,7 +431,7 @@ Finally, $\mathcal{H}$ is a structural hash over the ordered normalized skeleton
 
 
 \textbf{Structure-Aware AQT Generation.} 
-Unlike prior statement-level translators that process each SQL statement in isolation and emit a statement-local rewrite rule, \tool{} treats the whole test case as the abstraction unit, representing it as the AQT five-tuple of Definition~\ref{def:aqt}. 
+Unlike prior statement-level translators that process each SQL statement in isolation and emit a statement-local rewrite rule, \tool{} treats the whole test case as the abstraction unit, representing it as the AQT five-tuple. 
 Algorithm~\ref{alg:aqt_extraction} summarizes this extraction process. It first initializes the statement-unit list, dependency set, and extraction context.
 For each statement, \textsc{ExtractStmtTemplate} abstracts dialect-specific syntax into a normalized template while preserving scoped structures such as CTEs and subqueries (Line~\ref{line:alg1:stmtaqt}).
 \tool{} then derives read/write sets, records cross-statement dependencies, appends the template, and updates the context for subsequent statements (Lines~\ref{line:alg1:access}--\ref{line:alg1:schema}).
@@ -1126,7 +1128,7 @@ In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explici
 }
 }
 \vspace{0.2em}
-\parbox{\columnwidth}{\scriptsize\raggedright\textit{Note.} Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
+\parbox{\columnwidth}{\scriptsize\raggedright\textit Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
 
 \subsection{Cross-Dialect SQL Translation}
