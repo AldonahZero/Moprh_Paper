@@ -237,8 +237,10 @@ To address this compatibility issue, prior work has explored SQL dialect transla
 % SQL dialect translation, which transfers SQL statements across DBMS dialects~\cite{zhou2020database}.
 General-purpose translators such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, and RISE~\cite{xie2026rise} mainly focus on statement-level translation.
 % , mainly focus on statement-level translation for query migration or semantic-equivalent SELECT rewriting.
-However, DBMS fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent statements including DDL, DML, and DQL, and the translated results must remain parsable and mutable by downstream fuzzers.
-Thus, directly applying statement-level translators may lose cross-statement dependencies or produce fuzzer-incompatible structures.
+However, DBMS fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent statements including DDL, DML, and DQL.
+Therefore, statement-level translation may fail to preserve cross-statement dependencies. In addition, the resulting structures may be incompatible with downstream fuzzing tools.
+% , and the translated results must remain parsable and mutable by downstream fuzzers.
+% Thus, directly applying statement-level translators may lose cross-statement dependencies or produce fuzzer-incompatible structures.
 % Some fuzzing-oriented methods instead aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
 
 Among fuzzing-oriented systems, \sedar{}~\cite{fu2024sedar} explicitly migrates high-quality test seeds from mature DBMSs to target systems by converting existing SQL test cases into initial fuzzing seeds compatible with the target DBMS dialect.
@@ -328,7 +330,7 @@ These dialect gaps pose substantial barriers for reusing test assets across diff
 
 \begin{figure}[b]
   \centering
-  \includegraphics[scale=1.0, width=\linewidth]{media/motivating_ase.pdf}
+  \includegraphics[width=\linewidth]{media/motivation-1.pdf}
   \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
   \label{fig:motivation}
 \end{figure}
@@ -1187,8 +1189,9 @@ Overall, these systems improve query migration, semantic-equivalent translation,
 % - 保持和全文术语一致：Dialect-Aware AQT Instantiation + adaptive sanitization。
 We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them through Dialect-Aware AQT Instantiation, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic correctness by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend \tool{} beyond relational DBMSs.
 
-\section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
-% \section{Data Availability} Artifacts and data are available in an anonymous Zenodo archive~\cite{morph-artifact}.
+% \section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
+\section{Data Availability}
+Artifacts and data released with the paper are available in an anonymous Zenodo archive~\cite{morph-artifact}.
 % we also provide an anonymous mirror at \url{https://anonymous.4open.science/r/Morph-82DE}. Both links contain the same artifact content.
 
 
