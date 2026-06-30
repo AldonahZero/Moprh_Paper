@@ -163,12 +163,14 @@
 % Because emerging databases often lack built-in test suites, reusing test cases from mature systems has become a common practice.
 % Built-in test suites are commonly used as initial seeds, yet many DBMSs (especially emerging databases) lack such suites, leading to the reuse of test cases from mature DBMSs as initial seeds.
 % However, such reuse is hindered by SQL dialect incompatibilities across systems.
-The quality and diversity of initial seeds are critical for effective DBMS fuzzing.
-Due to the lack of built-in test suites in many DBMSs (especially emerging databases), developers often reuse test cases from mature systems as initial seeds.
-To address the SQL dialect incompatibilities, recent approaches have shifted from SQL translation to LLM-based end-to-end transfer.
-Nevertheless, traditional SQL dialect translation techniques primarily operate at statement-level translation and are not designed for complete test-case transfer for DBMS fuzzing.
+
+DBMS fuzzing mutates initial seed test cases to explore execution behaviors and trigger crash bugs, making the quality and diversity of the initial seeds critical.
+% The quality of initial seeds are critical for  effective DBMS fuzzing.
+Built-in test suites are commonly used for this purpose, yet many DBMSs lack them.
+Consequently, test cases from mature systems are often reused, but this process is hindered by SQL dialect incompatibilities.
+Traditional SQL translation techniques primarily operate at statement-level and are not designed for complete test-case transfer for DBMS fuzzing.
 Recent fuzzing-oriented approaches instead employ LLMs for end-to-end test-case transfer.
-However, limited knowledge of SQL structure and dialects often introduces syntactic and semantic errors, while direct transfer may simplify SQL structures and cross-statement dependencies, reducing the diversity of generated seeds.
+However, limited knowledge of SQL structures and dialects often introduces syntactic and semantic errors, while direct transfer may simplify SQL structures and cross-statement dependencies, reducing the diversity of generated seeds.
 % structural and behavioral 
 
 To address these limitations, we propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality DBMS fuzzing seeds.
@@ -230,11 +232,15 @@ While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suite
 % - 明确 SQLGlot/jOOQ/RISE 偏 statement-level/query migration，不能建模 fuzzing seed 的 whole-test-case 依赖和 mutability。
 % - 再引出 SedaR 作为 fuzzing-oriented baseline，为后文区分 Morph 和 SedaR 做铺垫。
 % To overcome this limitation, existing studies and tools have used SQL dialect translation to transfer SQL across DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
-To overcome this limitation, a natural direction is SQL dialect translation, which transfers SQL statements across DBMS dialects~\cite{zhou2020database}.
-General-purpose translators such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, as well as recent systems such as RISE~\cite{xie2026rise}, mainly focus on statement-level translation for query migration or semantic-equivalent SELECT rewriting.
-However, fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent DDL, DML, and query statements, and the transferred results must remain parsable and mutable by downstream fuzzers.
+To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but this process is often hindered by SQL dialect incompatibilities.
+To address this compatibility issue, prior work has explored SQL dialect translation for transferring SQL statements across DBMSs~\cite{zhou2020database}.
+% SQL dialect translation, which transfers SQL statements across DBMS dialects~\cite{zhou2020database}.
+General-purpose translators such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, and RISE~\cite{xie2026rise} mainly focus on statement-level translation.
+% , mainly focus on statement-level translation for query migration or semantic-equivalent SELECT rewriting.
+However, DBMS fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent statements including DDL, DML, and DQL, and the translated results must remain parsable and mutable by downstream fuzzers.
 Thus, directly applying statement-level translators may lose cross-statement dependencies or produce fuzzer-incompatible structures.
 % Some fuzzing-oriented methods instead aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
+
 Among fuzzing-oriented systems, \sedar{}~\cite{fu2024sedar} explicitly migrates high-quality test seeds from mature DBMSs to target systems by converting existing SQL test cases into initial fuzzing seeds compatible with the target DBMS dialect.
 % A typical example is \sedar{}~\cite{fu2024sedar}, which follows an LLM-centric \textit{Translate-and-Sanitize} pipeline. It first executes existing test cases on the source DBMS to collect schema information, then directly feeds the schema and raw SQL text to an LLM for target-dialect translation. To ensure compatibility with fuzzers, \sedar{} relies on \textit{Unparsable Commenting}, which temporarily comments out unparsable parts during mutation.
 It follows an LLM-centric \textit{Translate-and-Sanitize} pipeline: it first executes existing test cases on the source DBMS to collect schema information, then directly feeds the schema and raw SQL text to an LLM for target-dialect translation. To ensure compatibility with fuzzers, \sedar{} relies on \textit{Unparsable Commenting}, which temporarily comments out unparsable parts during mutation.
@@ -516,7 +522,7 @@ The instantiation respects the dependency order in $\mathcal{G}_{tc}$%
 % 解决思路两点：RAG 闭环减少 hallucination；把翻译建模成 two-level instantiation，铺垫下面 Algorithm。
 The challenge is preserving target-side semantic correctness during recursive AQT-node instantiation without breaking the original test-case order.
 To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on a Retrieval-Augmented Generation (RAG) architecture, which grounds LLM outputs in retrieved dialect-specific evidence to reduce hallucinations.
-We formulate dialect translation as a two-level instantiation problem: the outer level walks the statement dependency graph while preserving the original sequence for independent statements, and the inner level recursively instantiates each statement-level graph $\mathcal{G}^i$ in a bottom-up manner.
+We formulate dialect translation as a two-level instantiation problem in which the outer level walks the statement dependency graph while preserving the original sequence for independent statements, and the inner level recursively instantiates each statement-level graph $\mathcal{G}^i$ in a bottom-up manner.
 \begin{algorithm}[htbp]
 \small
 \caption{AQT Instantiation}
@@ -1107,9 +1113,10 @@ Thus, manual review provides additional gains, but the majority of coverage and 
 % - Cross-Dialect SQL Translation：SQLGlot/jOOQ/CrackSQL/RISE/QTRAN 等面向 statement/query migration 或 oracle portability，不建模 fuzzing seed 的 test-case-level dependency 和 fuzzer compatibility。
 % - Review A-Novelty(vs RISE) 回应位置：本节末尾用 scope（single SELECT vs ordered multi-statement，含 Δ 和 schema context D）与 representation（statement-local rewrite rule vs AQT five-tuple 的局部 instantiation operator）两点区分 AQT 与 RISE 的 query-reduction skeleton。
 % - Related Work 不复述 RQ 数字，只保留 conceptual difference。
-Related work falls into three categories: 
-The first category improves how DBMS inputs are generated, mutated, or checked; the second uses LLMs to synthesize or transfer testing inputs; and the third translates SQL across dialects.
-\tool{} builds on these lines of work but targets a different problem: structure-preserving whole-test-case SQL transfer for fuzzing.
+
+% Related work falls into three categories: 
+% The first category improves how DBMS inputs are generated, mutated, or checked; the second uses LLMs to synthesize or transfer testing inputs; and the third translates SQL across dialects.
+% \tool{} builds on these lines of work but targets a different problem: structure-preserving whole-test-case SQL transfer for fuzzing.
 
 \subsection{DBMS Fuzzing}
 Fuzzing is one of the most effective automated testing techniques for identifying DBMS vulnerabilities.
