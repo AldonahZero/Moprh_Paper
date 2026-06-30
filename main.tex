@@ -146,7 +146,7 @@ Our key idea is to decouple structural information from SQL syntax via a dialect
 % The key idea is to decouple structural information from dialect-specific syntax through an Abstract Query Template (AQT), which preserves statement ordering, object dependencies, and query semantics during transfer.
 % It follows a three-step workflow.
 Specifically, \tool{} first builds an AQT with dialect-independent structure extraction, preserving statement order and cross-statement dependencies.
-It then performs Dialect-Aware AQT Instantiation to construct a target seed sequence under target-dialect constraints.
+It then performs dialect-aware AQT instantiation to construct a target seed sequence under target-dialect constraints.
 Finally, \tool{} uses parser feedback to fix remaining incompatibilities, ensuring queries are fuzzer-parsable and mutable.
 We evaluate \tool{} on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
 % \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed.
@@ -657,7 +657,7 @@ We first describe the experimental setup, and then answer RQ1--RQ4 in the follow
 
 \textbf{Target DBMSs and Environment.}
 To evaluate the generalization of \tool{} across diverse architectures, we selected four widely used DBMSs according to the DB-Engines Ranking~\cite{dbengines}: MonetDB~\cite{monetdb} v11.51, Virtuoso~\cite{virtuoso} v7.2, DuckDB~\cite{duckdb_git} v1.4.3, and ClickHouse~\cite{clickhouse} v24.8 LTS. These systems cover diverse OLAP and multi-model architectures with distinct SQL dialects.
-We explicitly excluded traditional row-store OLTP systems (e.g., MySQL and PostgreSQL) from the target list, as they serve as the source DBMSs for seed collection. Instead, we prioritized OLAP and multi-model architectures to rigorously evaluate \tool{}'s capability in bridging significant dialectal and architectural gaps (i.e., from Row-store like \mysql{} to Column-store like \duckdb{}).
+We did not include traditional row-store OLTP systems, such as \mysql{} and PostgreSQL, as target DBMSs because they are used as source DBMSs for seed collection. Instead, we prioritized OLAP and multi-model systems to more rigorously evaluate \tool{}'s ability to bridge substantial dialect and architectural gaps, such as transferring seeds from row-store systems like \mysql{} to column-store systems like \duckdb{}.
 All experiments were conducted on a Linux server equipped with an Intel Xeon CPU and 256 GB of RAM. To ensure reproducibility and isolation, each DBMS instance ran within a separate Docker container.
 
 \textbf{Collected Test Cases.}
@@ -1041,6 +1041,7 @@ Table~\ref{tab:llm_comparison} supports Gemini 2.5-flash-lite: Qwen3.5-27B is mo
 % - 先讲两步流程：自动抽取 grammar/spec features；LLM 生成 unmapped candidate rules 后人工 review/correction。
 % - 表格给四个 target DBMS 的人工修正比例，说明人工只占少量。
 % - DuckDB 人工规则消融说明人工 review 有增益，但主体能力来自自动抽取、实例化和修复流程。
+
 \textbf{Extensibility and Manual Effort.}
 To extend \tool{} to another DBMS, we first automatically extract lexical and syntactic features from grammar specifications and register the corresponding mapping rules into the Hybrid KB.
 For features that cannot be mapped automatically, \tool{} uses the LLM to generate candidate rules, followed by manual review and correction.
