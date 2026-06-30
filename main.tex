@@ -819,6 +819,13 @@ We normalized coverage through a unified dry run and deduplicated crashes using 
 }
 \end{table}
 
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.92\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
+\caption{Coverage growth over 24-hour fuzzing campaigns.}
+\label{fig:coverage_over_time}
+\end{figure}
+
 As illustrated in Table~\ref{tab:coverage}, \tool{} achieves the highest branch coverage across all evaluated DBMSs. Specifically, \tool{} covers a total of 422,130 branches, representing overall improvements of 528\%, 60\%, 54\%, and 14\% over \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, on their supported targets.
 Figure~\ref{fig:coverage_over_time} further shows that \tool{} reaches higher coverage earlier and continues to gain branches after 12 hours, while several baselines plateau sooner.
 
@@ -832,13 +839,6 @@ Unlike \sedar{}, which sacrifices semantic depth through destructive sanitizatio
 \textbf{Answer to RQ2:} \tool{} covers 528\%, 60\%, 54\%, and 14\% more branches than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, and discovers 22, 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
-
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.92\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
-\caption{Coverage growth over 24-hour fuzzing campaigns.}
-\label{fig:coverage_over_time}
-\end{figure}
 
 \subsection{RQ3: Effectiveness of Translation of \tool{}}
 % RQ3 写作逻辑 / Reviewer A、C 修改逻辑：
