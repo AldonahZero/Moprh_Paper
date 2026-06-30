@@ -1119,6 +1119,11 @@ Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQv
 However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
 In particular, \sedar{} feeds schema information and raw SQL to an LLM, then repairs incompatibilities by sanitizing unparsable fragments.
 In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair without discarding context.
+Table~\ref{tab:translation-capability} summarizes how these systems differ from \tool{} along five capability dimensions relevant to fuzzing-seed transfer.
+The entries marked \partmark indicate restricted support, such as limited DDL/DML translation or fragment-level handling.
+Although \sedar{} supports test-case migration through LLM-based textual translation and post-hoc sanitization, it does not explicitly preserve cross-statement dependencies during migration.
+More broadly, existing systems do not support dependency-preserving whole-test-case migration scenarios where: (i) DDL-created schema state must be preserved for later DML/DQL statements; (ii) DML depends on schema-specific behaviors such as default values or auto-increment columns; (iii) \texttt{ALTER TABLE} or \texttt{CREATE INDEX} changes object state before later queries; or (iv) the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
+Overall, these systems improve query migration, semantic-equivalent translation, seed transfer, or oracle portability, but their goal is not dependency-preserving test-case-level seed transfer.
 \begin{table}[H]
 \centering
 \caption{Capability comparison for fuzzing-seed transfer.}
@@ -1153,13 +1158,7 @@ However, constructing and maintaining these rules requires significant dialect e
 Recent studies have reduced the manual effort required for dialect migration.
 CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
 
-Table~\ref{tab:translation-capability} summarizes how these systems differ from \tool{} along five capability dimensions relevant to fuzzing-seed transfer.
-The entries marked \partmark indicate restricted support, such as limited DDL/DML translation or fragment-level handling.
-Although \sedar{} supports test-case migration through LLM-based textual translation and post-hoc sanitization, it does not explicitly preserve cross-statement dependencies during migration.
-More broadly, existing systems do not support dependency-preserving whole-test-case migration scenarios where: (i) DDL-created schema state must be preserved for later DML/DQL statements; (ii) DML depends on schema-specific behaviors such as default values or auto-increment columns; (iii) \texttt{ALTER TABLE} or \texttt{CREATE INDEX} changes object state before later queries; or (iv) the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
-Overall, these systems improve query migration, semantic-equivalent translation, or oracle portability, but their goal is not dependency-preserving test-case-level seed transfer.
-
-RISE~\cite{xie2026rise} is the closest comparison for this gap, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
+Among these translation-oriented systems, RISE~\cite{xie2026rise} is the closest comparison, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
 It translates a query by simplifying a complex query $Q_c$ into $Q_s$, extracting a local rule $r_d$, and applying it back to $Q_c$.
 However, RISE still treats a single query as the translation unit.
 % In a source seed to be migrated, the final DQL statement may depend on schema features and data state created by earlier DDL/DML statements; translating the query alone does not guarantee a valid seed if this prefix is not migrated consistently.
