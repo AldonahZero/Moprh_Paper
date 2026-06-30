@@ -981,11 +981,12 @@ The diversity gap mainly comes from sanitization strategy: \sedar{} may comment 
 % - fuzzing phase：full vs. no feedback sanitizer，证明 high-quality generation 还需要 runtime feedback 才能转成 covered paths。
 % - 解释时同时看 correctness、repair cost/token cost、branch coverage，别只盯单一数字。
 To analyze the specific contributions of the individual components within \tool{}, we conducted an ablation study across two phases. 
-For the \textit{translation phase}, we evaluated four variants using the task of  \pg{}-to-\duckdb{} transfer:
+For the \textit{translation phase}, we evaluated four main variants using the task of  \pg{}-to-\duckdb{} transfer:
 (1) $\tool{}_{\textit{base}}$: the baseline using direct zero-shot LLM translation (i.e., prompting the LLM with the raw SQL and asking for a direct translation, unlike the No translation baseline which executes the raw, untranslated SQL directly);
 (2) $\tool{}_{\textit{abs}}$: equipped solely with \textit{Syntax-Aware Query Abstraction};
 (3) $\tool{}_{\textit{rag}}$: equipped solely with \textit{Dialect-Aware AQT Instantiation};
 (4) $\tool{}_{\textit{full}}$: the complete framework integrating both components.
+We additionally evaluate $\tool{}_{\textit{w/o-ctx}}$ to isolate the contribution of cross-statement context propagation.
 
 For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanitizer} operates independently during runtime fuzzing and does not affect translation quality, we further introduce \tooldisfuzzer{} as a controlled variant where the runtime feedback loop is disabled and invalid seeds are directly discarded, and compare it against $\tool{}_{\textit{full}}$ where the sanitizer actively repairs parsing errors to maximize seed acceptance.
 
@@ -1003,6 +1004,13 @@ With \textit{Syntax-Aware Query Abstraction}, $\tool{}_{\textit{abs}}$ improves 
 Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases semantic correctness to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
 The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic correctness and \textbf{65\%} semantic correctness.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
+
+\textbf{Contribution of Cross-Statement Context Propagation.}
+To further isolate test-case-level dependency modeling, we introduce $\tool{}_{\textit{w/o-ctx}}$, which disables cross-statement context propagation during AQT instantiation while keeping the same statement-level instantiation and local dialect mappings as $\tool{}_{\textit{full}}$.
+Under the same \pg{}-to-\duckdb{} transfer setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{w/o-ctx}}$ achieves 93.5\% syntactic correctness, only 1.7 percentage points lower than $\tool{}_{\textit{full}}$.
+However, its semantic correctness drops to 52.4\%, decreasing by 12.7 percentage points (19.5\%) from $\tool{}_{\textit{full}}$.
+The main failures are reference, type, and state errors, whose rates increase from 6.8\%, 8.2\%, and 2.6\% in $\tool{}_{\textit{full}}$ to 19.5\%, 14.5\%, and 8.4\% without context propagation.
+These results show that later DML/DQL statements often depend on schema objects, column types, and object states created or modified by earlier DDL/DML statements, making the evolving target context necessary for preserving executable test-case-level semantics.
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
 To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
@@ -1029,7 +1037,7 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 \end{table}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, and $\tool{}_{\textit{full}}$ improves syntax/semantic correctness by 44\%/38\%. The sanitizer further increases branch coverage by up to 39\%.
+\textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, cross-statement context propagation raises semantic correctness from 52.4\% to 65.1\%, and the sanitizer further increases branch coverage by up to 39\%.
 \end{answerbox}
 
 \section{Discussion}
