@@ -156,19 +156,22 @@
 % All reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone.
 % Moreover, 
 % A practical solution is to transfer test cases from mature DBMSs to target systems as initial seeds.
-
-
-DBMS fuzzing mutates initial seed test cases to explore execution behaviors and trigger crash bugs, making the quality and diversity of the initial seeds critical.
 % Built-in test suites are commonly used as initial seeds, yet many DBMSs, especially emerging database engines, lack such suites.
 % Recent efforts try to reuse test cases from mature DBMSs to target systems as initial seeds.
-Built-in test suites are commonly used as initial seeds, yet many DBMSs (especially emerging databases) lack such suites, leading to the reuse of test cases from mature DBMSs as initial seeds.
-However, such reuse is hindered by SQL dialect incompatibilities across systems.
-Existing SQL dialect translation techniques primarily operate at statement-level translation and are not designed for complete test-case transfer for DBMS fuzzing.
+
+% DBMS fuzzing mutates initial seed test cases to explore execution behaviors and trigger crash bugs, making the quality and diversity of the initial seeds critical.
+% Because emerging databases often lack built-in test suites, reusing test cases from mature systems has become a common practice.
+% Built-in test suites are commonly used as initial seeds, yet many DBMSs (especially emerging databases) lack such suites, leading to the reuse of test cases from mature DBMSs as initial seeds.
+% However, such reuse is hindered by SQL dialect incompatibilities across systems.
+The quality and diversity of initial seeds are critical for effective DBMS fuzzing.
+Due to the lack of built-in test suites in many DBMSs (especially emerging databases), developers often reuse test cases from mature systems as initial seeds.
+To address the SQL dialect incompatibilities, recent approaches have shifted from SQL translation to LLM-based end-to-end transfer.
+Nevertheless, traditional SQL dialect translation techniques primarily operate at statement-level translation and are not designed for complete test-case transfer for DBMS fuzzing.
 Recent fuzzing-oriented approaches instead employ LLMs for end-to-end test-case transfer.
 However, limited knowledge of SQL structure and dialects often introduces syntactic and semantic errors, while direct transfer may simplify SQL structures and cross-statement dependencies, reducing the diversity of generated seeds.
 % structural and behavioral 
 
-In this paper, we propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality DBMS fuzzing seeds.
+To address these limitations, we propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality DBMS fuzzing seeds.
 Our key idea is to decouple structural information from SQL syntax via a dialect-independent Abstract Query Template (AQT), enabling test-case-level abstraction and dialect-aware instantiation.
 Specifically, \tool{} first constructs a dialect-independent AQT from the source test case, preserving statement order and cross-statement dependencies.
 % preserving the SQL structures and behaviors embodied in the source test case.
@@ -1167,7 +1170,7 @@ Overall, these systems improve query migration, semantic-equivalent translation,
 }
 }
 \vspace{0.2em}
-\parbox{\columnwidth}{\scriptsize\raggedright\textit{Note.} Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
+\parbox{\columnwidth}{\scriptsize\raggedright\textit Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
 
 \section{Conclusion}
