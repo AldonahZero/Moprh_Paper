@@ -316,7 +316,8 @@ These dialect gaps pose substantial barriers for reusing test assets across diff
 
 \textbf{DBMS Fuzzing and Cross-Dialect Seed Transfer.} 
 \textit{Fuzzing} has emerged as a core technique for discovering system crashes~\cite{sqlsmith, zhong2020squirrel, wang2021industry}. By continuously generating and mutating inputs to traverse diverse execution paths, fuzzers can effectively expose corner cases and potential bugs.
-The effectiveness of fuzzing largely depends on the quality and diversity of \textit{initial seed test cases}. 
+The effectiveness of fuzzing largely depends on the quality and diversity of \textit{initial seed test cases}.
+Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs or window functions) are often confined to shallow parsing logic, leaving deep architectural bugs undetected.
 However, while mature DBMSs such as PostgreSQL provide rich test suites, many emerging systems lack such resources, creating a bottleneck for effective fuzzing.
 
 
@@ -324,10 +325,13 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
 % Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs) are often confined to shallow parsing logic, thus leaving many bugs undetected~\cite{wang2021industry}.
 
 To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
-Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{fu2024sedar}~\TODO{add cite}. 
+Existing SQL translation techniques~\cite{sqlglot, jooq, xie2026rise} focus on statement-level translation, which treats each SQL statement independently. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and query statements. As shown in Table~\ref{tab:translation-capability}, most existing systems do not explicitly preserve such cross-statement dependencies, making them unsuitable for seed-level migration in fuzzing.
+
+
+Recent work explores fuzzing-oriented seed transfer using LLMs~\cite{fu2024sedar}. 
 \sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, uses an LLM to translate seeds between SQL dialects and applies \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
 
-Existing SQL transfer systems differ in whether they satisfy the requirements of fuzzing-seed transfer, especially when seed migration must preserve DDL/DML/DQL interactions and cross-statement dependencies.
+
 
 \begin{table}[t]
 \centering
