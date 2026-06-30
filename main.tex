@@ -233,13 +233,21 @@ While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suite
 % - 明确 SQLGlot/jOOQ/RISE 偏 statement-level/query migration，不能建模 fuzzing seed 的 whole-test-case 依赖和 mutability。
 % - 再引出 SedaR 作为 fuzzing-oriented baseline，为后文区分 Morph 和 SedaR 做铺垫。
 % To overcome this limitation, existing studies and tools have used SQL dialect translation to transfer SQL across DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
-To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but this process is often hindered by SQL dialect incompatibilities.
-To address this compatibility issue, prior work has explored SQL dialect translation for transferring SQL statements across DBMSs~\cite{zhou2020database}.
+To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but this process is often hindered by SQL dialect incompatibilities. 
+Traditional SQL translation technique such as SQLGlot~\cite{sqlglot}, jOOQ~\cite{jooq}, and RISE~\cite{xie2026rise} has explored SQL dialect translation across DBMSs.
+However, these approaches mainly focus on statement-level translation, while DBMS fuzzing seeds are complete test cases rather than isolated statements, often containing multiple interdependent DDL, DML, and DQL statements. 
+Therefore, statement-level translation may fail to preserve cross-statement dependencies, and an error in any single statement can break the execution of the entire test case.
+% To address this issue, prior work such as SQLGlot~\cite{sqlglot}, jOOQ~\cite{jooq}, and RISE~\cite{xie2026rise} has explored SQL dialect translation across DBMSs. 
+% and the resulting structures may be incompatible with downstream fuzzing tools.
+% To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but this process is often hindered by SQL dialect incompatibilities.
+% To address the issue, prior work such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, and RISE~\cite{xie2026rise} has explored SQL dialect translation for transferring SQL statements across DBMSs.
+% However, they mainly focus on statement-level translation, while DBMS fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent statements including DDL, DML, and DQL.
+% Therefore, statement-level translation may fail to preserve cross-statement dependencies. In addition, the resulting structures may be incompatible with downstream fuzzing tools.
 % SQL dialect translation, which transfers SQL statements across DBMS dialects~\cite{zhou2020database}.
-General-purpose translators such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, and RISE~\cite{xie2026rise} mainly focus on statement-level translation.
+% General-purpose translators such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, and RISE~\cite{xie2026rise} 
+
 % , mainly focus on statement-level translation for query migration or semantic-equivalent SELECT rewriting.
-However, DBMS fuzzing seeds are full test cases rather than isolated statements: they often contain multiple interdependent statements including DDL, DML, and DQL.
-Therefore, statement-level translation may fail to preserve cross-statement dependencies. In addition, the resulting structures may be incompatible with downstream fuzzing tools.
+
 % , and the translated results must remain parsable and mutable by downstream fuzzers.
 % Thus, directly applying statement-level translators may lose cross-statement dependencies or produce fuzzer-incompatible structures.
 % Some fuzzing-oriented methods instead aim to migrate high-quality test seeds from mature DBMSs to target systems, converting historical test cases into initial fuzzing seeds compatible across DBMS dialects~\cite{mundler2025type, lin2024sqless}.
@@ -1185,7 +1193,7 @@ However, RISE still treats a single query as the translation unit.
 The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
 Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
 
-Taken together, these systems span query migration (SQLGlot, jOOQ), LLM-assisted dialect translation (CrackSQL), dialect-aware rule reduction (RISE), and metamorphic-oracle portability (QTRAN), yet none of them targets fuzzing-oriented seed construction. Their translation units remain individual statements or queries rather than complete test cases, and they do not explicitly model the cross-statement dependencies, evolving schema context, or fuzzer-grammar compatibility that whole-test-case seed transfer requires. \tool{} is designed specifically to fill this gap.
+these systems span query migration (SQLGlot, jOOQ), LLM-assisted dialect translation (CrackSQL), dialect-aware rule reduction (RISE), and metamorphic-oracle portability (QTRAN), yet none of them targets fuzzing-oriented seed construction. Their translation units remain individual statements or queries rather than complete test cases, and they do not explicitly model the cross-statement dependencies, evolving schema context, or fuzzer-grammar compatibility that whole-test-case seed transfer requires. \tool{} is designed specifically to fill this gap.
 
 \section{Conclusion}
 \label{sec:conclusion}
