@@ -383,7 +383,7 @@ Existing SQL transfer systems differ in whether they satisfy the requirements of
 \end{table}
 
 Table~\ref{tab:translation-capability} summarizes seed-generation and translation systems along capability dimensions directly relevant to fuzzing-seed transfer.
-General-purpose translators such as SQLGlot and jOOQ, together with RISE, CrackSQL, and QTRAN, primarily target statement-level or fragment-level translation.
+General-purpose translators such as SQLGlot and jOOQ, together with RISE, CrackSQL, and QTRAN, primarily target statement-level translation.
 Even \sedar{}, which supports test-case migration, does not explicitly preserve cross-statement dependencies during migration.
 This capability gap motivates dependency-preserving whole-test-case transfer.
 
@@ -1185,7 +1185,7 @@ However, RISE still treats a single query as the translation unit.
 The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
 Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
 
-As summarized in Table~\ref{tab:translation-capability} in Section~\ref{sec:background}, these systems improve query migration, semantic-equivalent translation, seed transfer, or oracle portability, but they are not designed for fuzzing-oriented, dependency-preserving whole-test-case transfer.
+Taken together, these systems span query migration (SQLGlot, jOOQ), LLM-assisted dialect translation (CrackSQL), dialect-aware rule reduction (RISE), and metamorphic-oracle portability (QTRAN), yet none of them targets fuzzing-oriented seed construction. Their translation units remain individual statements or queries rather than complete test cases, and they do not explicitly model the cross-statement dependencies, evolving schema context, or fuzzer-grammar compatibility that whole-test-case seed transfer requires. \tool{} is designed specifically to fill this gap.
 
 \section{Conclusion}
 \label{sec:conclusion}
