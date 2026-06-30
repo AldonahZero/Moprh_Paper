@@ -350,10 +350,44 @@ To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has
 % Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{deng2023large, zhang2023understanding}. \sedar{}~\cite{fu2024sedar}, the current state-of-the-art, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
 \sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
 
+\begin{table}[H]
+\centering
+\caption{Capability gap for fuzzing-seed transfer.}
+\label{tab:translation-capability}
+{\scriptsize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+    \toprule
+    \textbf{Tool/Paper} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
+    & & & & \textbf{Migration} & \textbf{Deps.} \\
+    \midrule
+    SQLGlot~\cite{sqlglot} & \cmark & \cmark & \cmark & \xmark & \xmark \\
+    jOOQ~\cite{jooq} & \cmark & \cmark & \cmark & \xmark & \xmark \\
+    RISE~\cite{xie2026rise} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+    CrackSQL~\cite{zhou2025cracking} & \partmark & \cmark & \cmark & \xmark & \xmark \\
+    QTRAN~\cite{lin2025qtran} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \xmark \\
+    \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
+    \bottomrule
+\end{tabular}
+}
+}
+\vspace{0.2em}
+\parbox{\columnwidth}{\scriptsize\raggedright\textit Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
+\end{table}
+
+Table~\ref{tab:translation-capability} summarizes seed-generation and translation systems along capability dimensions that are directly relevant to fuzzing-seed transfer.
+General-purpose translators such as SQLGlot and jOOQ, together with RISE, CrackSQL, and QTRAN, primarily target statement-level or fragment-level translation.
+Even \sedar{}, which supports test-case migration, does not explicitly preserve cross-statement dependencies during migration.
+Consequently, no prior system simultaneously supports test-case migration and cross-statement dependency preservation.
+Since \sedar{} provides the strongest existing baseline in this capability matrix, the following motivating example uses \sedar{} to illustrate the practical consequence of this gap rather than to single out an isolated weakness of one tool.
+
 \textbf{Motivating Example.}
 LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{semantic deviation} due to hallucinations. 
 Moreover, many fuzzers cover only a subset of SQL grammar. 
 Existing methods typically comment out unsupported features to support seed mutation after transfer, which alters the query and causes the \textit{logic loss}.
+Because \sedar{} is the strongest existing seed-transfer baseline in Table~\ref{tab:translation-capability}, its behavior provides a representative stress case for this systematic capability gap.
 \textit{Limitations of Existing Approaches.} Figure \ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring a test case from \pg{} to \duckdb{}, which contains dialect-specific features like the \texttt{AGE} function in the \texttt{WHERE} clause and the \texttt{::INTERVAL} type cast. With limited knowledge of \duckdb{}’s syntax, the LLM hallucinates and preserves \texttt{AGE}, causing syntax and semantic errors. To satisfy parsing constraints, \sedar{} comments out \texttt{AGE} and replaces the \texttt{WHERE} condition with \texttt{True}, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states. 
 As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
 \textit{Basic Idea of \tool{}.}
@@ -887,6 +921,7 @@ Existing translators improve syntactic acceptance but still leave a semantic gap
 RISE's statement-level design is especially limited for seed transfer: in SQLite-to-DuckDB, \tool{} improves semantic correctness from 0.314 to 0.776.
 When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves 34\% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
 Compared with \sedar{}, \tool{} achieves the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
+As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from the lack of explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
 \begin{table}[!htbp]
 \centering
 \caption{Syntactic and semantic correctness of transferred seeds.}
@@ -1137,50 +1172,16 @@ In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explici
 \subsection{Cross-Dialect SQL Translation}
 General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
 However, constructing and maintaining these rules requires significant dialect expertise.
-% Recent learning- or reduction-based systems reduce this manual effort: CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
 Recent studies have reduced the manual effort required for dialect migration.
 CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
 
 Among these translation-oriented systems, RISE~\cite{xie2026rise} is the closest comparison, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
-It translates a query by simplifying a complex query $Q_c$ into $Q_s$, extracting a local rule $r_d$, and applying it back to $Q_c$.
+It translates a query by first reducing a complex input to a simpler form, learning the local dialect rewrite from that reduced form, and then applying the rewrite back to the original query.
 However, RISE still treats a single query as the translation unit.
-% In a source seed to be migrated, the final DQL statement may depend on schema features and data state created by earlier DDL/DML statements; translating the query alone does not guarantee a valid seed if this prefix is not migrated consistently.
 The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
-% \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form $S^{i}_{norm}$ inside an AQT that also records cross-statement dependencies $\Delta$ and evolving schema context $\mathcal{D}$.
-% \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form inside an AQT that also records cross-statement dependencies and evolving schema context.
 Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
 
-Table~\ref{tab:translation-capability} summarizes the above seed-generation and translation systems along five capability dimensions relevant to fuzzing-seed transfer.
-The entries marked \partmark indicate restricted support, such as limited DDL/DML translation or fragment-level handling.
-Although \sedar{} supports test-case migration through LLM-based textual translation and post-hoc sanitization, it does not explicitly preserve cross-statement dependencies during migration.
-More broadly, existing systems do not support dependency-preserving whole-test-case migration scenarios where: (i) DDL-created schema state must be preserved for later DML/DQL statements; (ii) DML depends on schema-specific behaviors such as default values or auto-increment columns; (iii) \texttt{ALTER TABLE} or \texttt{CREATE INDEX} changes object state before later queries; or (iv) the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
-Overall, these systems improve query migration, semantic-equivalent translation, seed transfer, or oracle portability, but their goal is not dependency-preserving test-case-level seed transfer.
-\begin{table}[H]
-\centering
-\caption{Capability comparison for fuzzing-seed transfer.}
-\label{tab:translation-capability}
-{\scriptsize
-\setlength{\tabcolsep}{3pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccccc}
-    \toprule
-    \textbf{Tool/Paper} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
-    & & & & \textbf{Migration} & \textbf{Deps.} \\
-    \midrule
-    SQLGlot~\cite{sqlglot} & \cmark & \cmark & \cmark & \xmark & \xmark \\
-    jOOQ~\cite{jooq} & \cmark & \cmark & \cmark & \xmark & \xmark \\
-    RISE~\cite{xie2026rise} & \partmark & \partmark & \cmark & \xmark & \xmark \\
-    CrackSQL~\cite{zhou2025cracking} & \partmark & \cmark & \cmark & \xmark & \xmark \\
-    QTRAN~\cite{lin2025qtran} & \partmark & \partmark & \cmark & \xmark & \xmark \\
-    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \xmark \\
-    \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
-    \bottomrule
-\end{tabular}
-}
-}
-\vspace{0.2em}
-\parbox{\columnwidth}{\scriptsize\raggedright\textit Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
-\end{table}
+As summarized in Table~\ref{tab:translation-capability} in Section~\ref{sec:background}, these systems improve query migration, semantic-equivalent translation, seed transfer, or oracle portability, but they are not designed for fuzzing-oriented, dependency-preserving whole-test-case transfer.
 
 \section{Conclusion}
 \label{sec:conclusion}
