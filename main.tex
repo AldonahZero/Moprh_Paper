@@ -1121,7 +1121,24 @@ Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQv
 However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
 In particular, \sedar{} feeds schema information and raw SQL to an LLM, then repairs incompatibilities by sanitizing unparsable fragments.
 In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair without discarding context.
-Table~\ref{tab:translation-capability} summarizes how these systems differ from \tool{} along five capability dimensions relevant to fuzzing-seed transfer.
+
+\subsection{Cross-Dialect SQL Translation}
+General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
+However, constructing and maintaining these rules requires significant dialect expertise.
+% Recent learning- or reduction-based systems reduce this manual effort: CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
+Recent studies have reduced the manual effort required for dialect migration.
+CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
+
+Among these translation-oriented systems, RISE~\cite{xie2026rise} is the closest comparison, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
+It translates a query by simplifying a complex query $Q_c$ into $Q_s$, extracting a local rule $r_d$, and applying it back to $Q_c$.
+However, RISE still treats a single query as the translation unit.
+% In a source seed to be migrated, the final DQL statement may depend on schema features and data state created by earlier DDL/DML statements; translating the query alone does not guarantee a valid seed if this prefix is not migrated consistently.
+The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
+% \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form $S^{i}_{norm}$ inside an AQT that also records cross-statement dependencies $\Delta$ and evolving schema context $\mathcal{D}$.
+% \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form inside an AQT that also records cross-statement dependencies and evolving schema context.
+Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
+
+Table~\ref{tab:translation-capability} summarizes the above seed-generation and translation systems along five capability dimensions relevant to fuzzing-seed transfer.
 The entries marked \partmark indicate restricted support, such as limited DDL/DML translation or fragment-level handling.
 Although \sedar{} supports test-case migration through LLM-based textual translation and post-hoc sanitization, it does not explicitly preserve cross-statement dependencies during migration.
 More broadly, existing systems do not support dependency-preserving whole-test-case migration scenarios where: (i) DDL-created schema state must be preserved for later DML/DQL statements; (ii) DML depends on schema-specific behaviors such as default values or auto-increment columns; (iii) \texttt{ALTER TABLE} or \texttt{CREATE INDEX} changes object state before later queries; or (iv) the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
@@ -1152,22 +1169,6 @@ Overall, these systems improve query migration, semantic-equivalent translation,
 \vspace{0.2em}
 \parbox{\columnwidth}{\scriptsize\raggedright\textit{Note.} Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
-
-\subsection{Cross-Dialect SQL Translation}
-General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
-However, constructing and maintaining these rules requires significant dialect expertise.
-% Recent learning- or reduction-based systems reduce this manual effort: CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
-Recent studies have reduced the manual effort required for dialect migration.
-CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
-
-Among these translation-oriented systems, RISE~\cite{xie2026rise} is the closest comparison, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
-It translates a query by simplifying a complex query $Q_c$ into $Q_s$, extracting a local rule $r_d$, and applying it back to $Q_c$.
-However, RISE still treats a single query as the translation unit.
-% In a source seed to be migrated, the final DQL statement may depend on schema features and data state created by earlier DDL/DML statements; translating the query alone does not guarantee a valid seed if this prefix is not migrated consistently.
-The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
-% \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form $S^{i}_{norm}$ inside an AQT that also records cross-statement dependencies $\Delta$ and evolving schema context $\mathcal{D}$.
-% \tool{} addresses this by making the whole seed sequence the transferred unit: unlike RISE's reduced query, which isolates one dialect element within a query, \tool{}'s skeleton is the normalized per-statement form inside an AQT that also records cross-statement dependencies and evolving schema context.
-Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
 
 \section{Conclusion}
 \label{sec:conclusion}
