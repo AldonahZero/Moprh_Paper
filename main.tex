@@ -368,24 +368,35 @@ LLM-based cross-dialect transfer methods help in the generation of initial fuzze
 Moreover, many fuzzers cover only a subset of SQL grammar. 
 Existing methods typically comment out unsupported features to support seed mutation after transfer, which alters the query and causes the \textit{logic loss}.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{media/motivation-1.pdf}
-  \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
+  % \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
+  \caption{Conventional end-to-end translation methods like \sedar{} suffer from semantic deviation and logic loss (Left). \tool{} decouples intent via AQT, successfully instantiating the equivalent \texttt{date\_diff} logic (Right).}
   \label{fig:motivation}
 \end{figure}
+
+
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\linewidth]{media/overview-ase-new.pdf}
-  \caption{\textbf{Overview of \tool{}.} \tool{} combines structure-preserving transfer with feedback-guided fuzzing.}
+  % \caption{\textbf{Overview of \tool{}.} \tool{} combines structure-preserving transfer with feedback-guided fuzzing.}
+   \caption{\textbf{Overview of the \tool{}.} \tool{} generates high-quality cross-dialect test cases following three steps: 
+  (1) Structure-Preserving Abstraction. \tool{} first parses SQL into an AST and extracts schema information, then replaces dialect-specific syntax with generic labels to construct AQTs.
+  (2) Rule-Guided Dialect Instantiation. \tool{} uses a task planner to decompose test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
+  % \tool{} uses a task planner to decompose complex test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
+  (3) Feedback-Driven Adaptive Fuzzing. It fixes syntax incompatibilities, then uses DBMS execution feedback to repair remaining errors, and finally marks mutable regions in the mutable seeds to guide fuzzer mutations.
+  % It iteratively refines seeds using DBMS execution feedback to repair errors and produce mutation-friendly, high-quality seeds.
+  % \tool{} adapts fuzzer-incompatible test cases using runtime feedback, preserving core logic while ensuring parsability and maximal coverage.
+  }
   \label{fig:workflow}
 \end{figure*}
 
 \textit{Limitations of Existing Approaches.} Figure \ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring a test case from \pg{} to \duckdb{}, which contains dialect-specific features like the \texttt{AGE} function in the \texttt{WHERE} clause and the \texttt{::INTERVAL} type cast. With limited knowledge of \duckdb{}’s syntax, the LLM hallucinates and preserves \texttt{AGE}, causing syntax and semantic errors. To satisfy parsing constraints, \sedar{} comments out \texttt{AGE} and replaces the \texttt{WHERE} condition with \texttt{True}, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states. 
 As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
+
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
-
 As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation,
 but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent. 
 It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity. 
@@ -401,7 +412,7 @@ By maintaining these complex semantics during transfer, \tool{} ensures the gene
 As Figure~\ref{fig:workflow} shows, it takes source SQL test cases from mature DBMSs as input, transforms them across dialects into initial seed sequences for the target DBMS, and then mutates these seeds to discover bugs.
 Unlike LLM-centric text translation, \tool{} treats transfer as an Dialect-Aware AQT Instantiation process.
 It first abstracts each source test case into an AQT that records statement templates, cross-statement dependencies, cumulative schema context, intra-statement graphs, and an inter-statement dependency graph, together with a structural identifier for deduplication; then it recursively instantiates abstract nodes with rules retrieved or generated under target-dialect constraints.
-When a generated structure is rejected by the target parser or executor, \tool{} performs feedback-driven local repair instead of destructively discarding the invalid structure, producing fuzzer-compatible seeds while retaining testing-relevant SQL features.
+When a generated structure is rejected by the target parser or executor, \tool{} performs feedback-driven local repair instead of destructively discarding the invalid structure, producing fuzzer-compatible seeds while retaining testing-relevant features.
 % 组件一写作逻辑：
 % Review A-Soundness1/C-Soundness 回应位置：Structure-Preserving Abstraction 的 definition、Algorithm 1 和图例一起回答 boundary detection 与 dialect-specific construct recognition。
 % 回应逻辑：boundary 按 AST scope 识别，dialect construct 通过 abstraction rules 归一化；正文要写清 CTE/subquery/query block 等触发条件。
@@ -516,8 +527,11 @@ $\mathcal{H} \leftarrow \textsc{SHA256}(\bigoplus_i \textsc{Skeleton}(\mathcal{U
 \begin{figure}[b]
 \centering
 \includegraphics[width=\columnwidth]{media/aqt_trans-1.pdf}
-    \caption{AQT extraction: boundary detection and dialect normalization 
-for one statement.}
+%     \caption{AQT extraction: boundary detection and dialect normalization 
+% for one statement.}
+\caption{An example of Structure-Preserving Abstraction. 
+    It first detects and normalizes dialect-specific SQL features to abstract labels using abstraction rules, and produces structure-aware AQTs.
+    }   
     \label{fig:aqt_trans}
 \end{figure}
 For example, Figure~\ref{fig:aqt_trans} shows one statement from a source SQL test case containing a nested subquery, where the outer query filters records using an interval computation, e.g., ``\texttt{SELECT ... WHERE u.created\_at} \textgreater \texttt{(SELECT AGE(...) FROM ...)}''.
@@ -591,13 +605,7 @@ a method that coordinates three specialized skills under the target-dialect cons
 % Rule Generator：检索置信度低时触发，只产 candidate local rule；经 target parser 验证/修复成功后才 cache（回应 Comment2）。
 % \textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
 \textit{Rule Generator:} When retrieval confidence for a feature falls below a threshold, this skill synthesizes a candidate local rule via the LLM's zero-shot reasoning over the AST context and few-shot examples. The candidate is cached in the Hybrid KB only after it passes target-parser validation.
-\begin{figure}[b]
-    \centering
-    \includegraphics[scale=1.0, width=1\linewidth]{media/rule.pdf}
-    \caption{RAG-enhanced Dialect-Aware AQT Instantiation.
-    }
-    \label{fig:agent_translation}
-\end{figure}
+
 
 % Error Fixer：运行时纠错，用 parser 报错 + AST 上下文定位并做 structure-preserving 重写，避免 clause removal 式退化修复。
 % \textit{Error Fixer:} This skill operates as a runtime correction module. It performs immediate syntax validation on generated fragments, and when a target database parser rejects a fragment, it identifies and localizes the error using both the compiler feedback and the AST context. To prevent degenerate repairs such as clause removal, its correction process explicitly favors structure-preserving rewrites through constrained few-shot examples, ensuring that the final output remains a \textit{Compatible Seed} while preserving the original test-case complexity.
@@ -621,6 +629,14 @@ The three skills are grounded in a Hybrid KB with two complementary stores: the 
 % In the center panel, \tool{} first instantiates $id_2$ by concretizing its abstract tokens, including mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)} form, and validates this subquery fragment with parser feedback until it succeeds.
 % It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
 As shown in Figure~\ref{fig:agent_translation}, since $id_1$ depends on the nested segment $id_2$ ($Order=[id_2 \rightarrow id_1]$), \tool{} first instantiates subquery $id_2$ by mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)}, and validates it via parser feedback. It then substitutes the validated fragment into the outer predicate of $id_1$, mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}, yielding a \textit{Compatible Seed} that preserves the nested time-window logic.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=1.0, width=1\linewidth]{media/rule.pdf}
+    \caption{An example of the RAG-enhanced Dialect-Aware AQT Instantiation.
+    }
+    \label{fig:agent_translation}
+\end{figure}
 % 组件三写作逻辑 / Comment3 修改逻辑：
 % Review A-Soundness3 回应位置：Feedback-Driven Adaptive Fuzzing 的 fallback 段。
 % 回应逻辑：unsupported constructs 先查已有 mapping，再用 RAG candidate，再 source DBMS 常量替换，最后才最小范围 comment out；这样回应“没有对应语义时如何处理”。
@@ -650,7 +666,8 @@ As shown in Figure~\ref{fig:feedback-driven}, compatible seeds are sanitized, ex
 \begin{figure}[htbp]
   \centering
   \includegraphics[scale=1.0, width=\linewidth]{media/feedback-driven.pdf}
-  \caption{Feedback-driven adaptive fuzzing workflow.}
+  % \caption{Feedback-driven adaptive fuzzing workflow.}
+  \caption{Collaborative Workflow of Adaptive Query Sanitizing, Error-Guided Repairing, and Mutable Seed Generation in Feedback-Driven Fuzzing.}
   \label{fig:feedback-driven}
 \end{figure}
 
@@ -658,7 +675,7 @@ As shown in Figure~\ref{fig:feedback-driven}, compatible seeds are sanitized, ex
 % \noindent
 % \textbf{Error-Guided Sanitization.}
 % Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities not captured by the static translation phase. Instead of discarding these seeds or destructively commenting out unparsable tokens (as in \sedar{}~\cite{fu2024sedar}), the sanitizer captures the parser error message, localizes the unsupported dialect-specific construct to the corresponding AQT node, and repairs it using syntactic feedback. For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed.
-When a transferred seed $Q_{target}$ still violates the fuzzer grammar, the sanitizer localizes the unsupported construct to its AQT node and repairs it using parser feedback rather than discarding it.
+Specifically, when a transferred seed $Q_{target}$ still violates the fuzzer grammar, the sanitizer localizes the unsupported construct to its AQT node and repairs it using parser feedback rather than discarding it.
 For example, it removes excess brackets around \texttt{date\_diff} in Figure~\ref{fig:feedback-driven}, producing a syntactically valid Mutable Seed.
 
 % Review C-Presentation 回应位置：error message example 用完整的 ``SELECT''，处理原稿 ``SELEC'' typo。
@@ -668,7 +685,6 @@ For example, it removes excess brackets around \texttt{date\_diff} in Figure~\re
 % When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order. First, it checks the sanitization dictionary and applies an existing mapping when the unsupported construct has a known target-compatible form. Second, if no exact mapping exists, it uses RAG to retrieve candidate replacements from dialect evidence and validates the rewritten fragment with the fuzzer parser. Third, if no suitable replacement can be found, \tool{} executes the original source-side construct in the source DBMS and substitutes the returned value as a constant, preserving the surrounding query structure whenever possible. Finally, only if these structure-preserving attempts fail, \tool{} comments out the minimal offending construct. This ordering makes destructive commenting a last resort rather than the default sanitization strategy.
 When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order: existing sanitization mappings, RAG-retrieved replacements, source-side execution followed by constant substitution, and finally minimal commenting.
 Thus, destructive commenting is used only after structure-preserving repairs fail.
-
 % \smallskip
 % \noindent
 % \textbf{Mutable-Region Annotation.}
@@ -695,7 +711,7 @@ We evaluate \tool{} to assess its performance in cross-dialect seed transformati
 \item \textbf{RQ3:} How does \tool{} compare to other translation methods in terms of seed validity and semantic richness?
 \item \textbf{RQ4:} What is the contribution of each component in \tool{} to the overall performance?
 \end{itemize}
-We first describe the experimental setup, and then answer RQ1--RQ4 in the following four subsections.
+% We first describe the experimental setup, and then answer RQ1--RQ4 in the following four subsections.
 
 % Experimental Setup 写作逻辑：
 % Review A-Soundness5/C-Q1 回应位置：metrics 段明确定义 Syn./Sem.，并说明 semantic richness 通过 F/DT/K 单独度量。
@@ -804,7 +820,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{media/casestudy.pdf}
-  \caption{An internal error in \duckdb{}(Bug \#205xx) triggered by a transferred \pg{} test case.
+  \caption{An internal error in \duckdb{}(Bug \#205xx). \tool{} translates a test case of \pg{} to \duckdb{} while preserving critical data types and join logic.
   }
   \label{fig:casestudy}
 \end{figure}
@@ -1010,7 +1026,7 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=\linewidth]{media/ablation_combined_analysis.pdf}
-  \caption{Ablation analysis of \tool{} components.}
+  \caption{\textbf{Ablation Analysis of \tool{} Components.} Comparison of syntactic/semantic correctness and resource consumption across four variants.}
   \label{fig:ablation_analysis}
 \vspace{-0.8em}
 \end{figure}
