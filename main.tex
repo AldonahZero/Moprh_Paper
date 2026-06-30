@@ -1182,7 +1182,7 @@ Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQv
 \sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
 However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
 In particular, \sedar{} feeds schema information and raw SQL to an LLM, then repairs incompatibilities by sanitizing unparsable fragments.
-In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair without discarding context.
+In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair reduce the need for discarding context.
 
 \subsection{Cross-Dialect SQL Translation}
 General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
@@ -1196,7 +1196,7 @@ However, RISE still treats a single query as the translation unit.
 The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
 Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
 
-these systems span query migration (SQLGlot, jOOQ), LLM-assisted dialect translation (CrackSQL), dialect-aware rule reduction (RISE), and metamorphic-oracle portability (QTRAN), yet none of them targets fuzzing-oriented seed construction. Their translation units remain individual statements or queries rather than complete test cases, and they do not explicitly model the cross-statement dependencies, evolving schema context, or fuzzer-grammar compatibility that whole-test-case seed transfer requires. \tool{} is designed specifically to fill this gap.
+Overall, existing SQL translation systems do not target fuzzing-oriented whole-test-case seed transfer, where cross-statement dependencies, evolving schema context, and compatibility with downstream fuzzer grammars must be preserved.
 
 \section{Conclusion}
 \label{sec:conclusion}
