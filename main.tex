@@ -301,39 +301,18 @@ Compared to the state-of-the-art method \sedar{}, \tool{} improves semantic corr
 For example, PostgreSQL uses \texttt{AGE(timestamp)} for date arithmetic, whereas DuckDB requires \texttt{date\_diff()}. Similarly, type casting syntax varies between \texttt{::INTERVAL} in PostgreSQL and \texttt{CAST(... AS INTERVAL)} in standard SQL. 
 These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
 
-\begin{figure}[b]
-  \centering
-  \includegraphics[width=\linewidth]{media/motivation-1.pdf}
-  \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
-  \label{fig:motivation}
-\end{figure}
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\linewidth]{media/overview-ase-new.pdf}
-  \caption{\textbf{Overview of \tool{}.} \tool{} combines structure-preserving transfer with feedback-guided fuzzing.}
-  \label{fig:workflow}
-\end{figure*}
 
-\textbf{DBMS Fuzzing and Cross-Dialect Seed Transfer.} 
-\textit{Fuzzing} has emerged as a core technique for discovering system crashes~\cite{sqlsmith, zhong2020squirrel, wang2021industry}. By continuously generating and mutating inputs to traverse diverse execution paths, fuzzers can effectively expose corner cases and potential bugs.
+
+\textbf{DBMS Fuzzing.} 
+\textit{DBMS Fuzzing} has emerged as a core technique for discovering database system crashes~\cite{sqlsmith, zhong2020squirrel, wang2021industry}. By continuously mutating existing SQL test cases to traverse diverse execution paths, DBMS fuzzers can effectively expose corner cases and potential bugs.
 The effectiveness of fuzzing largely depends on the quality and diversity of \textit{initial seed test cases}.
 Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs or window functions) are often confined to shallow parsing logic, leaving deep architectural bugs undetected.
 However, while mature DBMSs such as PostgreSQL provide rich test suites, many emerging systems lack such resources, creating a bottleneck for effective fuzzing.
 
+\textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
+Existing SQL translation techniques~\cite{sqlglot, jooq, xie2026rise} focus on statement-level translation, which treats each SQL statement independently. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and DQL statements. As shown in Table~\ref{tab:translation-capability}, most existing tools do not explicitly preserve cross-statement dependencies, making them unsuitable for test-case-level transfer in fuzzing.
 
-% The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial Seeds}. 
-% Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs) are often confined to shallow parsing logic, thus leaving many bugs undetected~\cite{wang2021industry}.
-
-To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
-Existing SQL translation techniques~\cite{sqlglot, jooq, xie2026rise} focus on statement-level translation, which treats each SQL statement independently. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and query statements. As shown in Table~\ref{tab:translation-capability}, most existing systems do not explicitly preserve such cross-statement dependencies, making them unsuitable for seed-level migration in fuzzing.
-
-
-Recent work explores fuzzing-oriented seed transfer using LLMs~\cite{fu2024sedar}. 
-\sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, uses an LLM to translate seeds between SQL dialects and applies \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
-
-
-
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Capability gap for fuzzing-seed transfer.}
 \label{tab:translation-capability}
@@ -342,7 +321,7 @@ Recent work explores fuzzing-oriented seed transfer using LLMs~\cite{fu2024sedar
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccccc}
     \toprule
-    \textbf{Tool/Paper} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
+    \textbf{Tool} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
     & & & & \textbf{Migration} & \textbf{Deps.} \\
     \midrule
     SQLGlot~\cite{sqlglot} & \cmark & \cmark & \cmark & \xmark & \xmark \\
@@ -362,16 +341,46 @@ Recent work explores fuzzing-oriented seed transfer using LLMs~\cite{fu2024sedar
 \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
 
-Table~\ref{tab:translation-capability} summarizes seed-generation and translation systems along capability dimensions directly relevant to fuzzing-seed transfer.
-General-purpose translators such as SQLGlot and jOOQ, together with RISE, CrackSQL, and QTRAN, primarily target statement-level translation.
-Even \sedar{}, which supports test-case migration, does not explicitly preserve cross-statement dependencies during migration.
-This capability gap motivates dependency-preserving whole-test-case transfer.
+
+Recent work such as \sedar{}~\cite{fu2024sedar} explores fuzzing-oriented seed transfer using LLMs. While it improves automation by translating complete test cases, it still does not explicitly preserve cross-statement dependencies during migration.
+
+% To improve fuzzer compatibility, it applies unparsable commenting to handle parsing errors by commenting out incompatible parts or statements.
+% The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial Seeds}. 
+% Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs) are often confined to shallow parsing logic, thus leaving many bugs undetected~\cite{wang2021industry}.
+
+
+
+
+
+
+
+
+% Table~\ref{tab:translation-capability} summarizes seed-generation and translation systems along capability dimensions directly relevant to fuzzing-seed transfer.
+% General-purpose translators such as SQLGlot and jOOQ, together with RISE, CrackSQL, and QTRAN, primarily target statement-level translation.
+% Even \sedar{}, which supports test-case migration, does not explicitly preserve cross-statement dependencies during migration.
+% This capability gap motivates dependency-preserving whole-test-case transfer.
+
 
 \textbf{Motivating Example.}
-We illustrate this gap using \sedar{}, the closest existing fuzzing-oriented seed-transfer system.
+% In the following, we illustrate with a concrete example the limitations of \sedar{} in cross-dialect seed transfer.
+% We illustrate this gap using \sedar{}, the closest existing fuzzing-oriented seed-transfer system.
 LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{semantic deviation} due to hallucinations. 
 Moreover, many fuzzers cover only a subset of SQL grammar. 
 Existing methods typically comment out unsupported features to support seed mutation after transfer, which alters the query and causes the \textit{logic loss}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{media/motivation-1.pdf}
+  \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
+  \label{fig:motivation}
+\end{figure}
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\linewidth]{media/overview-ase-new.pdf}
+  \caption{\textbf{Overview of \tool{}.} \tool{} combines structure-preserving transfer with feedback-guided fuzzing.}
+  \label{fig:workflow}
+\end{figure*}
+
 \textit{Limitations of Existing Approaches.} Figure \ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring a test case from \pg{} to \duckdb{}, which contains dialect-specific features like the \texttt{AGE} function in the \texttt{WHERE} clause and the \texttt{::INTERVAL} type cast. With limited knowledge of \duckdb{}’s syntax, the LLM hallucinates and preserves \texttt{AGE}, causing syntax and semantic errors. To satisfy parsing constraints, \sedar{} comments out \texttt{AGE} and replaces the \texttt{WHERE} condition with \texttt{True}, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states. 
 As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
 \textit{Basic Idea of \tool{}.}
@@ -877,6 +886,7 @@ As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique
 This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
 Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper optimizer and executor logic, and trigger critical vulnerabilities.
 
+
 \begin{answerbox}
 \textbf{Answer to RQ2:} \tool{} covers 528\%, 60\%, 54\%, and 14\% more branches than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, and discovers 22, 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
@@ -898,8 +908,8 @@ This evaluation targets fuzzing seed quality rather than cross-DBMS result equiv
 As shown in Table~\ref{tab:validity}, directly executing source seeds yields low semantic correctness, dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
 Existing translators improve syntactic acceptance but still leave a semantic gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 semantic correctness.
 RISE's statement-level design is especially limited for seed transfer: in SQLite-to-DuckDB, our test-case-level transfer raises semantic correctness from 0.314 to 0.776.
-When used as initial seeds for fuzzing, the transferred outputs further achieve 34\% higher branch coverage than RISE and detect three bugs in DuckDB, whereas RISE triggers none.
-Relative to \sedar{}, \tool{} obtains the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
+When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves 34\% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
+Compared with \sedar{}, \tool{} achieves the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
 As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from the lack of explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
 These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability and executability.
 
@@ -1155,6 +1165,7 @@ Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQv
 However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
 In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair while preserving context.
 
+
 \subsection{Cross-Dialect SQL Translation}
 General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
 However, constructing and maintaining these rules requires significant dialect expertise.
@@ -1176,9 +1187,9 @@ Overall, existing SQL translation systems do not target fuzzing-oriented whole-t
 % - 保持和全文术语一致：Dialect-Aware AQT Instantiation + adaptive sanitization。
 We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them through Dialect-Aware AQT Instantiation, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic correctness by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend \tool{} beyond relational DBMSs.
 
-\section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
-% \section{Data Availability}
-% Artifacts and data released with the paper are available in an anonymous Zenodo archive~\cite{morph-artifact}.
+% \section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
+\section{Data Availability}
+Artifacts and data released with the paper are available in an anonymous Zenodo archive~\cite{morph-artifact}.
 % we also provide an anonymous mirror at \url{https://anonymous.4open.science/r/Morph-82DE}. Both links contain the same artifact content.
 
 
