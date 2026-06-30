@@ -1119,14 +1119,14 @@ In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explici
     RISE~\cite{xie2026rise} & \partmark & \partmark & \cmark & \xmark & \xmark \\
     CrackSQL~\cite{zhou2025cracking} & \partmark & \cmark & \cmark & \xmark & \xmark \\
     QTRAN~\cite{lin2025qtran} & \partmark & \partmark & \cmark & \xmark & \xmark \\
-    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \xmark \\
     \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
     \bottomrule
 \end{tabular}
 }
 }
 \vspace{0.2em}
-\parbox{\columnwidth}{\scriptsize\raggedright\textit{Note.} Cross-stmt. Deps. denotes cross-statement dependency preservation. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
+\parbox{\columnwidth}{\scriptsize\raggedright\textit{Note.} Cross-stmt. Deps. denotes explicit preservation of schema, data, and state dependencies across statements. \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
 
 \subsection{Cross-Dialect SQL Translation}
@@ -1137,8 +1137,9 @@ Recent studies have reduced the manual effort required for dialect migration.
 CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
 
 Table~\ref{tab:translation-capability} summarizes how these systems differ from \tool{} along five capability dimensions relevant to fuzzing-seed transfer.
-The entries marked \partmark indicate restricted, fragment-level support.
-None of these systems targets dependency-preserving whole-test-case seed transfer; specifically, they do not support the following test-case-level migration scenarios: (i) DDL-created schema state must be preserved for later DML/DQL statements; (ii) DML depends on schema-specific behaviors such as default values or auto-increment columns; (iii) \texttt{ALTER TABLE} or \texttt{CREATE INDEX} changes object state before later queries; or (iv) the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
+The entries marked \partmark indicate restricted support, such as limited DDL/DML translation or fragment-level handling.
+Although \sedar{} supports test-case migration through LLM-based textual translation and post-hoc sanitization, it does not explicitly preserve cross-statement dependencies during migration.
+More broadly, existing systems do not support dependency-preserving whole-test-case migration scenarios where: (i) DDL-created schema state must be preserved for later DML/DQL statements; (ii) DML depends on schema-specific behaviors such as default values or auto-increment columns; (iii) \texttt{ALTER TABLE} or \texttt{CREATE INDEX} changes object state before later queries; or (iv) the migrated DDL--DML--DQL sequence must remain parsable and mutable by a downstream fuzzer.
 Overall, these systems improve query migration, semantic-equivalent translation, or oracle portability, but their goal is not dependency-preserving test-case-level seed transfer.
 
 RISE~\cite{xie2026rise} is the closest comparison for this gap, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
