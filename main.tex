@@ -132,7 +132,8 @@
 DBMS fuzzing mutates initial seed test cases to explore state space and trigger crash bugs, making the quality and diversity of the initial seeds critical.
 Built-in test suites are commonly used as initial seeds, yet many DBMSs, especially emerging database engines, lack such suites.
 A practical solution is to transfer test cases from mature DBMSs to target systems as initial seeds.
-However, existing SQL dialect translation methods focus on statement-level translation and struggle to preserve cross-statement dependencies when transferring test cases for DBMS fuzzing.
+% However, existing SQL dialect translation methods focus on statement-level translation and struggle to preserve cross-statement dependencies when transferring test cases for DBMS fuzzing.
+However, existing SQL dialect translation techniques primarily focus on statement-level translation and cannot effectively transfer complete test cases for DBMS fuzzing
 % However, existing SQL dialect translation methods primarily focus on statement-level translation and struggle to handle entire test cases involving interdependent statements.
 % Unlike statement-level query migration, DBMS fuzzing requires transferred seeds to preserve both state-building dependencies across statements and mutation opportunities for downstream fuzzers.
 Recent fuzzing-oriented methods employ LLMs to perform end-to-end transfer across DBMSs. 
@@ -394,7 +395,7 @@ We begin with the following definitions.
 % test case from dialect-specific syntax, we introduce SQL abstraction rules and
 % abstract query templates (AQTs).
 We define two formal objects used in this abstraction: SQL abstraction rules and
-abstract query templates (AQTs).
+Abstract Query Templates (AQTs).
 A SQL test case is an ordered sequence of DDL, DML, and query statements,
 denoted as $\mathcal{C}=\langle s_1,\ldots,s_n\rangle$.
 For each statement $s_i$, $R_i$ and $W_i$ denote the objects it
@@ -417,24 +418,13 @@ five-tuple:
 \[
     \mathcal{T}=\langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle .
 \]
-Here, $\mathbf{U}=\langle \mathcal{U}_1,\ldots,\mathcal{U}_n\rangle$ is the
-ordered sequence of statement templates, where each
-$\mathcal{U}_i=\langle kind_i,S^i_{norm},\mathcal{G}^i,R_i,W_i\rangle$
-records the statement type, normalized skeleton, statement-level
-intra-statement graph, read set, and write set of $s_i$.
-$\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies,
-where $(i,j)\in\Delta$ iff $R_j\cap W_i\neq\emptyset$.
-$\mathcal{D}$ records the cumulative schema context after executing
-$\langle s_1,\ldots,s_n\rangle$, including table definitions, column types,
-constraints, and object-state summaries that are propagated as source-side
+Here, $\mathbf{U}=\langle \mathcal{U}_1,\ldots,\mathcal{U}_n\rangle$ is the ordered sequence of statement templates, where each $\mathcal{U}_i=\langle kind_i,S^i_{norm},\mathcal{G}^i,R_i,W_i\rangle$
+records the statement type, normalized skeleton, statement-level intra-statement graph, read set, and write set of $s_i$.
+$\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies, where $(i,j)\in\Delta$ iff $R_j\cap W_i\neq\emptyset$. 
+$\mathcal{D}$ records the cumulative schema context after executing $\langle s_1,\ldots,s_n\rangle$, including table definitions, column types, constraints, and object-state summaries that are propagated as source-side
 constraints during target-side instantiation.
-$\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where
-$V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency
-set and $\mathcal{G}_{tc}$ is its graph representation for dependency-preserving
-statement ordering.
-Finally, $\mathcal{H}$ is a structural hash over the ordered normalized
-skeletons and dependency edges, acting as a fingerprint for deduplication and
-cache indexing.
+$\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where $V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency set and $\mathcal{G}_{tc}$ is its graph representation for dependency-preserving statement ordering.
+Finally, $\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges, acting as a fingerprint for deduplication and cache indexing.
 % \end{definition}
 
 
@@ -578,7 +568,7 @@ The three skills are grounded in a Hybrid KB with two complementary stores: the 
 % In the center panel, \tool{} first instantiates $id_2$ by concretizing its abstract tokens, including mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)} form, and validates this subquery fragment with parser feedback until it succeeds.
 % It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
 \textbf{Walk-Through Example.}
-As shown in Figure~\ref{fig:agent_translation}, since $id_1$ depends on the nested segment $id_2$ ($Order=[id_2 \rightarrow id_1]$), \tool{} first instantiates subquery $id_2$---mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)}---and validates it via parser feedback. It then substitutes the validated fragment into the outer predicate of $id_1$, mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}, yielding a \textit{Compatible Seed} that preserves the nested time-window logic.
+As shown in Figure~\ref{fig:agent_translation}, since $id_1$ depends on the nested segment $id_2$ ($Order=[id_2 \rightarrow id_1]$), \tool{} first instantiates subquery $id_2$ by mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)}, and validates it via parser feedback. It then substitutes the validated fragment into the outer predicate of $id_1$, mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}, yielding a \textit{Compatible Seed} that preserves the nested time-window logic.
 % 组件三写作逻辑 / Comment3 修改逻辑：
 % Review A-Soundness3 回应位置：Feedback-Driven Adaptive Fuzzing 的 fallback 段。
 % 回应逻辑：unsupported constructs 先查已有 mapping，再用 RAG candidate，再 source DBMS 常量替换，最后才最小范围 comment out；这样回应“没有对应语义时如何处理”。
@@ -1032,7 +1022,7 @@ We use T=0.2 because it achieves 95\% translation success and 91\% first-attempt
 Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
 GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
 DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
-Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
+Qwen3.5-27B & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \bottomrule
 % \multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with depth thinking mode}
 \end{tabular*}
