@@ -897,9 +897,9 @@ This evaluation targets fuzzing seed quality rather than cross-DBMS result equiv
 \textbf{Validity of the Translated Test Cases.}
 As shown in Table~\ref{tab:validity}, directly executing source seeds yields low semantic correctness, dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
 Existing translators improve syntactic acceptance but still leave a semantic gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 semantic correctness.
-RISE's statement-level design is especially limited for seed transfer: in SQLite-to-DuckDB, \tool{} improves semantic correctness from 0.314 to 0.776.
-When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves 34\% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
-Compared with \sedar{}, \tool{} achieves the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
+RISE's statement-level design is especially limited for seed transfer: in SQLite-to-DuckDB, test-case-level transfer raises semantic correctness from 0.314 to 0.776.
+When used as initial seeds for fuzzing, the transferred outputs further achieve 34\% higher branch coverage than RISE and detect three bugs in DuckDB, whereas RISE triggers none.
+Relative to \sedar{}, \tool{} obtains the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
 As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from the lack of explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
 These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability and executability.
 
@@ -1153,8 +1153,7 @@ Recent work has explored LLMs for generating or enriching testing inputs.
 Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQveL~\cite{zhong2025testing} synthesizes SQL fragments for database testing.
 \sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
 However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
-In particular, \sedar{} feeds schema information and raw SQL to an LLM, then repairs incompatibilities by sanitizing unparsable fragments.
-In contrast, \tool{} confines LLM use to AQT-guided instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair reduce the need for discarding context.
+In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair while preserving context.
 
 \subsection{Cross-Dialect SQL Translation}
 General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
