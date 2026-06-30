@@ -199,17 +199,19 @@ While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suite
 % - 再引出 SedaR 作为 fuzzing-oriented baseline，为后文区分 Morph 和 SedaR 做铺垫。
 % To overcome this limitation, existing studies and tools have used SQL dialect translation to transfer SQL across DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
 To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but this process is often hindered by SQL dialect incompatibilities. 
-One intuitive solution is to leverage existing SQL translation techniques (such as SQLGlot~\cite{sqlglot}, jOOQ~\cite{jooq}, and RISE~\cite{xie2026rise}). 
-However, these tools primarily operate at the statement level. Since DBMS fuzzing seeds are complete test cases containing multiple interdependent statements rather than isolated clauses, statement-level translation may disrupt cross-statement dependencies (e.g., breaking schema references or type constraints), causing the entire transferred test case to fail during execution.
+One intuitive solution is to leverage existing SQL translation techniques~\cite{sqlglot,jooq, xie2026rise} such as SQLGlot and RISE. 
+However, these tools primarily operate at the statement level. Since DBMS fuzzing seeds are complete test cases containing multiple interdependent statements rather than isolated clauses, statement-level translation may disrupt cross-statement dependencies (e.g., schema references or type constraints), causing the entire transferred test case to fail during execution.
 To overcome this limitation, recent fuzzing-oriented approaches have employed large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. 
-A typical example is \sedar{}~\cite{fu2024sedar}, which extracts schema information from the source DBMS and feeds it alongside raw SQL text into an LLM to generate target-dialect seeds. 
-To handle grammar mismatches with downstream fuzzers, it temporarily comments out unparsable parts in SQL text during mutation.
+A representative example is \sedar{}~\cite{fu2024sedar}, which extracts schema information from the source DBMS and combines it with raw SQL text as input to an LLM to generate target-dialect seeds.
+To handle grammar mismatches in downstream fuzzing, it temporarily comments out unparsable SQL fragments during mutation.
 
 % Paragraph 4 写作逻辑：
 % - 把现有方法的缺陷写成两个因果问题，别写成 weakness 清单。
 % - 问题 1：statement-level/text translation 丢失 test-case-level semantic dependencies。
 % - 问题 2：为满足 fuzzer grammar 而删除/注释 unsupported structures，造成 semantic degradation 和 feature loss。
-Despite being able to transform SQL across DBMSs, existing dialect translation approaches cannot directly support fuzzing seed generation because they still suffer from \textit{test-case semantic loss} and \textit{fuzzer incompatibility}.
+% Despite being able to transform SQL across DBMSs, existing dialect translation approaches cannot directly support fuzzing seed generation because they still 
+Despite being able to transform test cases from mature DBMSs into initial seeds for target DBMSs, these methods still suffer from 
+\textit{test-case semantic loss} and \textit{fuzzer incompatibility}.
 (1) First, statement-level translators process statements in isolation, while fuzzing seeds rely on dependencies across schema definitions, inserted data, and subsequent queries. Losing these dependencies can break schema references, type constraints, or function semantics, making the transferred seeds fail during execution on the target DBMS.
 (2) Second, even when translation produces target-dialect SQL, the result may exceed the grammar accepted by downstream fuzzers. Existing methods often handle such incompatibilities by mechanically discarding or commenting out unsupported grammar structures, causing the loss of valuable SQL features and testing logic embedded in the original test cases. As a result, syntactically valid transferred queries can still suffer semantic degradation, limiting execution-path coverage and weakening optimizer stress testing.
 
@@ -883,6 +885,8 @@ When the translated outputs are used as initial seeds for fuzzing, \tool{} furth
 Compared with \sedar{}, \tool{} achieves the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
 As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from the lack of explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
 These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability and executability.
+
+
 \begin{table}[!htbp]
 \centering
 \caption{Syntactic and semantic correctness of transferred seeds.}
@@ -916,7 +920,6 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 {\footnotesize Syn./Sem.: syntactic/semantic correctness; ``-'': unsupported dialects.}
 \end{table}
 
-\textbf{Semantic Richness of the Translated Test Cases.}
 \begin{table}[!htbp]
 \centering
 \caption{Valid SQL features in transferred seeds.}
@@ -951,6 +954,7 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 {\footnotesize F/DT/K: functions/data types/keywords; ``-'': unsupported dialects.}
 \end{table}
 
+\textbf{Semantic Richness of the Translated Test Cases.}
 Beyond validity, we measure whether transferred seeds retain testing value by counting valid functions, data types, and keywords.
 As shown in Table~\ref{tab:diversity}, \tool{} preserves 1,036 functions, 180 data types, and 1,368 keywords, exceeding \sedar{} by 411, 34, and 496, respectively (66\%, 23\%, and 57\%).
 
