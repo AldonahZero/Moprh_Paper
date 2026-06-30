@@ -1006,11 +1006,9 @@ The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reach
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
 \textbf{Contribution of Cross-Statement Context Propagation.}
-To further isolate test-case-level dependency modeling, we introduce $\tool{}_{\textit{w/o-ctx}}$, which disables cross-statement context propagation during AQT instantiation while keeping the same statement-level instantiation and local dialect mappings as $\tool{}_{\textit{full}}$.
-Under the same \pg{}-to-\duckdb{} transfer setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{w/o-ctx}}$ achieves 93.5\% syntactic correctness, only 1.7 percentage points lower than $\tool{}_{\textit{full}}$.
-However, its semantic correctness drops to 52.4\%, decreasing by 12.7 percentage points (19.5\%) from $\tool{}_{\textit{full}}$.
-The main failures are reference, type, and state errors, whose rates increase from 6.8\%, 8.2\%, and 2.6\% in $\tool{}_{\textit{full}}$ to 19.5\%, 14.5\%, and 8.4\% without context propagation.
-These results show that later DML/DQL statements often depend on schema objects, column types, and object states created or modified by earlier DDL/DML statements, making the evolving target context necessary for preserving executable test-case-level semantics.
+To isolate test-case-level dependency modeling, we disable cross-statement context propagation in $\tool{}_{\textit{w/o-ctx}}$ while keeping the same statement-level instantiation and local dialect mappings.
+Under the same setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{w/o-ctx}}$ retains similar syntactic correctness (93.5\%, only 1.7 percentage points lower than $\tool{}_{\textit{full}}$), but its semantic correctness drops to 52.4\%, decreasing by 12.7 percentage points (19.5\%).
+Reference, type, and state errors rise from 6.8\%, 8.2\%, and 2.6\% to 19.5\%, 14.5\%, and 8.4\%, respectively, showing that executable test-case transfer requires propagating schema, type, and state context across statements.
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
 To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
