@@ -826,7 +826,7 @@ The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, \tool{} exposes significantly more unique bugs than baselines. 
 Moreover, \tool{} detects a total of 16 more bugs than \sedar{} on all four DBMSs. 
 This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
-Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By ensuring high semantic correctness (RQ3), \tool{} enables fuzzers to bypass early engine rejections, exercise deeper optimizer and executor logic, and trigger critical vulnerabilities.
+Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper optimizer and executor logic, and trigger critical vulnerabilities.
 
 \begin{answerbox}
 \textbf{Answer to RQ2:} \tool{} covers 528\%, 60\%, 54\%, and 14\% more branches than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, and discovers 22, 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively. 
