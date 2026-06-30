@@ -189,27 +189,27 @@ In recent years, fuzzing has emerged as an effective technique for uncovering cr
 Many DBMS fuzzers have already discovered lots of bugs in popular DBMSs~\cite{sqlsmithbug, DBbugs, sqlsmith}. 
 % These fuzzers typically generate new test cases by repeatedly mutating a set of initial seed queries to explore more execution paths. Consequently, the effectiveness of fuzzing largely depends on the quality and diversity of the initial seeds~\cite{fu2022griffin, liang2023sequence, jiang2023dynsql, zhong2020squirrel}.
 These fuzzers typically generate new test cases by repeatedly mutating a set of initial seed queries to explore more execution paths. Consequently, the effectiveness of fuzzing largely depends on the quality and diversity of the initial seeds~\cite{fu2022griffin, liang2023sequence, zhong2020squirrel}.
-While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suites serving as ideal seeds, emerging engines like \duckdb{}~\cite{duckdb_git} often lack such assets, creating a critical bottleneck that restricts the testing depth of existing fuzzers.
+While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suites that serve as ideal seeds, emerging engines like \duckdb{}~\cite{duckdb_git} often lack such assets, creating a critical bottleneck that limits the depth of testing for existing fuzzers.
 
-% Paragraph 3 写作逻辑 / Reviewer 修改逻辑（SQL translators 是否能解决 seed generation）：
-% Review C-Q2/C-Q3 回应位置：Introduction 先解释 SQLGlot/jOOQ/RISE 的 statement-level 定位，RQ3 再给 SQLGlot、jOOQ、CrackSQL、RISE 的表格对比。
-% 回应逻辑：先承认 SQL dialect translation 是自然替代方案，再指出 fuzzing seed 还有 cross-statement dependency 和 fuzzer mutability 约束。
-% - 先承认 SQL dialect translation 和 LLM transfer 是自然方案。
-% - 明确 SQLGlot/jOOQ/RISE 偏 statement-level/query migration，不能建模 fuzzing seed 的 whole-test-case 依赖和 mutability。
-% - 再引出 SedaR 作为 fuzzing-oriented baseline，为后文区分 Morph 和 SedaR 做铺垫。
-% To overcome this limitation, existing studies and tools have used SQL dialect translation to transfer SQL across DBMSs~\cite{zhou2020database, xia2024fuzz4all, deng2023large, fu2024sedar}.
-To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but this process is often hindered by SQL dialect incompatibilities. 
-One intuitive solution is to leverage existing SQL translation techniques~\cite{sqlglot,jooq, xie2026rise} such as SQLGlot and RISE. 
-However, these tools primarily operate at the statement level. Since DBMS fuzzing seeds are complete test cases containing multiple interdependent statements rather than isolated clauses, statement-level translation may disrupt cross-statement dependencies (e.g., schema references or type constraints), causing the entire transferred test case to fail during execution.
-To overcome this limitation, recent fuzzing-oriented approaches have employed large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. 
-A representative example is \sedar{}~\cite{fu2024sedar}, which extracts schema information from the source DBMS and combines it with raw SQL text as input to an LLM to generate target-dialect seeds.
-To handle grammar mismatches in downstream fuzzing, it temporarily comments out unparsable SQL fragments during mutation.
+To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but SQL dialect incompatibilities often hinder this process.
+Existing SQL translation techniques~\cite{sqlglot,jooq,xie2026rise} focus on statement-level translation, which treats SQL statements independently. In contrast, DBMS fuzzing seeds are multi-statement test cases with rich cross-statement dependencies (e.g., schema references or type constraints). As a result, statement-level translation may break dependency chains, leading to execution failures when transferred across systems.
 
-Despite being able to transform test cases from mature DBMSs, existing end-to-end approaches are hard to \textit{preserve the structural complexity and testing behaviors essential for fuzzing}. 
-For effective fuzzing, seed transfer should prioritize preserving grammatical structure complexity and cross-statement execution behaviors, rather than semantic equivalence. Under this premise, existing end-to-end approaches fall short in three aspects:
-(1) Due to limited understanding of target SQL dialects and structural constraints, LLM-based translation may introduce syntactic or semantic errors, causing transferred test cases to fail during execution.
-(2) Direct transfer may also simplify originally complex queries into structurally reduced yet behaviorally similar variants. This oversimplification weakens cross-statement dependencies and compresses execution behaviors, leading to reduced structural richness and diversity of fuzzing seeds.
-(3) Transferred seeds may violate the strict grammar subset supported by downstream fuzzers. Existing methods often address this by removing or commenting out unsupported constructs, thereby eliminating useful testing logic embedded in the original test cases.
+Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from three fundamental limitations: (i)  syntactic or semantic errors due to limited understanding of target SQL dialects, (ii) structural simplification, where complex multi-statement interactions are reduced or flattened, resulting in less diverse execution behaviors, and (iii)
+transferred seeds may violate the strict grammar subset supported by downstream fuzzers.
+These issues ultimately limit the effectiveness of generated seeds for fuzzing.
+
+
+% One intuitive solution is to leverage existing SQL translation techniques~\cite{sqlglot,jooq, xie2026rise}. 
+% However, these tools primarily operate at the statement level. Since DBMS fuzzing seeds are complete test cases containing multiple interdependent statements rather than isolated clauses, statement-level translation may disrupt cross-statement dependencies (e.g., schema references or type constraints), causing the entire transferred test case to fail during execution.
+% To overcome this limitation, recent fuzzing-oriented approaches have employed large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. 
+% A representative example is \sedar{}~\cite{fu2024sedar}, which extracts schema information from the source DBMS and combines it with raw SQL text as input to an LLM to generate target-dialect seeds.
+% To handle grammar mismatches in downstream fuzzing, it temporarily comments out unparsable SQL fragments during mutation.
+
+% Despite being able to transform test cases from mature DBMSs, existing end-to-end approaches are hard to \textit{preserve the structural complexity and testing behaviors essential for fuzzing}. 
+% For effective fuzzing, seed transfer should prioritize preserving grammatical structure complexity and cross-statement execution behaviors, rather than semantic equivalence. Under this premise, existing end-to-end approaches fall short in three aspects:
+% (1) Due to limited understanding of target SQL dialects and structural constraints, LLM-based translation may introduce syntactic or semantic errors, causing transferred test cases to fail during execution.
+% (2) Direct transfer may also simplify originally complex queries into structurally reduced yet behaviorally similar variants. This oversimplification weakens cross-statement dependencies and compresses execution behaviors, leading to reduced structural richness and diversity of fuzzing seeds.
+% (3) Transferred seeds may violate the strict grammar subset supported by downstream fuzzers. Existing methods often address this by removing or commenting out unsupported constructs, thereby eliminating useful testing logic embedded in the original test cases.
 
 
 
@@ -222,8 +222,8 @@ For effective fuzzing, seed transfer should prioritize preserving grammatical st
 To address the limitations of existing approaches, we propose a structure-aware method for cross-dialect transfer of SQL test cases. 
 Our key idea is to \textbf{decouple structural information from SQL syntax via a dialect-independent Abstract Query Template (AQT), enabling test-case-level abstraction and dialect-aware instantiation.}
 We observe that, although different SQL dialects vary in function naming or syntactic sugar, they typically share an \textit{invariant abstract query logic} that governs the underlying operations and relationships between data elements.
-By separating the core query logic from dialect-specific syntax, test cases can be translated across DBMSs while preserving their testing semantics. 
-This enables fuzzing to be more accurate and comprehensive, as it retains the essential behaviors of the queries while avoiding translation failures caused by superficial syntactic differences.
+By separating the core query logic from dialect-specific syntax, test cases can be transferred across DBMSs while preserving structurally rich execution behaviors that are essential for fuzzing. 
+This enables fuzzing to be more accurate and comprehensive, as it retains the essential behaviors of the test cases while avoiding transfer failures caused by superficial syntactic differences.
 
 
 % Our key insight is to \textbf{reformulate SQL transfer from direct SQL-text translation into Dialect-Aware AQT Instantiation for whole test cases}.
@@ -256,9 +256,9 @@ To address these challenges, we propose \tool{}, a structure-aware cross-dialect
 (1) First, it parses each SQL test case into an Abstract Query Template (AQT), capturing statement order, cross-statement dependencies, and clause-level structure while abstracting dialect-specific syntax.
 % First, \tool{} parses each SQL test case into schema-bound statement ASTs, replaces dialect-specific syntax with generic labels, and extracts both intra-statement structure and cross-statement dependencies to build an AQT.
 (2) Second, \tool{} instantiates AQT nodes into target-dialect constructs under target-dialect constraints while propagating the evolving target schema context across statements, with localized rule generation and repair when necessary.
-LLMs are only used for bounded rule generation or local repair under structural constraints.
+LLMs are used for bounded rule generation or local repair under structural constraints.
 % recursively mapping AQT nodes into dialect-specific subtrees under target-dialect constraints while propagating the evolving target schema context across statements.
-(3) Finally, it adapts generated test cases to satisfy fuzzing requirements using runtime feedback, converting unsupported constructs into parsable forms while preserving their execution behavior as much as possible.
+(3) Finally, it refines generated test cases to satisfy fuzzing requirements using runtime feedback, converting unsupported constructs into parsable forms while preserving their execution behavior as much as possible.
 % (3) Finally, \tool{} adapts SQL queries that are incompatible with fuzzers by using runtime feedback, converting unsupported constructs into parsable forms while preserving their logical structure to maximize testing coverage.
 
 % Paragraph 8 写作逻辑：
@@ -269,9 +269,8 @@ LLMs are only used for bounded rule generation or local repair under structural 
 We implement \tool{} and evaluate it against the state-of-the-art approach \sedar{} on four popular DBMSs, namely \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
 The results show that \tool{} achieves \translateratio{} higher semantic correctness for transferred seeds than \sedar{}.
 Based on that, \tool{} finds a total of 7\%--26\% more branches and 1--11 more bugs than \sedar{} on four DBMSs. 
-More importantly, \tool{} uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} that have been confirmed, with \bugfixcnt{} that have already been fixed.
+More importantly, although these four DBMSs have been well tested, \tool{} still uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} that have been confirmed, with \bugfixcnt{} that have already been fixed.
 Moreover, \tool{} has shown substantial real-world impact: all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
-
 % Paragraph 9 写作逻辑：
 % - 贡献按 Problem/Finding、Method、Empirical evidence 三类写。
 % - 贡献别写成“我们实现了系统”清单，重点突出 seed scarcity、AQT-guided transfer、真实 bug 和量化提升。
@@ -279,12 +278,13 @@ In summary, the paper makes the following contributions:
 
 
 \begin{enumerate}[leftmargin=*]
-\item We find that many DBMS fuzzers lack high-quality initial seeds. LLM-based end-to-end translation often introduces errors, and limited SQL grammar support further hinders mutation and degrades query semantics, reducing testing effectiveness.
-% \item We propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality seeds. Instead of direct translation, \tool{} extracts AQTs and performs Dialect-Aware AQT Instantiation with a retrieval-augmented knowledge base. Moreover, \tool{} enables effective fuzzing through parser feedback-driven adaptation.
+\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. LLM-based end-to-end translation often introduces errors and structural simplifications, and limited SQL grammar support further hinders mutation and degrades query semantics, reducing testing effectiveness.
 \item We propose \tool{}, a dependency-preserving whole-test-case seed transfer framework. Instead of translating isolated SQL statements, \tool{} encodes each source test case as an AQT, instantiates it under target-dialect constraints, and adapts remaining incompatibilities into fuzzer-parsable forms while preserving testing-relevant structures.
-\item \tool{} uncovered \bugcnt{} previously unknown bugs on four diverse DBMSs, with \bugconfirmcnt{} confirmed and \bugfixcnt{} fixed. 
+\item We implement \tool{} and evaluate it on four DBMSs, where it discovers \bugcnt{} previously unknown bugs (\bugconfirmcnt{} confirmed, \bugfixcnt{} fixed). 
 Compared to the state-of-the-art method \sedar{}, \tool{} improves semantic correctness by 100\%--272\%, achieving up to a 26\% increase in branch coverage.
 \end{enumerate}
+
+% \item We propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality seeds. Instead of direct translation, \tool{} extracts AQTs and performs Dialect-Aware AQT Instantiation with a retrieval-augmented knowledge base. Moreover, \tool{} enables effective fuzzing through parser feedback-driven adaptation.
 
 % Background and Motivation
 \section{Background and Motivation}
@@ -315,13 +315,16 @@ These dialect gaps pose substantial barriers for reusing test assets across diff
 \end{figure*}
 
 \textbf{DBMS Fuzzing and Cross-Dialect Seed Transfer.} 
-\textit{Fuzzing} has emerged as a core technique for discovering system crashes~\cite{sqlsmith, zhong2020squirrel}. By continuously generating and mutating inputs to traverse diverse execution paths, it effectively exposes corner cases and potential bugs.
-The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial Seeds}. 
-Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs) are often confined to shallow parsing logic, thus leaving many bugs undetected~\cite{wang2021industry}.
+\textit{Fuzzing} has emerged as a core technique for discovering system crashes~\cite{sqlsmith, zhong2020squirrel, wang2021industry}. By continuously generating and mutating inputs to traverse diverse execution paths, fuzzers can effectively expose corner cases and potential bugs.
+The effectiveness of fuzzing largely depends on the quality and diversity of \textit{initial seed test cases}. 
+However, while mature DBMSs such as PostgreSQL provide rich test suites, many emerging systems lack such resources, creating a bottleneck for effective fuzzing.
 
-% To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}. 
-To address seed scarcity in emerging DBMS fuzzing, \sedar{} explores cross-DBMS seed transfer by translating existing SQL test cases into target-compatible fuzzing seeds~\cite{fu2024sedar}.
-% Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{deng2023large, zhang2023understanding}. \sedar{}~\cite{fu2024sedar}, the current state-of-the-art, adopts a \textit{Translate-and-Sanitize} paradigm: using an LLM to translate seeds between different dialects, followed by \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
+
+% The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial Seeds}. 
+% Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs) are often confined to shallow parsing logic, thus leaving many bugs undetected~\cite{wang2021industry}.
+
+To address seed scarcity for emerging DBMSs testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
+Recent approaches leverage Large Language Models (LLMs) for cross-dialect translation~\cite{fu2024sedar}~\TODO{add cite}. 
 \sedar{}~\cite{fu2024sedar}, the current state-of-the-art LLM-assisted seed transfer approach, uses an LLM to translate seeds between SQL dialects and applies \textit{Unparsable Commenting} to handle parsing errors by commenting out incompatible parts or statements.
 
 Existing SQL transfer systems differ in whether they satisfy the requirements of fuzzing-seed transfer, especially when seed migration must preserve DDL/DML/DQL interactions and cross-statement dependencies.
@@ -976,10 +979,10 @@ The diversity gap mainly comes from sanitization strategy: \sedar{} may comment 
 
 \subsection{RQ4: Contribution of Individual Components}
 % RQ4 写作逻辑：
-% - 目标：用 ablation 解释每个组件为什么必要，回应 reviewer 对 LLM/规则工程叠加的疑问。
-% - translation phase：base -> abs -> rag -> full，分别对应 direct LLM、AQT skeleton、Dialect-Aware AQT Instantiation、完整生成。
-% - fuzzing phase：full vs. no feedback sanitizer，证明 high-quality generation 还需要 runtime feedback 才能转成 covered paths。
-% - 解释时同时看 correctness、repair cost/token cost、branch coverage，别只盯单一数字。
+% - 目标：用 ablation 解释每个组件为什么必要，回应 reviewer 对 LLM/规则工程叠加的疑问
+% - translation phase：base -> abs -> rag -> full，分别对应 direct LLM、AQT skeleton、Dialect-Aware AQT Instantiation
+% - fuzzing phase：full vs. no feedback sanitizer，证明 high-quality generation 还需要 runtime feedback 才能转成 covered paths
+% - 解释时同时看 correctness、repair cost/token cost、branch coverage
 To analyze the specific contributions of the individual components within \tool{}, we conducted an ablation study across two phases. 
 For the \textit{translation phase}, we evaluated four main variants using the task of  \pg{}-to-\duckdb{} transfer:
 (1) $\tool{}_{\textit{base}}$: the baseline using direct zero-shot LLM translation (i.e., prompting the LLM with the raw SQL and asking for a direct translation, unlike the No translation baseline which executes the raw, untranslated SQL directly);
@@ -1009,6 +1012,7 @@ Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}
 To isolate test-case-level dependency modeling, we disable cross-statement context propagation in $\tool{}_{\textit{w/o-ctx}}$ while keeping the same statement-level instantiation and local dialect mappings.
 Under the same setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{w/o-ctx}}$ retains similar syntactic correctness (93.5\%, only 1.7 percentage points lower than $\tool{}_{\textit{full}}$), but its semantic correctness drops to 52.4\%, decreasing by 12.7 percentage points (19.5\%).
 This semantic drop shows that executable test-case transfer requires propagating schema, type, and state context across statements.
+
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
 To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
@@ -1169,9 +1173,9 @@ Overall, existing SQL translation systems do not target fuzzing-oriented whole-t
 % - 保持和全文术语一致：Dialect-Aware AQT Instantiation + adaptive sanitization。
 We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them through Dialect-Aware AQT Instantiation, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic correctness by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend \tool{} beyond relational DBMSs.
 
-% \section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
-\section{Data Availability}
-Artifacts and data released with the paper are available in an anonymous Zenodo archive~\cite{morph-artifact}.
+\section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
+% \section{Data Availability}
+% Artifacts and data released with the paper are available in an anonymous Zenodo archive~\cite{morph-artifact}.
 % we also provide an anonymous mirror at \url{https://anonymous.4open.science/r/Morph-82DE}. Both links contain the same artifact content.
 
 
