@@ -1008,7 +1008,7 @@ Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}
 \textbf{Contribution of Cross-Statement Context Propagation.}
 To isolate test-case-level dependency modeling, we disable cross-statement context propagation in $\tool{}_{\textit{w/o-ctx}}$ while keeping the same statement-level instantiation and local dialect mappings.
 Under the same setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{w/o-ctx}}$ retains similar syntactic correctness (93.5\%, only 1.7 percentage points lower than $\tool{}_{\textit{full}}$), but its semantic correctness drops to 52.4\%, decreasing by 12.7 percentage points (19.5\%).
-Reference, type, and state errors rise from 6.8\%, 8.2\%, and 2.6\% to 19.5\%, 14.5\%, and 8.4\%, respectively, showing that executable test-case transfer requires propagating schema, type, and state context across statements.
+This semantic drop shows that executable test-case transfer requires propagating schema, type, and state context across statements.
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
 To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
