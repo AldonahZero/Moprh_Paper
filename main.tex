@@ -897,7 +897,7 @@ This evaluation targets fuzzing seed quality rather than cross-DBMS result equiv
 \textbf{Validity of the Translated Test Cases.}
 As shown in Table~\ref{tab:validity}, directly executing source seeds yields low semantic correctness, dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
 Existing translators improve syntactic acceptance but still leave a semantic gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 semantic correctness.
-RISE's statement-level design is especially limited for seed transfer: in SQLite-to-DuckDB, test-case-level transfer raises semantic correctness from 0.314 to 0.776.
+RISE's statement-level design is especially limited for seed transfer: in SQLite-to-DuckDB, our test-case-level transfer raises semantic correctness from 0.314 to 0.776.
 When used as initial seeds for fuzzing, the transferred outputs further achieve 34\% higher branch coverage than RISE and detect three bugs in DuckDB, whereas RISE triggers none.
 Relative to \sedar{}, \tool{} obtains the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
 As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from the lack of explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
