@@ -383,7 +383,7 @@ Existing methods typically comment out unsupported features to support seed muta
   % \caption{\textbf{Overview of \tool{}.} \tool{} combines structure-preserving transfer with feedback-guided fuzzing.}
    \caption{\textbf{Overview of the \tool{}.} \tool{} generates high-quality cross-dialect test cases following three steps: 
   (1) Structure-Preserving Abstraction. \tool{} first parses SQL into an AST and extracts schema information, then replaces dialect-specific syntax with generic labels to construct AQTs.
-  (2) Rule-Guided Dialect Instantiation. \tool{} uses a task planner to decompose test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
+  (2) Dialect-Aware AQT Instantiation. \tool{} uses a task planner to decompose test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
   % \tool{} uses a task planner to decompose complex test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
   (3) Feedback-Driven Adaptive Fuzzing. It fixes syntax incompatibilities, then uses DBMS execution feedback to repair remaining errors, and finally marks mutable regions in the mutable seeds to guide fuzzer mutations.
   % It iteratively refines seeds using DBMS execution feedback to repair errors and produce mutation-friendly, high-quality seeds.
@@ -750,13 +750,7 @@ Specifically, the dataset aggregates 426,968 SQL statements across 6,695 files, 
 \end{tabular}
 \end{table}
 
-\textbf{Baselines and Evaluation Metrics.}
-For translation effectiveness, we compare \tool{} against six baselines, including No translation, SQLGlot~\cite{sqlglot}, jOOQ~\cite{jooq}, CrackSQL~\cite{zhou2025cracking}, RISE~\cite{xie2026rise}, and \sedar{}~\cite{fu2024sedar}. 
-The No translation strategy directly executes the original test cases collected from source DBMSs without modification. 
-SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
-\sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
-We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
-
+\textbf{Evaluation Metrics.}
 We employ three metrics to evaluate \tool{}.
 First, to assess transfer quality, we measure \textit{Syntactic Correctness}, defined as the proportion of generated seeds that pass the target parser, and \textit{Semantic Correctness}, defined as the proportion of generated seeds that execute without runtime errors.
 Here, semantic correctness is defined by executability in the target DBMS without runtime errors, not by result equivalence between the source and target DBMSs.
@@ -775,7 +769,9 @@ Third, for real-world bug discovery, we report the number of detected unique bug
 \begin{table}[b]
 \centering
 \small
-\caption{Statistics of bugs detected by \tool{}.}
+\caption{Statistics of new DBMS bugs detected by \tool{}.}
+% \caption{Statistics of previously unknown bugs in popular DBMSs detected by \tool{}. [\textbf{UAF}: Use-After-Free, \textbf{AF}: Assertion Failure, \textbf{NPD}: Null Pointer Dereference, \textbf{DBZ}: Divide-by-Zero, \textbf{SEGV}: Segmentation Violation, \textbf{OOM}: Out of Memory]}
+% \caption{Statistics of previously unknown bugs in popular DBMSs detected by \tool{}.}
 \label{tab:real-world-bugs}
 \setlength{\tabcolsep}{4pt}
 
@@ -820,7 +816,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{media/casestudy.pdf}
-  \caption{An internal error in \duckdb{}(Bug \#205xx). \tool{} translates a test case of \pg{} to \duckdb{} while preserving critical data types and join logic.
+  \caption{An internal error in \duckdb{}(Bug \#205xx). \tool{} translates a test case of \pg{} to \duckdb{} while preserving data types and join logic.
   }
   \label{fig:casestudy}
 \end{figure}
@@ -847,8 +843,7 @@ We normalized coverage through a unified dry run and deduplicated crashes using 
 \label{tab:coverage}
 {\scriptsize
 \setlength{\tabcolsep}{2pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccccc}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccc@{}}
     \toprule
     \textbf{DBMS} & \sqlancer{} & \squirrel{} & \griffin{} & \sedar{} & \textsc{Morph} \\
     \midrule
@@ -860,16 +855,18 @@ We normalized coverage through a unified dry run and deduplicated crashes using 
     Total      & 47,806 & 166,483 & 273,898 & 368,816 & 422,130 \\
     Improvement* & 528\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & - \\
     \bottomrule
-\end{tabular}
-}
+\end{tabular*}
 \par\raggedright{\scriptsize * Calculated only for commonly supported DBMSs.}
+}
+
 \par\vspace{0.3em}
 
+\centering
 \caption{Number of bugs detected by different tools (24h).}
 \label{tab:bugs}
-{\small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccccc}
+{\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccc@{}}
     \toprule
     \textbf{DBMS} & \sqlancer{} & \squirrel{} & \griffin{} & \sedar{} & \textsc{Morph} \\
     \midrule
@@ -881,8 +878,7 @@ We normalized coverage through a unified dry run and deduplicated crashes using 
     Total      & 0 & 0 & 0 & 6 & 22 \\
     Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & - \\
     \bottomrule
-\end{tabular}
-}
+\end{tabular*}
 }
 \end{table}
 
@@ -917,7 +913,15 @@ The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 % - Reviewer C：semantic correctness 指目标 DBMS 能无 runtime error 执行；semantic richness 用 functions/data types/keywords 单独衡量。
 % - Reviewer A：和 RISE 的对比强调 scope 不同，RISE 是 SELECT statement-level translation，Morph 是 fuzzing seed 的 test-case-level transfer。
 % - SQLGlot/jOOQ/CrackSQL 对 unsupported target dialects 用 ``-''，如实标注支持范围。
-We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} from two aspects: transferred-seed validity and SQL-feature richness.
+For translation effectiveness, we compare \tool{} against six baselines, including No translation, SQLGlot~\cite{sqlglot}, jOOQ~\cite{jooq}, CrackSQL~\cite{zhou2025cracking}, RISE~\cite{xie2026rise}, and \sedar{}~\cite{fu2024sedar}. 
+The No translation strategy directly executes the original test cases collected from source DBMSs without modification. 
+SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
+\sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
+We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
+
+% We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
+
+We evaluate these methods from two aspects: transferred-seed validity and SQL-feature richness.
 This evaluation targets fuzzing seed quality rather than cross-DBMS result equivalence: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation.
 
 \textbf{Validity of the Translated Test Cases.}
@@ -1087,7 +1091,7 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 \textbf{LLM Parameter Selection. } \label{sec:llm-params}
 We use T=0.2 because it achieves 95\% translation success and 91\% first-attempt stability, outperforming T=0.5 (92\%/78\%) and T=0.8 (85\%/70\%).
 
-\begin{table}[!t]
+\begin{table}[!b]
 \centering
 \small
 \caption{LLM comparison. TS denotes Test Suite.}
@@ -1172,6 +1176,7 @@ Thus, manual review provides additional gains, but the majority of coverage and 
 Fuzzing is one of the most effective automated testing techniques for identifying DBMS vulnerabilities.
 Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlancer, rigger2020testing}, and DynSQL~\cite{jiang2023dynsql}, construct SQL queries from hard-coded rules or semantic oracles, while recent clause-guided and differential methods further improve logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}. However, predefined templates can limit complex scenarios~\cite{gao2023comprehensive}. Mutation-based fuzzers instead evolve seed pools: \squirrel{}~\cite{zhong2020squirrel} uses IR-based mutations, \griffin{}~\cite{fu2022griffin} uses grammar-free metadata replacement, and LEGO~\cite{liang2023sequence} combines SQL statement sequences. 
 These fuzzers are effective once suitable seeds or generation rules are available, but they do not directly address how to obtain high-quality seeds for emerging DBMSs.
+
 Unlike these works, \tool{} focuses on the upstream \textit{seed acquisition} problem by transferring mature DBMS test cases into target-compatible seed sequences.
 
 \subsection{LLM-Based Seed Generation}
@@ -1179,6 +1184,7 @@ Recent work has explored LLMs for generating or enriching testing inputs.
 Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQveL~\cite{zhong2025testing} synthesizes SQL fragments for database testing.
 \sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
 However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
+
 In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair while preserving context.
 
 
