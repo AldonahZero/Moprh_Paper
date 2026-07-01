@@ -382,8 +382,10 @@ Existing methods typically comment out unsupported features to support seed muta
   \includegraphics[width=\linewidth]{media/overview-ase-new.pdf}
   % \caption{\textbf{Overview of \tool{}.} \tool{} combines structure-preserving transfer with feedback-guided fuzzing.}
    \caption{\textbf{Overview of the \tool{}.} \tool{} generates high-quality cross-dialect test cases following three steps: 
-  (1) Structure-Preserving Abstraction. \tool{} first parses SQL into an AST and extracts schema information, then replaces dialect-specific syntax with generic labels to construct AQTs.
-  (2) Dialect-Aware AQT Instantiation. \tool{} uses a task planner to decompose test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
+  (1) Structure-Preserving Abstraction. \tool{} first parses SQL into an AST and extracts schema information, then replaces dialect-specific syntax with generic labels while preserving cross-statement dependencies to construct AQTs.
+  (2) Dialect-Aware AQT Instantiation. 
+  \tool{} uses a task planner to decompose test case transformations and instantiates AQT nodes by retrieving dialect evidence from a hybrid knowledge base, invoking the LLM only for bounded rule generation and local error correction.
+  % \tool{} uses a task planner to decompose test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
   % \tool{} uses a task planner to decompose complex test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
   (3) Feedback-Driven Adaptive Fuzzing. It fixes syntax incompatibilities, then uses DBMS execution feedback to repair remaining errors, and finally marks mutable regions in the mutable seeds to guide fuzzer mutations.
   % It iteratively refines seeds using DBMS execution feedback to repair errors and produce mutation-friendly, high-quality seeds.
@@ -856,7 +858,9 @@ We normalized coverage through a unified dry run and deduplicated crashes using 
     Improvement* & 528\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & - \\
     \bottomrule
 \end{tabular*}
-\par\raggedright{\scriptsize * Calculated only for commonly supported DBMSs.}
+
+\par\vspace{1pt}
+\noindent\makebox[\columnwidth][l]{\scriptsize * Calculated only for commonly supported DBMSs.}
 }
 
 \par\vspace{0.3em}
@@ -929,6 +933,7 @@ As shown in Table~\ref{tab:validity}, directly executing source seeds yields low
 Existing translators improve syntactic acceptance but still leave a semantic gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 semantic correctness.
 RISE's statement-level design is especially limited for seed transfer: in SQLite-to-DuckDB, our test-case-level transfer raises semantic correctness from 0.314 to 0.776.
 When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves 34\% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
+Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
 Compared with \sedar{}, \tool{} achieves the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
 As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from the lack of explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
 These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability and executability.
@@ -1106,9 +1111,10 @@ GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
 DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
 Qwen3.5-27B & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \bottomrule
-% \multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with depth thinking mode}
+\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with depth thinking mode}
 \end{tabular*}
 \end{table}
+
 
 % LLM 模型依赖写作逻辑：
 % - 先承认更强模型可能提高 semantic correctness。
@@ -1188,19 +1194,34 @@ However, these methods largely rely on direct text generation or post-generation
 In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair while preserving context.
 
 
+% \subsection{Cross-Dialect SQL Translation}
+% General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
+% However, constructing and maintaining these rules requires significant dialect expertise.
+% Recent studies have reduced the manual effort required for dialect migration.
+% CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
+
+% Among these translation-oriented systems, RISE~\cite{xie2026rise} is the closest comparison, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
+% It translates a query by first reducing a complex input to a simpler form, learning the local dialect rewrite from that reduced form, and then applying the rewrite back to the original query.
+% However, RISE still treats a single query as the translation unit.
+% The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
+% Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
+
+% Overall, existing SQL translation systems do not target fuzzing-oriented whole-test-case seed transfer, where cross-statement dependencies, evolving schema context, and compatibility with downstream fuzzer grammars must be preserved.
+
+
 \subsection{Cross-Dialect SQL Translation}
 General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
 However, constructing and maintaining these rules requires significant dialect expertise.
 Recent studies have reduced the manual effort required for dialect migration.
 CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
+Overall, existing SQL translation systems do not target fuzzing-oriented whole-test-case seed transfer, where cross-statement dependencies, evolving schema context, and compatibility with downstream fuzzer grammars must be preserved.
 
 Among these translation-oriented systems, RISE~\cite{xie2026rise} is the closest comparison, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
 It translates a query by first reducing a complex input to a simpler form, learning the local dialect rewrite from that reduced form, and then applying the rewrite back to the original query.
 However, RISE still treats a single query as the translation unit.
-The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements. Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
+The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements.
+Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
 Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
-
-Overall, existing SQL translation systems do not target fuzzing-oriented whole-test-case seed transfer, where cross-statement dependencies, evolving schema context, and compatibility with downstream fuzzer grammars must be preserved.
 
 \section{Conclusion}
 \label{sec:conclusion}
