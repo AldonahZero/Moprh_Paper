@@ -140,7 +140,7 @@ However, limited knowledge of SQL structures and dialects often introduces synta
 % structural and behavioral 
 
 To address these limitations, we propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality DBMS fuzzing seeds.
-Our key idea is to decouple structural information from SQL syntax via a dialect-independent Abstract Query Template (AQT), enabling test-case-level abstraction and dialect-aware instantiation.
+Our key insight is to decouple structural information from SQL syntax via a dialect-independent Abstract Query Template (AQT), enabling test-case-level abstraction and dialect-aware instantiation.
 Specifically, \tool{} first constructs a dialect-independent AQT from the source test case, preserving statement order and cross-statement dependencies.
 % preserving the SQL structures and behaviors embodied in the source test case.
 It then performs dialect-aware AQT instantiation to generate target-dialect SQL test cases using dialect-specific knowledge and constraints.
@@ -194,9 +194,13 @@ While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suite
 To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but SQL dialect incompatibilities often hinder this process.
 Existing SQL translation techniques~\cite{sqlglot,jooq,xie2026rise} focus on statement-level translation, which treats SQL statements independently. In contrast, DBMS fuzzing seeds are multi-statement test cases with rich cross-statement dependencies (e.g., schema references or type constraints). As a result, statement-level translation may break dependency chains, leading to execution failures when transferred across systems.
 
-Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from three fundamental limitations: (i)  syntactic or semantic errors due to limited understanding of target SQL dialects, (ii) structural simplification, where complex multi-statement interactions are reduced or flattened, resulting in less diverse execution behaviors, and (iii)
-transferred seeds may violate the strict grammar subset supported by downstream fuzzers.
-These issues ultimately limit the effectiveness of generated seeds for fuzzing.
+Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations: 
+(i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
+(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, generated test cases are often sanitized by removing or commenting out unsupported constructs, which may simplify complex SQL structures and weaken execution behaviors.
+
+% (i)  syntactic or semantic errors due to limited understanding of target SQL dialects, (ii) structural simplification, where complex multi-statement interactions are reduced or flattened, resulting in less diverse execution behaviors, and (iii)
+% transferred seeds may violate the strict grammar subset supported by downstream fuzzers.
+% These issues ultimately limit the effectiveness of generated seeds for fuzzing.
 
 
 % One intuitive solution is to leverage existing SQL translation techniques~\cite{sqlglot,jooq, xie2026rise}. 
@@ -220,7 +224,7 @@ These issues ultimately limit the effectiveness of generated seeds for fuzzing.
 % - AQT 显式记录 schema dependencies、nested structures、clause-level relationships，用于保留 fuzzing seed 的语义丰富度。
 % - LLM 只做 bounded local rule generation/repair；rules 是局部 AQT-node operator，整体范式仍是 AQT-guided test-case transfer。
 To address the limitations of existing approaches, we propose a structure-aware method for cross-dialect transfer of SQL test cases. 
-Our key idea is to \textbf{decouple structural information from SQL syntax via a dialect-independent Abstract Query Template (AQT), enabling test-case-level abstraction and dialect-aware instantiation.}
+Our key insight is to \textbf{decouple structural information from SQL syntax via a dialect-independent Abstract Query Template (AQT), enabling test-case-level abstraction and dialect-aware instantiation.}
 We observe that, although different SQL dialects vary in function naming or syntactic sugar, they typically share an \textit{invariant abstract query logic} that governs the underlying operations and relationships between data elements.
 By separating the core query logic from dialect-specific syntax, test cases can be transferred across DBMSs while preserving structurally rich execution behaviors that are essential for fuzzing. 
 This enables fuzzing to be more accurate and comprehensive, as it retains the essential behaviors of the test cases while avoiding transfer failures caused by superficial syntactic differences.
@@ -266,11 +270,16 @@ LLMs are used for bounded rule generation or local repair under structural const
 % 回应逻辑：novelty 文字后面马上接实验数据支撑。
 % 实验结果先给 transferred-seed quality，再给 fuzzing effectiveness，最后给真实 bug impact。
 % - 数字要服务于 novelty：强调结构保留和反馈修复带来的增益，淡化“单纯多跑 fuzzing”的解释。
-We implement \tool{} and evaluate it against the state-of-the-art approach \sedar{} on four popular DBMSs, namely \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
-The results show that \tool{} achieves \translateratio{} higher semantic correctness for transferred seeds than \sedar{}.
-Based on that, \tool{} finds a total of 7\%--26\% more branches and 1--11 more bugs than \sedar{} on four DBMSs. 
-More importantly, although these four DBMSs have been well tested, \tool{} still uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} that have been confirmed, with \bugfixcnt{} that have already been fixed.
-Moreover, \tool{} has shown substantial real-world impact: all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
+We implement \tool{} and evaluate it on four popular DBMSs, namely \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
+Although these DBMSs have been extensively tested, \tool{} still uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed and \bugfixcnt{} already fixed.
+These bugs have received attention from developers.
+For example, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
+We further compare \tool{} with state-of-the-art DBMS fuzzing tools, including \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}.
+Across the four DBMSs under 24 hours, \tool{} achieves 14\%--528\% higher branch coverage and discovers 16--22 more bugs than others.
+To evaluate seed transfer quality, we also compare \tool{} against representative relevant techniques, including SQLGlot, jOOQ, CrackSQL, RISE, and \sedar{}.
+\tool{} outperforms these baselines by 5\%--62\% in syntax correctness, 100\%--450\% in semantic correctness, and 11\%--253\% in preservation of SQL functions.
+Finally, we conduct an ablation study to show the contribution of each component in \tool{}.
+% against the state-of-the-art approach \sedar{} 
 % Paragraph 9 写作逻辑：
 % - 贡献按 Problem/Finding、Method、Empirical evidence 三类写。
 % - 贡献别写成“我们实现了系统”清单，重点突出 seed scarcity、AQT-guided transfer、真实 bug 和量化提升。
@@ -309,12 +318,10 @@ The effectiveness of fuzzing largely depends on the quality and diversity of \te
 Due to the diverse features of DBMSs, fuzzers lacking high-quality initial seeds with specific syntactic features (e.g., recursive CTEs or window functions) are often confined to shallow parsing logic, leaving deep architectural bugs undetected.
 However, while mature DBMSs such as PostgreSQL provide rich test suites, many emerging systems lack such resources, creating a bottleneck for effective fuzzing.
 
-\textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, Cross-DBMS SQL Transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
-Existing SQL translation techniques~\cite{sqlglot, jooq, xie2026rise} focus on statement-level translation, which treats each SQL statement independently. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and DQL statements. As shown in Table~\ref{tab:translation-capability}, most existing tools do not explicitly preserve cross-statement dependencies, making them unsuitable for test-case-level transfer in fuzzing.
-
-\begin{table}[htbp]
+\begin{table}[b]
 \centering
-\caption{Capability gap for fuzzing-seed transfer.}
+% \caption{Capability gap for fuzzing-seed transfer.}
+\caption{Capability comparison of existing SQL translation systems for test-case-level DBMS fuzzing seed transfer.}
 \label{tab:translation-capability}
 {\scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -341,8 +348,17 @@ Existing SQL translation techniques~\cite{sqlglot, jooq, xie2026rise} focus on s
 \cmark: explicit support; \partmark: limited support; \xmark: not supported.}
 \end{table}
 
-
+\textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, cross-DBMS SQL transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
+As shown in Table~\ref{tab:translation-capability}, most existing tools do not explicitly preserve cross-statement dependencies, making them unsuitable for test-case-level transfer in fuzzing.
+Specifically, existing SQL translation techniques~\cite{sqlglot, jooq, xie2026rise} focus on statement-level translation, which treats each SQL statement independently. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and DQL statements.
 Recent work such as \sedar{}~\cite{fu2024sedar} explores fuzzing-oriented seed transfer using LLMs. While it improves automation by translating complete test cases, it still does not explicitly preserve cross-statement dependencies during migration.
+
+
+
+
+
+
+
 
 % To improve fuzzer compatibility, it applies unparsable commenting to handle parsing errors by commenting out incompatible parts or statements.
 % The efficacy of fuzzing is heavily influenced by the quality of \textit{Initial Seeds}. 
@@ -364,15 +380,16 @@ Recent work such as \sedar{}~\cite{fu2024sedar} explores fuzzing-oriented seed t
 \textbf{Motivating Example.}
 % In the following, we illustrate with a concrete example the limitations of \sedar{} in cross-dialect seed transfer.
 % We illustrate this gap using \sedar{}, the closest existing fuzzing-oriented seed-transfer system.
-LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{semantic deviation} due to hallucinations. 
-Moreover, many fuzzers cover only a subset of SQL grammar. 
-Existing methods typically comment out unsupported features to support seed mutation after transfer, which alters the query and causes the \textit{logic loss}.
+We next present a motivating example to illustrate the limitations of LLM-based fuzzing-oriented seed transfer methods such as \sedar{}.
+LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{syntax or semantic errors} due to hallucinations.
+Moreover, many fuzzers cover only a subset of SQL grammar.
+Existing methods typically comment out unsupported features to support seed mutation after transfer, which alters the query and causes \textit{structural simplification}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth]{media/motivation-1.pdf}
+  \includegraphics[width=\linewidth]{media/motivating_71.pdf}
   % \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
-  \caption{Conventional end-to-end translation methods like \sedar{} suffer from semantic deviation and logic loss (Left). \tool{} decouples intent via AQT, successfully instantiating the equivalent \texttt{date\_diff} logic (Right).}
+  \caption{Conventional end-to-end translation methods like \sedar{} suffer from semantic error and structural simplification (Left). \tool{} decouples intent via AQT, successfully instantiating the equivalent \texttt{date\_diff} logic (Right).}
   \label{fig:motivation}
 \end{figure}
 
@@ -398,8 +415,7 @@ As a result, the migrated seed has limited utility for subsequent effective muta
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
-As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation,
-but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent. 
+As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation, but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent. 
 It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity. 
 By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}.
 \section{Approach}
@@ -409,11 +425,22 @@ By maintaining these complex semantics during transfer, \tool{} ensures the gene
 % - 三个组件要和 Introduction 的三个 challenge 对齐：抽象结构、目标方实例化、fuzzer 兼容。
 % - 和 SedaR/RISE 的区别要落在“AQT-guided whole-test-case transfer”，少用“规则更多”这种解释。
 % - 第二个组件统一叫 Dialect-Aware AQT Instantiation；Rule Generator 保持组件内部的 skill 名称。
+
+\tool{} is a structure-aware cross-dialect DBMS fuzzing framework for generating effective seeds for the target DBMSs.
+As Figure~\ref{fig:workflow} shows, 
+% it takes the original queries from the source DBMS as input, transforms them across dialects into initial seeds for the target DBMS, and then mutates these seeds to discover bugs.
+% Unlike LLM-centric text translation, \tool{} treats transfer as a dialect-aware AQT instantiation process.
+it first abstracts each source test case into an AQT that captures statement templates, cross-statement dependencies, and schema context, then recursively instantiates abstract nodes under target-dialect constraints using retrieved or generated rules.
+When generated outputs are rejected by the target parser or executor, \tool{} performs feedback-driven local repair instead of discarding the structure, producing fuzzer-compatible seeds while preserving testing-relevant features.
+
+\begin{comment}
 \tool{} is a structure-aware cross-dialect DBMS fuzzing framework for generating effective seeds for the target DBMSs.
 As Figure~\ref{fig:workflow} shows, it takes source SQL test cases from mature DBMSs as input, transforms them across dialects into initial seed sequences for the target DBMS, and then mutates these seeds to discover bugs.
 Unlike LLM-centric text translation, \tool{} treats transfer as an Dialect-Aware AQT Instantiation process.
 It first abstracts each source test case into an AQT that records statement templates, cross-statement dependencies, cumulative schema context, intra-statement graphs, and an inter-statement dependency graph, together with a structural identifier for deduplication; then it recursively instantiates abstract nodes with rules retrieved or generated under target-dialect constraints.
 When a generated structure is rejected by the target parser or executor, \tool{} performs feedback-driven local repair instead of destructively discarding the invalid structure, producing fuzzer-compatible seeds while retaining testing-relevant features.
+\end{comment}
+
 % 组件一写作逻辑：
 % Review A-Soundness1/C-Soundness 回应位置：Structure-Preserving Abstraction 的 definition、Algorithm 1 和图例一起回答 boundary detection 与 dialect-specific construct recognition。
 % 回应逻辑：boundary 按 AST scope 识别，dialect construct 通过 abstraction rules 归一化；正文要写清 CTE/subquery/query block 等触发条件。
@@ -424,53 +451,28 @@ When a generated structure is rejected by the target parser or executor, \tool{}
 \subsection{Structure-Preserving Abstraction}
 \label{sec:abstraction}
 This step decouples the logical intent of a test case from its dialect-specific syntax.
-The challenge is that dialect-specific constructs---such as proprietary functions, type casts, and interval operators---are embedded within hierarchical query structure (e.g., nested subqueries and CTEs), so extracting reusable logic requires preserving relational shape, scoping boundaries, and cross-statement dependencies rather than performing surface-level text replacement.
-We address this by formalizing the seed as an abstract query template (AQT) that records ordered statement templates, dependency relations, and cumulative schema context as a structured object amenable to manipulation.
+The challenge is that dialect-specific constructs, such as proprietary functions, type casts, and interval operators, are often embedded within hierarchical query structures (e.g., nested subqueries and CTEs).
+As a result, extracting reusable logic requires preserving relational structure, scoping boundaries, and cross-statement dependencies, rather than relying on surface-level text replacement.
+% The challenge is that dialect-specific constructs---such as proprietary functions, type casts, and interval operators---are embedded within hierarchical query structure (e.g., nested subqueries and CTEs), so extracting reusable logic requires preserving relational shape, scoping boundaries, and cross-statement dependencies rather than performing surface-level text replacement.
+We address this by formalizing each seed as an AQT that records ordered statement templates, dependency relations, and cumulative schema context as a structured object amenable to manipulation.
 We begin with the following definitions.
 \numberwithin{equation}{section} % 公式按章节编号（可选）
-% \textbf{Formal Definition.} To support syntax-aware query abstraction and decouple the logical intent of a test case, we introduce SQL abstraction rules and AQT.
-% A SQL test case is an ordered sequence of DDL, DML, and query statements; $R_i$ and $W_i$ denote the objects read/referenced and written/created by statement $s_i$, respectively.
-% The two formal objects are defined as follows:
-% \vspace{-0.4cm}
-% \begin{list}{}{\setlength{\leftmargin}{0.5em}}
-% \item
-%     \begin{definition}[SQL Abstraction Rule]\label{def:rules}
-%     Abstraction rules map from one dialect-specific construct to abstract representations. A rule has the form:
-%     \[
-%     \begin{aligned}
-%         \underbrace{[\textit{Function} \mid \textit{Type} \mid \cdots]}_{\textit{Source}}
-%         &\rightarrow \underbrace{[\langle \textit{FuncTag} \rangle \mid \langle \textit{TypeCast} \rangle \mid \cdots]}_{\textit{Target}}
-%     \end{aligned}
-%     \]
-%     where \textit{Source} is a dialect-specific SQL element and \textit{Target} is its corresponding abstract label that represents the semantic intent. For example, $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$ abstracts interval computation.
-%     \end{definition}
-% \item
-%     \vspace{-0.5cm}
-%     \begin{definition}[Abstract Query Template]\label{def:aqt}
-%     Given a SQL test case $\mathcal{C} = \langle s_1, \ldots, s_n \rangle$, its AQT is defined as a 5-tuple:
-%     $$\mathcal{T} = \langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle$$
-%     \begin{itemize}
-%         \item $\mathbf{U} = \langle \mathcal{U}_1, \ldots, \mathcal{U}_n \rangle$ is the ordered sequence of statement templates. Each $\mathcal{U}_i = \langle kind_i, S^i_{norm}, \mathcal{G}^i, R_i, W_i \rangle$ records the statement type, normalized skeleton, intra-statement graph, read set, and write set of $s_i$.
-%         \item $\Delta \subseteq \{(i,j) \mid i < j\}$ is the cross-statement dependency set, where $(i,j) \in \Delta$ iff $R_j \cap W_i \neq \emptyset$.
-%         \item $\mathcal{D}$ is the cumulative schema context after executing $\langle s_1,\ldots,s_n \rangle$ in order, including table definitions, column types, constraints, and object-state summaries needed for target-side instantiation.
-%         \item $\mathcal{G}_{tc} = (V_{tc}, E_{tc})$ is the test-case dependency graph, where $V_{tc} = \{1,\ldots,n\}$ and $E_{tc} = \Delta$.
-%         \item $\mathcal{H}$ is a structural hash for deduplication, computed over the ordered normalized skeletons and dependency edges.
-%     \end{itemize}
-%     \end{definition}
-% \end{list}
 
-\textbf{Formalization.}
-% To support syntax-aware query abstraction and decouple the logical intent of a
+\textbf{Formal Definition.}
 % test case from dialect-specific syntax, we introduce SQL abstraction rules and
 % abstract query templates (AQTs).
-We define two formal objects used in this abstraction: SQL abstraction rules and
-Abstract Query Templates (AQTs).
+To support syntax-aware query abstraction and decouple the logical intent of a test case, we introduce the SQL abstraction rules and AQT. 
+They are defined as follows:
+% We define two formal objects used in this abstraction: SQL abstraction rules and
+% Abstract Query Templates (AQTs).
+\begin{comment}
 A SQL test case is an ordered sequence of DDL, DML, and query statements,
 denoted as $\mathcal{C}=\langle s_1,\ldots,s_n\rangle$.
 For each statement $s_i$, $R_i$ and $W_i$ denote the objects it
 reads/references and writes/creates, respectively.
+\end{comment}
 
-An abstraction rule maps a dialect-specific SQL construct to an abstract
+\textit{Definition 1 (SQL Abstraction Rule)}: An abstraction rule maps a dialect-specific SQL construct to an abstract
 semantic label:
 \[
     [\textit{Function} \mid \textit{Type} \mid \cdots]
@@ -478,32 +480,38 @@ semantic label:
     [\langle \textit{FuncTag} \rangle \mid
      \langle \textit{TypeCast} \rangle \mid \cdots].
 \]
-e.g., $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$
-abstracts interval computation.
+where \textit{Source} is a dialect-specific SQL element and \textit{Target} is its corresponding abstract label that represents the semantic intent. For example, a rule for interval computation can be represented as $\texttt{AGE}(\cdot) \rightarrow \langle \text{TimeDiff} \rangle$.
+
+% e.g., $\texttt{AGE}(\cdot)\!\rightarrow\!\langle\text{TimeDiff}\rangle$
+% abstracts interval computation.
 
 % \begin{definition}[Abstract Query Template]\label{def:aqt}
-Given a SQL test case $\mathcal{C}$, its AQT is the five-tuple:
+\textit{Definition 2 (Abstract Query Template)}: Given a SQL test case $\mathcal{C}$, its AQT is a five-tuple:
 \[
     \mathcal{T}=\langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle .
 \]
+
 Here, $\mathbf{U}=\langle \mathcal{U}_1,\ldots,\mathcal{U}_n\rangle$ is the ordered sequence of statement templates, where each $\mathcal{U}_i=\langle kind_i,S^i_{norm},\mathcal{G}^i,R_i,W_i\rangle$
-records the statement type, normalized skeleton, statement-level intra-statement graph, read set, and write set of $s_i$.
+records the statement type, normalized skeleton, statement-level intra-statement graph, read set, and write set of statement $s_i$.
 $\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies, where $(i,j)\in\Delta$ iff $R_j\cap W_i\neq\emptyset$. 
 $\mathcal{D}$ records the cumulative schema context after executing $\langle s_1,\ldots,s_n\rangle$, including table definitions, column types, constraints, and object-state summaries that are propagated as source-side
 constraints during target-side instantiation.
-$\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where $V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency set and $\mathcal{G}_{tc}$ is its graph representation for dependency-preserving statement ordering.
-Finally, $\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges, acting as a fingerprint for deduplication and cache indexing.
+$\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where $V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency set and 
+$\mathcal{G}_{tc}$ is its graph representation for dependency-preserving ordering.
+$\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges for deduplication and cache indexing.
+% $\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges, acting as a fingerprint for deduplication and cache indexing.
 % \end{definition}
 
 
 \textbf{Structure-Aware AQT Generation.} 
-Unlike prior statement-level translators that process each SQL statement in isolation and emit a statement-local rewrite rule, \tool{} treats the whole test case as the abstraction unit, representing it as the AQT five-tuple. 
+Unlike prior statement-level translators that process each SQL statement in isolation and emit a statement-local rewrite rule, \tool{} treats the whole test case as the abstraction unit. 
+% , representing it as the AQT five-tuple
 Algorithm~\ref{alg:aqt_extraction} summarizes this extraction process. It first initializes the statement-unit list, dependency set, and extraction context.
 For each statement, \textsc{ExtractStmtTemplate} abstracts dialect-specific syntax into a normalized template while preserving scoped structures such as CTEs and subqueries (Line~\ref{line:alg1:stmtaqt}).
 \tool{} then derives read/write sets, records cross-statement dependencies, appends the template, and updates the context for subsequent statements (Lines~\ref{line:alg1:access}--\ref{line:alg1:schema}).
 After the loop, \tool{} snapshots the final context, builds the dependency graph, computes the structural hash, and returns the AQT five-tuple (Lines~\ref{line:alg1:finalize_d}--\ref{line:alg1:return}).
 This representation enables SQL test cases to be manipulated as structured graph-based objects rather than flat strings.
-\begin{algorithm}[ht]
+\begin{algorithm}[htbp]
 \small
 \caption{AQT Extraction}
 \label{alg:aqt_extraction}
@@ -535,6 +543,7 @@ $\mathcal{H} \leftarrow \textsc{SHA256}(\bigoplus_i \textsc{Skeleton}(\mathcal{U
     }   
     \label{fig:aqt_trans}
 \end{figure}
+
 For example, Figure~\ref{fig:aqt_trans} shows one statement from a source SQL test case containing a nested subquery, where the outer query filters records using an interval computation, e.g., ``\texttt{SELECT ... WHERE u.created\_at} \textgreater \texttt{(SELECT AGE(...) FROM ...)}''.
 The statement is first parsed into an AST, and structural boundaries are identified during recursive traversal. 
 The \texttt{SUBQUERY} root node is recognized as a boundary, decomposing the query into an outer block (ID 1) and an inner subquery (ID 2).
@@ -560,11 +569,11 @@ This step instantiates AQTs into syntactically valid target seed sequences while
 The instantiation respects the dependency order in $\mathcal{G}_{tc}$%
 % , the graph representation of $\Delta$
 : DDL and DML statements are instantiated before queries that depend on them, and the evolving target context is propagated across statements to maintain cross-statement type, reference, and state consistency.
-
 % 挑战+思路段：challenge 落在“递归实例化时目标侧语义正确 + 不打乱原测试用例顺序”；
 % 解决思路两点：RAG 闭环减少 hallucination；把翻译建模成 two-level instantiation，铺垫下面 Algorithm。
 The challenge is preserving target-side semantic correctness during recursive AQT-node instantiation without breaking the original test-case order.
 To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on a Retrieval-Augmented Generation (RAG) architecture, which grounds LLM outputs in retrieved dialect-specific evidence to reduce hallucinations.
+
 We formulate dialect translation as a two-level instantiation problem in which the outer level walks the statement dependency graph while preserving the original sequence for independent statements, and the inner level recursively instantiates each statement-level graph $\mathcal{G}^i$ in a bottom-up manner.
 \begin{algorithm}[htbp]
 \small
@@ -657,7 +666,6 @@ As shown in Figure~\ref{fig:agent_translation}, since \texttt{ID1} depends on th
 % As Figure~\ref{fig:feedback-driven} shows, upon receiving compatible seeds, \tool{} sanitizes and executes them in the target DBMS, using execution results to either proceed to mutation or trigger error-guided semantic repair, and produces a seed annotated with mutable regions to support fuzzing.
 Some DBMS features exceed the grammar supported by existing fuzzers, making otherwise executable target seeds difficult to mutate.
 The challenge is to adapt such features into fuzzer-compatible forms while preserving syntax correctness, semantic consistency, and mutation opportunities.
-
 % \smallskip
 % \noindent
 % \textbf{Feedback-Guided Adaptation.}
@@ -668,7 +676,7 @@ As shown in Figure~\ref{fig:feedback-driven}, compatible seeds are sanitized, ex
   \centering
   \includegraphics[scale=1.0, width=\linewidth]{media/feedback-driven.pdf}
   % \caption{Feedback-driven adaptive fuzzing workflow.}
-  \caption{Collaborative Workflow of Adaptive Query Sanitizing, Error-Guided Repairing, and Mutable Seed Generation in Feedback-Driven Fuzzing.}
+  \caption{Collaborative Workflow of Adaptive Query Sanitizing, Error-Guided Repairing, and Mutable Seed Generation in Feedback-Driven Adaptive Fuzzing.}
   \label{fig:feedback-driven}
 \end{figure}
 
@@ -729,27 +737,28 @@ We did not include traditional row-store OLTP systems, such as \mysql{} and Post
 All experiments were conducted on a Linux server equipped with an Intel Xeon CPU and 256 GB of RAM. To ensure reproducibility and isolation, each DBMS instance ran within a separate Docker container.
 
 \textbf{Collected Test Cases.}
-Following the prior methodology~\cite{fu2024sedar}, we collected built-in test cases from mature DBMS repositories (i.e., SQLite~\cite{sqlite}, MySQL~\cite{mysql}, and PostgreSQL~\cite{pg}) for transfer. Table~\ref{tab:collected_seeds} shows the statistics on collected test cases in each DBMS.
-Specifically, the dataset aggregates 426,968 SQL statements across 6,695 files, totaling 54.4 MiB of query text. 
+Following the prior methodology~\cite{fu2024sedar}, we collected built-in test cases from mature DBMS repositories (i.e., SQLite~\cite{sqlite}, MySQL~\cite{mysql}, and PostgreSQL~\cite{pg}) for transfer. 
+% Table~\ref{tab:collected_seeds} shows the statistics on collected test cases in each DBMS.
+The dataset aggregates 447,357 SQL statements across 6,875 files, totaling 55.7 MiB of query text.
 
-\begin{table}[t]
-\centering
-\caption{Statistics of collected test cases from source DBMSs.}
-\label{tab:collected_seeds}
-\small
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{lccc}
-    \toprule
-    Source DBMS & Test Cases & Statements & Size \\
-    \midrule
-    SQLite & 2,643 & 308,292 & 31 MiB \\
-    MySQL & 2,685 & 98,862 & 15 MiB \\
-    PostgreSQL & 1,367 & 19,814 & 8.4 MiB \\
-    \midrule
-    Total & 6,695 & 426,968 & 54.4 MiB \\
-    \bottomrule
-\end{tabular}
-\end{table}
+% \begin{table}[t]
+% \centering
+% \caption{Statistics of collected test cases from source DBMSs.}
+% \label{tab:collected_seeds}
+% \small
+% \setlength{\tabcolsep}{5pt}
+% \begin{tabular}{lccc}
+%     \toprule
+%     Source DBMS & Test Cases & Statements & Size \\
+%     \midrule
+%     SQLite & 2,643 & 308,292 & 31 MiB \\
+%     MySQL & 2,685 & 98,862 & 15 MiB \\
+%     PostgreSQL & 1,367 & 19,814 & 8.4 MiB \\
+%     \midrule
+%     Total & 6,695 & 426,968 & 54.4 MiB \\
+%     \bottomrule
+% \end{tabular}
+% \end{table}
 
 \textbf{Evaluation Metrics.}
 We employ three metrics to evaluate \tool{}.
@@ -797,19 +806,21 @@ Third, for real-world bug discovery, we report the number of detected unique bug
   & function  & SEGV(1)                \\
   & server    & AF(1)                  \\
 \midrule
-Total & 7 components & \textbf{20 confirmed, 28 detected} \\
+Total & 9 components & \textbf{20 confirmed, 28 detected} \\
 \bottomrule
 \end{tabularx}
 \par\vspace{0.2em}
 {\footnotesize \textbf{UAF}: Use-After-Free; \textbf{AF}: Assertion Failure; \textbf{NPD}: Null Pointer Dereference; \textbf{DBZ}: Divide-by-Zero; \textbf{SEGV}: Segfault; \textbf{OOM}: Out of Memory.}
 \end{table}
 
-RQ1 evaluates \tool{}'s real-world bug-finding impact over the full campaign. We deployed it on the development versions of the four target DBMSs. As summarized in Table~\ref{tab:real-world-bugs}, the campaign uncovered \bugcnt{} unique bugs. 
+RQ1 evaluates \tool{}'s real-world bug-finding impact over the full campaign. We deployed \tool{} on the development versions of the four target DBMSs. As summarized in Table~\ref{tab:real-world-bugs}, the campaign uncovered \bugcnt{} unique bugs. 
 Among these issues, \bugconfirmcnt{} have been confirmed by the vendors, of which \bugfixcnt{} critical bugs have already been fixed. 
+
+These bugs have received positive feedback and careful attention from the corresponding database developers.
 For instance, regarding the fixed bug in DuckDB (\#205xx), the developers appreciated the report exposing an intricate type inference flaw in the \textit{Executor}, which was triggered by preserving complex cross-table correlations from \pg{}. 
 They merged a fix within days, further validating that \tool{} successfully identified deep-seated bugs missed by existing test suites.
 Moreover, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
-The detected bugs are not limited to the surface level (e.g., Parser) but penetrate deep into the DBMS kernels. As shown in the \textit{Component} column of Table~\ref{tab:real-world-bugs}, the bugs span critical subsystems including the Optimizer, Binder, and Storage Engine.
+The detected bugs are not limited to the surface level (e.g., Parser) but penetrate deep into the DBMS kernels. As shown in the second column of Table~\ref{tab:real-world-bugs}, the bugs span critical subsystems including the Optimizer, Binder, and Storage Engine.
 
 \textbf{Case Study: An internal error in \duckdb{}.} 
 To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} (\#205xx) triggered by a complex query involving a nested \texttt{CROSS JOIN} and specific DDL configurations. Generally, in SQL dialects, join operations and subqueries are standard; however, the structural interaction between specific join types and aliased subqueries can induce a crash bug in \duckdb{} when executing the statement shown in the PoC. In this case, the source logic was derived from a PostgreSQL test case featuring a \texttt{CREATE TABLE} statement with \texttt{DOUBLE PRECISION} and a query containing a nested \texttt{CROSS JOIN}.
@@ -817,7 +828,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{media/casestudy.pdf}
-  \caption{An internal error in \duckdb{}(Bug \#205xx). \tool{} translates a test case of \pg{} to \duckdb{} while preserving data types and join logic.
+  \caption{An internal error in \duckdb{} (Bug \#205xx). \tool{} translates a test case of \pg{} to \duckdb{} while preserving data types and join logic.
   }
   \label{fig:casestudy}
 \end{figure}
@@ -836,8 +847,10 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 % - 目标：回答 transferred seeds 是否带来更深 fuzzing，不能只停留在 translation metrics。
 % - 对比对象分三类：generation/oracle fuzzer SQLancer、mutation fuzzer SQUIRREL、seed-transfer SOTA SedaR。
 % - 解释逻辑：branch coverage 提升 -> 更多 unique bugs -> structure-aware transfer 保留复杂语义，使 fuzzer 能绕过早期 rejection。
-RQ2 evaluates \tool{}'s comparative effectiveness under the controlled 24-hour setting. We compared \tool{} against four state-of-the-art DBMS testing tools: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), and \sedar{}~\cite{fu2024sedar}.
-We normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
+RQ2 evaluates \tool{}'s effectiveness by comparing it to other fuzzing tools under the same setting. 
+We compared \tool{} against four state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), and \sedar{}~\cite{fu2024sedar}.
+% After fuzzing, we normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
+After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes using stack-trace hashing followed by manual inspection for verification.
 \begin{table}[!t]
 \centering
 \caption{Number of branches covered by different tools (24h).}
@@ -862,8 +875,23 @@ We normalized coverage through a unified dry run and deduplicated crashes using 
 \noindent\makebox[\columnwidth][l]{\scriptsize * Calculated only for commonly supported DBMSs.}
 }
 
-\par\vspace{0.3em}
+% \par\vspace{0.3em}
 
+\end{table}
+
+
+As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest branch coverage across all evaluated DBMSs, covering 422,130 branches in total.
+This corresponds to overall improvements of 528\%, 60\%, 54\%, and 14\% over \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, on their supported targets.
+Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
+\caption{Coverage growth over 24-hour fuzzing campaigns.}
+\label{fig:coverage_over_time}
+\end{figure}
+
+\begin{table}[!b]
 \centering
 \caption{Number of bugs detected by different tools (24h).}
 \label{tab:bugs}
@@ -885,21 +913,11 @@ We normalized coverage through a unified dry run and deduplicated crashes using 
 }
 \end{table}
 
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.92\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
-\caption{Coverage growth over 24-hour fuzzing campaigns.}
-\label{fig:coverage_over_time}
-\end{figure}
-
-As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest branch coverage across all evaluated DBMSs, covering 422,130 branches in total.
-This corresponds to overall improvements of 528\%, 60\%, 54\%, and 14\% over \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, on their supported targets.
-Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
-
 The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} across the four DBMSs. 
 This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
-Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper optimizer and executor logic, and trigger critical vulnerabilities.
+Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper code logic, and trigger more bugs.
+% optimizer and executor
 
 
 \begin{answerbox}
@@ -907,7 +925,7 @@ Unlike \sedar{}, which sacrifices semantic depth through destructive sanitizatio
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
 
-\subsection{RQ3: Effectiveness of Translation of \tool{}}
+\subsection{RQ3: Effectiveness of Transfer of \tool{}}
 % RQ3 写作逻辑 / Reviewer A、C 修改逻辑：
 % Review C-Q2/C-Q3 回应位置：Table 5/6 加入 SQLGlot、jOOQ、CrackSQL、RISE；unsupported target dialects 用 ``-'' 如实标注。
 % Review C-Presentation 回应位置：Table 6 前后正文使用 +411 functions / +34 data types / +496 keywords，修正旧版 +633 的计算问题。
@@ -927,15 +945,19 @@ We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end
 We evaluate these methods from two aspects: transferred-seed validity and SQL-feature richness.
 This evaluation targets fuzzing seed quality rather than cross-DBMS result equivalence: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation.
 
-\textbf{Validity of the Translated Test Cases.}
-As shown in Table~\ref{tab:validity}, directly executing source seeds yields low semantic correctness, dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
+\textbf{Validity of the Transferred Test Cases.}
+As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods by 5\%--62\% in syntax correctness and 100\%--450\% in semantic correctness.
+Directly executing source seeds yields low semantic correctness, dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
 Existing translators improve syntactic acceptance but still leave a semantic gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 semantic correctness.
-RISE's statement-level design is especially limited for seed transfer: in SQLite-to-DuckDB, our test-case-level transfer raises semantic correctness from 0.314 to 0.776.
+
+Existing SQL translation tools primarily operate at the statement level and are designed for query migration rather than fuzzing seed transfer. For example, RISE's statement-level design is particularly limited in seed transfer scenarios. In the SQLite-to-DuckDB setting, our test-case-level transfer improves semantic correctness from 0.314 to 0.776.
 When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves 34\% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
-Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
-Compared with \sedar{}, \tool{} achieves the best result in every column, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
+% Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
+
+Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
 As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from the lack of explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
-These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability and executability.
+These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability.
+% and executability.
 
 
 \begin{table}[!htbp]
@@ -971,12 +993,23 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 {\footnotesize Syn./Sem.: syntactic/semantic correctness; ``-'': unsupported dialects.}
 \end{table}
 
+
+\textbf{Semantic Richness of the Transferred Test Cases.}
+Beyond validity, we measure whether transferred seeds retain testing value by counting valid functions, data types, and keywords.
+As shown in Table~\ref{tab:diversity}, \tool{} preserves on average 126\% more functions, 60\% more data types, and 73\% more keywords than baselines.
+% In particular, \tool{} discovers 66\% more functions, 23\% more data types, and 57\% more keywords compared to the state-of-the-art tool \sedar{}.
+% \TODO{The diversity gap mainly comes from sanitization strategy: \sedar{} may comment out unparsable casts or function calls, whereas \tool{} constructively instantiates abstract structures into target-compliant forms, preserving more feature-rich inputs for downstream mutation.}
+The diversity gap mainly comes from how each baseline handles unmappable constructs: statement-level translators raise errors or omit them entirely, while \sedar{} comments them out, whereas \tool{} constructively instantiates abstract structures into target-compliant forms via retrieved dialect evidence, preserving more feature-rich inputs for downstream mutation.
+
+%特别的，\tool{}相比Sedar多发现了66\% functions, 23\% data types, and 57\% more keywords.
+% 1,036 functions, 180 data types, and 1,368 keywords, exceeding \sedar{} by 411, 34, and 496, respectively (66\%, 23\%, and 57\%).
+
 \begin{table}[!htbp]
 \centering
 \caption{Valid SQL features in transferred seeds.}
 \label{tab:diversity}
-{\footnotesize
-\setlength{\tabcolsep}{0.8pt}
+\scriptsize
+\setlength{\tabcolsep}{1pt}
 \renewcommand{\arraystretch}{0.95}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}l|ccc|ccc|ccc|ccc@{}}
@@ -1000,19 +1033,20 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
     vs. \sedar{} (\%) & +22 & +0 & +52 & +67 & +41 & +146 & +113 & +62 & +40 & +46 & +5 & +23 \\ \bottomrule
 \end{tabular}
 	}
-	}
 \par\vspace{0.2em}
 {\footnotesize F/DT/K: functions/data types/keywords; ``-'': unsupported dialects.}
 \end{table}
 
-\textbf{Semantic Richness of the Translated Test Cases.}
-Beyond validity, we measure whether transferred seeds retain testing value by counting valid functions, data types, and keywords.
-As shown in Table~\ref{tab:diversity}, \tool{} preserves 1,036 functions, 180 data types, and 1,368 keywords, exceeding \sedar{} by 411, 34, and 496, respectively (66\%, 23\%, and 57\%).
 
-The diversity gap mainly comes from sanitization strategy: \sedar{} may comment out unparsable casts or function calls, whereas \tool{} constructively instantiates abstract structures into target-compliant forms, preserving more feature-rich inputs for downstream mutation.
 
 \begin{answerbox}
-\textbf{Answer to RQ3:} \tool{} achieves the strongest validity and feature-richness results, improving semantic correctness by up to 272\% over \sedar{} and preserving 411 more functions, 34 more data types, and 496 more keywords.
+\textbf{Answer to RQ3:} 
+% \tool{} achieves the strongest validity and feature-richness results, improving semantic correctness by up to 272\% over \sedar{} and preserving 411 more functions, 34 more data types, and 496 more keywords.
+\tool{} outperforms baselines by 5\%--62\% in syntax correctness and 100\%--450\% in semantic correctness.
+It also preserves on average 126\% more functions, 60\% more data types, and 73\% more keywords than baselines.
+% The results demonstrate that the transfer methods in \tool{} ensure generated seeds are both executable and rich in testing logic.
+The results demonstrate that the transfer methods in \tool{} produce seeds that are both executable and rich in testing-relevant logic.
+% By eliminating semantic hallucinations and employing constructive instantiation, \tool{} ensures generated seeds are both executable and rich in testing logic.
 \end{answerbox}
 
 \subsection{RQ4: Contribution of Individual Components}
@@ -1024,10 +1058,9 @@ The diversity gap mainly comes from sanitization strategy: \sedar{} may comment 
 To analyze the specific contributions of the individual components within \tool{}, we conducted an ablation study across two phases. 
 For the \textit{translation phase}, we evaluated four main variants using the task of  \pg{}-to-\duckdb{} transfer:
 (1) $\tool{}_{\textit{base}}$: the baseline using direct zero-shot LLM translation (i.e., prompting the LLM with the raw SQL and asking for a direct translation, unlike the No translation baseline which executes the raw, untranslated SQL directly);
-(2) $\tool{}_{\textit{abs}}$: equipped solely with \textit{Syntax-Aware Query Abstraction};
+(2) $\tool{}_{\textit{abs}}$: equipped solely with \textit{Structure-Preserving Abstraction};
 (3) $\tool{}_{\textit{rag}}$: equipped solely with \textit{Dialect-Aware AQT Instantiation};
 (4) $\tool{}_{\textit{full}}$: the complete framework integrating both components.
-We additionally evaluate $\tool{}_{\textit{w/o-ctx}}$ to isolate the contribution of cross-statement context propagation.
 
 For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanitizer} operates independently during runtime fuzzing and does not affect translation quality, we further introduce \tooldisfuzzer{} as a controlled variant where the runtime feedback loop is disabled and invalid seeds are directly discarded, and compare it against $\tool{}_{\textit{full}}$ where the sanitizer actively repairs parsing errors to maximize seed acceptance.
 
@@ -1039,23 +1072,37 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 \vspace{-0.8em}
 \end{figure}
 
-\textbf{Contribution of Syntax-Aware Query Abstraction and Dialect-Aware AQT Instantiation. }
-As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Syntax-Aware Query Abstraction} and the \textit{Dialect-Aware AQT Instantiation} are disabled, the syntactic correctness is 51\% and the semantic correctness of $\tool{}_{\textit{base}}$ is 27\%.
-With \textit{Syntax-Aware Query Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The semantic correctness also increases to 32\%.
+\textbf{Contribution of Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation. }
+As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Structure-Preserving Abstraction} and the \textit{Dialect-Aware AQT Instantiation} are disabled, the syntactic correctness is 51\% and the semantic correctness of $\tool{}_{\textit{base}}$ is 27\%.
+With \textit{Structure-Preserving Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The semantic correctness also increases to 32\%.
 Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases semantic correctness to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
-The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic correctness and \textbf{65\%} semantic correctness.
+The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} semantic correctness.
+
+Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema, type, and state context across statements to preserve test-case-level dependencies.
+To isolate this effect, we disable context propagation in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
+This reduces semantic correctness from 65.1\% to 52.4\% (-12.7\%) while only slightly reducing syntactic correctness to 93.5\% (-1.7\%).
+The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
+\begin{comment}
 \textbf{Contribution of Cross-Statement Context Propagation.}
 To isolate test-case-level dependency modeling, we disable cross-statement context propagation in $\tool{}_{\textit{w/o-ctx}}$ while keeping the same statement-level instantiation and local dialect mappings.
 Under the same setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{w/o-ctx}}$ achieves 93.5\% syntactic correctness (-1.7\%) and 52.4\% semantic correctness (-12.7\%) compared with $\tool{}_{\textit{full}}$.
 This semantic drop shows that executable test-case transfer requires propagating schema, type, and state context across statements.
+\end{comment}
 
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
-To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
+To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
 Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
-Without adaptive repair, \tooldisfuzzer{} suffers high parser-stage rejection. $\tool{}_{\textit{full}}$ repairs such errors, recovers invalid seeds, and expands fuzzing depth. 
+% Taking \duckdb{} as an example, \tooldisfuzzer{} achieves a coverage of 118,453 branches. 
+When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
+In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and be used for fuzzers to explore more state space of target DBMSs. 
+
+
+% To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
+% Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
+% Without adaptive repair, \tooldisfuzzer{} suffers high parser-stage rejection. $\tool{}_{\textit{full}}$ repairs such errors, recovers invalid seeds, and expands fuzzing depth. 
 
 \begin{table}[!t]
 \centering
@@ -1076,8 +1123,14 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 \vspace{-0.8em}
 \end{table}
 
+% \begin{answerbox}
+% \textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, cross-statement context propagation raises semantic correctness from 52.4\% to 65.1\%, and the sanitizer further increases branch coverage by up to 39\%.
+% \end{answerbox}
+
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, cross-statement context propagation raises semantic correctness from 52.4\% to 65.1\%, and the sanitizer further increases branch coverage by up to 39\%.
+\textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 37\%. $\tool{}_{\textit{rag}}$ ensures semantic alignment, boosting validity by 21\%. $\tool{}_{\textit{full}}$ achieves a  improvement of 44\% in syntax and 38\% in semantics. 
+% cumulative
+Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
 \end{answerbox}
 
 \section{Discussion}
@@ -1093,9 +1146,19 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 % - 说明 T=0.2 来自 success/stability 的折中，参数选择有实验依据。
 % - 这里承接 Evaluation setup 中的参数选择句，正文只保留必要数字。
 \textbf{LLM Parameter Selection. } \label{sec:llm-params}
-We use T=0.2 because it achieves 95\% translation success and 91\% first-attempt stability, outperforming T=0.5 (92\%/78\%) and T=0.8 (85\%/70\%).
+% We use T=0.2 because it achieves 95\% translation success and 91\% first-attempt stability, outperforming T=0.5 (92\%/78\%) and T=0.8 (85\%/70\%).
+% Lower temperatures yielded higher consistency: 
+To ensure reproducibility, we conduct a sensitivity analysis on the temperature parameter (0.2, 0.5, 0.8). 
+The results show that $T=0.2$ achieves a 95\% translation success rate and 91\% first-attempt stability, outperforming $T=0.5$ (92\%/78\%) and $T=0.8$ (85\%/70\%). 
+Based on these results, we set $T=0.2$ for all experiments to ensure both reliability and reproducibility.
 
-\begin{table}[!b]
+% To ensure reproducibility, we conducted a sensitivity analysis on the temperature parameter across three values (0.2, 0.5, 0.8). 
+% The results show that
+% T=0.2 achieved 95\% translation success rate with 91\% first-attempt stability, outperforming T=0.5 (92\%/78\%) and T=0.8 (85\%/70\%). 
+% This indicates that lower temperature settings help the model produce more deterministic outputs while still maintaining semantic correctness. 
+% Based on this analysis, we adopt T=0.2 for all experiments to balance reliability and flexibility, ensuring that the translated queries remain both valid and reproducible across runs.
+
+\begin{table}[!t]
 \centering
 \small
 \caption{LLM comparison. TS denotes Test Suite.}
@@ -1110,7 +1173,7 @@ GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
 DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
 Qwen3.5-27B & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \bottomrule
-\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with depth thinking mode}
+\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with deep thinking mode}
 \end{tabular*}
 \end{table}
 
@@ -1119,7 +1182,12 @@ Qwen3.5-27B & 0.971 & 0.852 & 0.119 & 1395.6 \\
 % - 先承认更强模型可能提高 semantic correctness。
 % - 再用 cost/time 和 GPT-3.5 结果说明主要增益来自 AQT-guided method，减弱单一模型解释。
 \textbf{Impact of the Underlying LLM.}
-Table~\ref{tab:llm_comparison} supports Gemini 2.5-flash-lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
+% Table~\ref{tab:llm_comparison} supports Gemini 2.5-flash-lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
+% We justify the selection of Gemini 2.5-flash-lite for \tool{} by showing the experiments on \monetdb{} with different LLMs: while Qwen3.5-27b achieves slightly higher semantic correctness (0.852), it incurs a 36$\times$ higher monetary cost and 9.5$\times$ longer migration time per test suite. Gemini presents the optimal balance of high validity (0.776 semantic rate), lowest cost, and fastest throughput, making it highly practical for large-scale seed generation tasks.
+% Meanwhile, this result also indirectly validates that the performance gains of \tool{} mainly stem from algorithmic design rather than using different LLMs: under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still achieves 0.89 syntactic correctness and 0.533 semantic correctness, outperforming \sedar{} (i.e., 0.781 and 0.388), indicating that the improvements are primarily driven by the proposed method rather than model capacity.
+We justify the selection of Gemini 2.5-flash-lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27b achieves slightly higher semantic correctness (0.852), it incurs 36$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation.
+Under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still outperforms it in syntactic (0.89 vs. 0.781) and semantic correctness (0.533 vs. 0.388), indicating that the gains mainly come from the proposed method rather than model capacity.
+
 % Extensibility 写作逻辑 / Reviewer B、C 修改逻辑：
 % Review A-Soundness2/A-Q2 回应位置：表格列出四个 target DBMS 的 auto rules、manual corrections、ratio。
 % Review B-Q2/B-Q3 回应位置：人工修正规则比例、1--3 分钟经验成本、DuckDB 人工规则消融一起回答维护成本与收益。
@@ -1154,10 +1222,10 @@ Total & 3,076 & 136 & 4.2\% \\
 \end{tabular*}
 \end{table}
 
-These results show that most dialect support is obtained automatically, while manual review is limited to a small number of unmapped or ambiguous constructs.
-To quantify the benefit of this manual effort, we remove the 42 manually corrected DuckDB rules and rerun \tool{} on DuckDB.
-The manually reviewed rules allow \tool{} to cover 14,087 additional branches and find two more bugs than the fully automated version.
-Thus, manual review provides additional gains, but the majority of coverage and bug-finding capability comes from the automated extraction, instantiation, and repair pipeline.
+% These results show that most dialect support is obtained automatically, while manual review is limited to a small number of unmapped or ambiguous constructs.
+% To quantify the benefit of this manual effort, we remove the 42 manually corrected DuckDB rules and rerun \tool{} on DuckDB.
+% The manually reviewed rules allow \tool{} to cover 14,087 additional branches and find two more bugs than the fully automated version.
+% Thus, manual review provides additional gains, but the majority of coverage and bug-finding capability comes from the automated extraction, instantiation, and repair pipeline.
 
 % 后续可能有用：如果需要扩展 future work，可说明 Morph 的 AQT transfer 还能迁移 SQLancer-style oracles 或 cross-DBMS consistency checks，用于 logic/semantic bug detection。
 
@@ -1179,7 +1247,16 @@ Thus, manual review provides additional gains, but the majority of coverage and 
 
 \subsection{DBMS Fuzzing}
 Fuzzing is one of the most effective automated testing techniques for identifying DBMS vulnerabilities.
-Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlancer, rigger2020testing}, and DynSQL~\cite{jiang2023dynsql}, construct SQL queries from hard-coded rules or semantic oracles, while recent clause-guided and differential methods further improve logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}. However, predefined templates can limit complex scenarios~\cite{gao2023comprehensive}. Mutation-based fuzzers instead evolve seed pools: \squirrel{}~\cite{zhong2020squirrel} uses IR-based mutations, \griffin{}~\cite{fu2022griffin} uses grammar-free metadata replacement, and LEGO~\cite{liang2023sequence} combines SQL statement sequences. 
+% Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlancer, rigger2020testing}, and DynSQL~\cite{jiang2023dynsql}, construct SQL queries from hard-coded rules or semantic oracles, while recent clause-guided and differential methods further improve logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}. 
+Generation-based tools construct queries via predefined rules or semantic oracles. 
+SQLsmith~\cite{sqlsmith} randomly instantiates queries from a grammar. 
+SQLancer~\cite{sqlancer,rigger2020testing} applies oracles to detect logic bugs.
+DynSQL~\cite{jiang2023dynsql} leverages dynamic feedback to guide query mutation. 
+More recently, clause-guided and differential methods have further improved logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}.
+However, predefined templates can limit complex scenarios~\cite{gao2023comprehensive}. 
+% Mutation-based fuzzers instead evolve seed pools: 
+Mutation-based fuzzers generate test cases by continuously evolving a pool of seed inputs, rather than constructing them from scratch. 
+\squirrel{}~\cite{zhong2020squirrel} uses IR-based mutations, \griffin{}~\cite{fu2022griffin} uses grammar-free metadata replacement, and LEGO~\cite{liang2023sequence} combines SQL statement sequences. 
 These fuzzers are effective once suitable seeds or generation rules are available, but they do not directly address how to obtain high-quality seeds for emerging DBMSs.
 
 Unlike these works, \tool{} focuses on the upstream \textit{seed acquisition} problem by transferring mature DBMS test cases into target-compatible seed sequences.
@@ -1211,27 +1288,34 @@ In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where ex
 \subsection{Cross-Dialect SQL Translation}
 General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ~\cite{jooq}, exploit the deterministic structure of SQL dialects and encode dialect mappings as parser or transpiler rules, making them useful for recurring statement-level conversions in query migration and application compatibility.
 However, constructing and maintaining these rules requires significant dialect expertise.
-Recent studies have reduced the manual effort required for dialect migration.
-CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation, RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, and QTRAN~\cite{lin2025qtran} extends metamorphic-oracle based testing across DBMS dialects.
-Overall, existing SQL translation systems do not target fuzzing-oriented whole-test-case seed transfer, where cross-statement dependencies, evolving schema context, and compatibility with downstream fuzzer grammars must be preserved.
+Recent studies have reduced this manual effort by learning or deriving translation behaviors automatically.
+% CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation.
+CrackSQL~\cite{zhou2025cracking} employs genetic algorithms alongside LLMs to mine complex mutation patterns.
+QTRAN~\cite{lin2025qtran} extends metamorphic-oracle-based testing across DBMS dialects.
+% RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, 
+RISE~\cite{xie2026rise} translates a query by first reducing a complex input to a simpler form, learning the local dialect rewrite from that reduced form, and then applying the rewrite back to the original query.
+While this strategy improves robustness, it still treats a single query as the basic translation unit and does not account for multi-statement interactions.
 
-Among these translation-oriented systems, RISE~\cite{xie2026rise} is the closest comparison, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
-It translates a query by first reducing a complex input to a simpler form, learning the local dialect rewrite from that reduced form, and then applying the rewrite back to the original query.
-However, RISE still treats a single query as the translation unit.
-The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements.
-Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
-Unlike RISE, which transfers a reduced query containing a single dialect element, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
+% Overall, existing SQL translation methods do not target fuzzing-oriented whole-test-case seed transfer, where cross-statement dependencies, evolving schema context, and compatibility with downstream fuzzer grammars must be preserved.
+% However, existing SQL translation methods treats a single query as the translation unit.
+Overall, existing SQL translation methods treat a single query as the translation unit rather than targeting fuzzing-oriented whole-test-case seed transfer where cross-statement dependencies, evolving schema context, and compatibility with downstream fuzzer grammars must be preserved. 
+% Unlike RISE, which transfers a reduced query containing a single dialect element, 
+Unlike them, \tool{} transfers the entire seed sequence as normalized per-statement forms within an AQT while preserving cross-statement dependencies and evolving schema context.
+% Among these translation-oriented systems, RISE~\cite{xie2026rise} is the closest comparison, because its dialect-aware query reduction also separates dialect-specific elements from surrounding SQL.
+% The final DQL statement within a source seed often relies on schema elements and data conditions created by prior DDL and DML statements.
+% Translating the query in isolation does not produce a valid seed if those preparatory statements are not migrated in a consistent manner.
+
 
 \section{Conclusion}
 \label{sec:conclusion}
 % Conclusion 写作逻辑：
 % - 一句话回收 problem/method/results/future work，不再引入新概念。
-% - 保持和全文术语一致：Dialect-Aware AQT Instantiation + adaptive sanitization。
+% - 保持和全文术语一致
 We propose \tool{}, an automated fuzzing framework that extracts dialect-agnostic AQTs, instantiates them through Dialect-Aware AQT Instantiation, and applies adaptive sanitization for cross-dialect DBMS fuzzing. Across four DBMSs, \tool{} improves semantic correctness by up to 272\%, achieves higher coverage than \sedar{}, and detects \bugcnt{} unknown bugs. Future work will extend \tool{} beyond relational DBMSs.
 
-% \section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
-\section{Data Availability}
-Artifacts and data released with the paper are available in an anonymous Zenodo archive~\cite{morph-artifact}.
+\section{Data Availability} Artifacts and data are available on anonymous Zenodo~\cite{morph-artifact}.
+% \section{Data Availability}
+% Artifacts and data released with the paper are available in an anonymous Zenodo archive~\cite{morph-artifact}.
 % we also provide an anonymous mirror at \url{https://anonymous.4open.science/r/Morph-82DE}. Both links contain the same artifact content.
 
 
