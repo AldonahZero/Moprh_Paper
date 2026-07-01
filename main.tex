@@ -383,8 +383,7 @@ Existing methods typically comment out unsupported features to support seed muta
   % \caption{\textbf{Overview of \tool{}.} \tool{} combines structure-preserving transfer with feedback-guided fuzzing.}
    \caption{\textbf{Overview of the \tool{}.} \tool{} generates high-quality cross-dialect test cases following three steps: 
   (1) Structure-Preserving Abstraction. \tool{} first parses SQL into an AST and extracts schema information, then replaces dialect-specific syntax with generic labels while preserving cross-statement dependencies to construct AQTs.
-  (2) Dialect-Aware AQT Instantiation. 
-  \tool{} uses a task planner to decompose test case transformations and instantiates AQT nodes by retrieving dialect evidence from a hybrid knowledge base, invoking the LLM only for bounded rule generation and local error correction.
+  (2) Dialect-Aware AQT Instantiation.  \tool{} uses a task planner to decompose test case transformations and instantiates AQT nodes by retrieving dialect evidence from a hybrid knowledge base, invoking the LLM only for bounded rule generation and local error correction.
   % \tool{} uses a task planner to decompose test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
   % \tool{} uses a task planner to decompose complex test case transformations and a hybrid knowledge base to guide the LLM, enabling SQL transformation, rule generation, and error correction.
   (3) Feedback-Driven Adaptive Fuzzing. It fixes syntax incompatibilities, then uses DBMS execution feedback to repair remaining errors, and finally marks mutable regions in the mutable seeds to guide fuzzer mutations.
