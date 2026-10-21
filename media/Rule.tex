@@ -115,7 +115,7 @@
 };
 
 % ============================================================
-% 2. Test-Oriented Skill Execution (Center)
+% 2. LLM Dynamic Skill Executor (Center)
 % ============================================================
 % 增加 text width 确保宽度一致，设置 align=center
 \tikzset{
@@ -139,7 +139,7 @@
 
 % LLM 标题
 \node[below=0.2cm of llm.north, font=\small\bfseries\sffamily] (llmTitle) {
-    \faBrain \quad Test-Oriented Skill Execution
+    \faBrain \quad LLM Dynamic Skill Executor
 };
 
 % Skills Arrangement (Triangle)
@@ -162,9 +162,9 @@
 };
 
 % Internal Flow Arrows
-% 1. Generator -> Translator (Candidate Rule) - From Left-South
+% 1. Generator -> Translator (New Rule) - From Left-South
 \draw[-latex, thick, black!60] (generator.225) -- (translator.north) 
-    node[midway, left, font=\tiny, xshift=-2pt] {Candidate Rule};
+    node[midway, left, font=\tiny, xshift=-2pt] {New Rule};
 
 % 2. Translator -> Fixer (Draft Fragment)
 \draw[-latex, thick, black!60] (translator.east) -- (fixer.west) 
