@@ -158,7 +158,6 @@ DBMS Fuzzing, Initial Seeds, Cross-DBMS SQL Transfer
 \end{IEEEkeywords}
 
 % Reviewer 修改逻辑总览：
-% - Reviewer B/Q1 novelty vs. SedaR：Introduction、Approach overview、Related Work 统一强调 SedaR 是 LLM text translation + destructive sanitization，Morph 是 AQT-Guided whole-test-case instantiation + feedback repair，并用 RQ3/RQ2 数字支撑差异。
 % - Reviewer A/Q1 novelty vs. RISE：Introduction、Related Work、RQ3 统一强调 RISE 是 SELECT statement-level translation，Morph 是 fuzzing seed 的 whole-test-case transfer；rules 只是局部 AQT-node instantiation operator。
 % - Reviewer C/Q1 semantic correctness：Evaluation setup/RQ3 明确 semantic correctness 指目标 DBMS 无 runtime error 执行成功，区别于源/目标结果等价；semantic richness 另用 functions/data types/keywords 衡量。
 % - Reviewer B/C extensibility/manual effort：Discussion 中用 manual effort 表说明规则主要自动抽取，人工只 review/correction 少量 unmapped constructs。
