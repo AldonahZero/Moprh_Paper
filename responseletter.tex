@@ -1,0 +1,342 @@
+% MORPH / ICSE 2027 paper #1111 -- major-revision response letter.
+% Standalone source in the Morph__Paper manuscript root. Compile with pdfLaTeX.
+% Visual reference: teacher's ICSE 2024 author_response PDF (no source supplied).
+% Maintain the CLEAN manuscript and this letter together, one comment at a time.
+% Generate the highlighted manuscript from the frozen submitted source and CLEAN
+% source. Never edit the generated latexdiff source as the authoritative paper.
+% Original review wording and numbering; every reply is a TODO placeholder.
+% Source: MajorRevision/MajorRevision.md (reviews, not the embedded rebuttal).
+% Preserve original unnumbered bullets and typographical errors.
+\documentclass[12pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{mathptmx}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{booktabs,tabularx,array}
+\usepackage{needspace}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={MORPH: Response Letter -- ICSE 2027 Paper 1111},pdfauthor={}}
+\newif\ifdraft
+\drafttrue
+\definecolor{draftblue}{RGB}{35,78,130}
+\setlength{\parindent}{1.25em}
+\setlength{\parskip}{1.5pt}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\arraystretch}{1.15}
+\newcommand{\morph}{\textsc{Morph}}
+\newcommand{\sedar}{\textsc{Sedar}}
+\newcommand{\griffin}{\textsc{Griffin}}
+\newcommand{\reviewheading}[1]{\par\addvspace{10pt}\Needspace{5\baselineskip}\noindent\textbf{#1}\par}
+\newcommand{\reply}{\noindent\textbf{Reply:}\ }
+
+\begin{document}
+\begin{flushleft}
+{\LARGE\bfseries Response Letter}\par\medskip
+{\normalsize\bfseries ICSE 2027 -- Paper \#1111}\par
+Structure-Aware Cross-Dialect SQL Transfer for DBMS Fuzzing Seed Construction
+\end{flushleft}
+
+\noindent We thank the reviewers for their valuable comments. This letter lists the requested changes in the meta-review and the reviewers' original comments and questions.
+
+\ifdraft
+\par\noindent{\small\color{draftblue}\textbf{Working draft.} Review wording, original numbering, and unnumbered items are preserved. Only formatting and mathematical notation are adapted for LaTeX. All replies are TODO placeholders.}
+\fi
+
+\section*{Replies to Requested Changes}
+
+1. Correct the description of SEDAR's comment-before-mutation and restore-after-mutation mechanism. Clearly explain the actual methodological differences between MORPH and SEDAR, avoiding misleading characterizations of the latter.
+
+\reply TODO.
+
+
+2. Moderate the novelty claims and better distinguish MORPH from existing SQL translation approaches, particularly SEDAR, RISE, QTRAN, and CrackSQL. Explain more concretely what AQT and its associated mechanisms contribute beyond existing techniques, especially in the context of DBMS fuzzing.
+
+\reply TODO.
+
+
+3. Clarify how MORPH differs from and complements SmartFuzz in seed construction. The additional comparison is useful but limited in its experimental scope. The revision should acknowledge these limitations and avoid overstating comparative advantages.
+
+\reply TODO.
+
+
+4. Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
+
+\reply TODO.
+
+
+\section*{Replies to Reviewer A}
+
+\subsection*{Weaknesses}
+
+\noindent\textbullet\ The relationship with SEDAR and recent SQL translation systems is not characterized accurately.
+
+\reply TODO.
+
+
+\noindent\textbullet\ The independent role of the explicit dependency graph, beyond preserving the original order and propagating context, is insufficiently explained.
+
+\reply TODO.
+
+
+\noindent\textbullet\ The configurations and adaptations of several translation baselines are unclear.
+
+\reply TODO.
+
+
+\noindent\textbullet\ Some experimental and reproducibility information, including variance, campaign duration, and offline construction cost, is missing.
+
+\reply TODO.
+
+
+\subsection*{Detailed comments for authors}
+
+\reviewheading{1. Novelty}
+
+SEDAR is the closest predecessor because it addresses the same high-level problem of transferring existing DBMS test cases into fuzzing seeds. SEDAR already processes complete multi-statement test cases. It sequentially executes the source test, captures a referenced source-side sub-schema for each statement, translates individual statements, and restores their original order. Its mutability refinement also temporarily hides regions unsupported by the fuzzer parser during mutation and restores them before sending the resulting SQL to the target DBMS.
+
+MORPH should therefore not be positioned as the first whole-test-case transfer framework or the first system to adapt transferred seeds to downstream fuzzers. Nevertheless, MORPH provides clear technical advances over SEDAR. In particular, it replaces independent statement-level translation with an explicit AQT representation, forward read-after-write dependencies, evolving target-side context, dialect-evidence-guided instantiation, and parser/execution-feedback repair. SEDAR does not maintain translated target context across statements and explicitly leaves target-side execution-feedback regeneration as future work. I consider these differences meaningful.
+
+CrackSQL, RISE, and QTRAN provide relevant methodological precedents but address different tasks. CrackSQL already performs tree-based query decomposition, abstraction of translation-irrelevant content, target-syntax retrieval, localized translation, and operation-scope expansion. RISE reduces a complex query or procedural artifact, extracts a source-to-target AST rule, and applies the rule back to the original artifact. QTRAN uses dialect knowledge and RAG to translate an original query and regenerate its target-side mutant while preserving a metamorphic relation. These works show that structural decomposition, localized translation, and dialect-aware retrieval are not individually new. However, none of them models an independently executed stateful fuzzing test sequence, maintains target-side context across its statements, or integrates the result with coverage-guided seed mutation in the manner proposed by MORPH.
+
+The related-work discussion contains several details that should be corrected. In particular, the paper states that CrackSQL employs genetic algorithms to mine mutation patterns, but the cited work instead uses functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation. In addition, describing RISE as strictly processing a single SQL statement is too narrow because it also evaluates complete stored procedures containing control flow and multiple DML statements. A more accurate distinction is that RISE processes one self-contained query or procedural artifact at a time rather than a test file containing an ordered sequence of independently executed statements.
+
+Overall, the individual translation techniques have precedents, but their extension to explicit stateful seed transfer through AQT, target-context propagation, and feedback-driven repair constitutes a credible contribution.
+
+\reply TODO.
+
+
+\reviewheading{2. Technical Clarity}
+
+The AQT is a useful abstraction for organizing a transferred test case. In particular, the combination of normalized statement templates, read and write sets, and evolving schema context provides more structure than independent statement-level translation. The context ablation, where execution success decreases from 65.1\% to 52.4\%, provides evidence that cross-statement context improves target-side executability.
+
+However, the precise role and scope of the explicit dependency graph remain unclear. Algorithm 1 defines an edge from statement (i) to statement (j) when (\(i<j\)) and (\(R_j\cap W_i\neq\varnothing\)). This formalization captures forward read-after-write dependencies. Because every edge follows the original order, the original statement sequence is already a valid topological ordering, and the stable topological sort in Algorithm 2 normally preserves that order.
+
+It is therefore unclear what ($G_{tc}$) contributes independently beyond recording the dependencies and preserving an order that is already present. The reported ablation removes context propagation rather than the graph itself, so it establishes the value of context but not an independent benefit from (\(G_{tc}\)). The paper should explain whether the graph affects retrieval, prompting, repair, or any other step not apparent from the algorithms.
+
+The paper should also define the content and construction of the \textquotedblleft{}object-state summaries\textquotedblright{} in (D) and clarify which forms of state are represented. The current formal definition explicitly supports forward RAW dependencies and cumulative schema/type context. Broader descriptions such as preserving all schema, data, and state dependencies should be narrowed unless additional dependency forms are implemented.
+
+These issues do not invalidate the sequence-aware design, but clarifying them would make the technical contribution more precise.
+
+\reply TODO.
+
+
+\reviewheading{3. Semantic Correctness}
+
+The paper explicitly states that its evaluation targets fuzzing-seed quality rather than source-to-target result equivalence. This is a reasonable design choice. For fuzzing, a transferred seed primarily needs to be executable on the target DBMS, retain useful SQL structures, and be compatible with downstream mutation. Full semantic equivalence is not necessarily required for this purpose.
+
+However, the metric named \textquotedblleft{}Semantic Correctness\textquotedblright{} only checks whether a seed executes on the target DBMS without a runtime error. This establishes execution validity rather than semantic equivalence. The distinction is important because repair operations such as constant substitution and minimal commenting can change test behavior.
+
+I suggest renaming this metric to \textquotedblleft{}Execution Validity\textquotedblright{} or \textquotedblleft{}Runtime Validity\textquotedblright{} and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
+
+\reply TODO.
+
+
+\reviewheading{4. Evaluation}
+
+The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
+
+My main concern is the configuration of the translation baselines. The original CrackSQL evaluation focuses on PostgreSQL, MySQL, and Oracle, while RISE evaluates PostgreSQL-to-MySQL and PostgreSQL-to-Oracle translation. MORPH applies these systems to MonetDB, Virtuoso, DuckDB, and ClickHouse. The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
+
+The SEDAR reproduction also requires clarification. The original SEDAR mutability-refinement algorithm temporarily hides fuzzer-parser-incompatible regions and restores them after mutation. The paper currently summarizes this process as comment-out sanitization and attributes structural simplification to it. The authors should confirm whether their reproduction includes the restoration step. If the motivating example is an observed failure in the reproduced system rather than the general SEDAR algorithm, this distinction should be stated explicitly.
+
+The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
+
+The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
+
+Finally, the component ablation is performed only for PostgreSQL-to-DuckDB transfer. Extending at least the most important ablation, particularly context propagation, to additional source-target pairs would strengthen the generality of the findings.
+
+\reply TODO.
+
+
+\reviewheading{5. Relevance}
+
+The paper is highly relevant to the software engineering community. It connects software test reuse, program transformation, LLM-assisted translation, and coverage-guided fuzzing. The confirmed bugs show that the system addresses a practical testing problem rather than only improving intermediate translation metrics.
+
+\reply TODO.
+
+
+\reviewheading{6. Verifiability and transparency}
+
+The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
+
+For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
+
+\reply TODO.
+
+
+\reviewheading{7. Presentation}
+
+The overall workflow is clearly organized, and the separation into abstraction, instantiation, and feedback-driven fuzzing is easy to follow. The formal definition and algorithms help explain the intended representation.
+
+\reply TODO.
+
+
+\subsection*{Questions for authors\textquoteright{} response}
+
+1. Can the authors evaluate source-to-target result or state equivalence?
+
+\reply TODO.
+
+
+2. What independent benefit does the dependency graph provide beyond context propagation?
+
+\reply TODO.
+
+
+3. How were CrackSQL, RISE, and SEDAR adapted and configured for the four target DBMSs, and how did the authors ensure a fair comparison?
+
+\reply TODO.
+
+
+\section*{Replies to Reviewer B}
+
+\subsection*{Weaknesses}
+
+\noindent\textbullet\ Limited novelty
+
+\reply TODO.
+
+
+\noindent\textbullet\ Incomplete related work
+
+\reply TODO.
+
+
+\noindent\textbullet\ Inaccurate characterization of SEDAR
+
+\reply TODO.
+
+
+\noindent\textbullet\ Unclear source of improvement: Coverage gains may stem from larger/richer seed corpus rather than AQT-based translation itself.
+
+\reply TODO.
+
+
+\noindent\textbullet\ Translation overhead unclear
+
+\reply TODO.
+
+
+\subsection*{Detailed comments for authors}
+
+\reviewheading{1. Limited novelty.}
+
+The paper positions AQT as a key contribution, but AQT largely resembles an existing SQL AST or intermediate representation augmented with abstract labels, read/write sets, dependency edges, and schema context. The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). The distinction from these systems is insufficiently developed.
+
+    More importantly, the evaluation lacks compositional baselines such as "existing SQL translator + SEDAR/GRIFFIN" or "AST-based translation + GRIFFIN". Without such ablations, it is difficult to determine whether the contribution is a fundamentally new transfer technique or mainly an engineering integration of existing components. The authors should add such baselines or provide a clearer theoretical argument for why AQT enables capabilities that prior representations cannot achieve.
+
+\reply TODO.
+
+
+\reviewheading{2. Incomplete discussion of closely related work.}
+
+SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
+
+\reply TODO.
+
+
+\reviewheading{3. Potentially inaccurate characterization of SEDAR.}
+
+The paper characterizes SEDAR's comment-and-restore mechanism as "destructive sanitization" that "sacrifices semantic depth." However, SEDAR's mechanism is designed to temporarily hide target-specific constructs from downstream fuzzers' strict parsers during mutation and restore them afterward. This is a pragmatic compatibility strategy, not a destructive removal of query logic.
+
+    The authors should revise their characterization to accurately reflect SEDAR's design intent and clarify the actual difference: MORPH performs pre-migration repair to make seeds parser-compatible, whereas SEDAR defers some compatibility handling until after mutation. A fairer comparison would evaluate both approaches under the same downstream fuzzer (e.g., GRIFFIN) and measure the net effect of each strategy on mutation effectiveness.
+
+\reply TODO.
+
+
+\reviewheading{4. Questionable classification in Table I.}
+
+The classification of SQLGlot and jOOQ as entirely lacking "Test Case Migration" and "Cross-stmt Deps." support is overly absolute. In practice:
+
+    SQLGlot can parse and transpile multi-statement SQL scripts.
+
+    JOOQ's SQL Interpreter can maintain schema metadata across DDL and subsequent DML statements.
+
+    Conversely, CrackSQL is marked as supporting DML, but this is not sufficiently validated by the paper or external references.
+
+    The authors should: (a) clearly define what \(\checkmark\), \(\triangle\), and \(\times\) mean for each cell with specific criteria, (b) provide evidence for each classification (e.g., cite documentation or experimental verification), and (c) revise the table entries accordingly to avoid overclaiming.
+
+\reply TODO.
+
+
+\reviewheading{5. Unclear source of the improvement.}
+
+The reported coverage and bug-finding improvements may stem from a larger or more diverse effective seed corpus rather than the AQT-based translation technique itself. For a fair comparison with SEDAR, GRIFFIN, and SQUIRREL, all approaches should use exactly the same source seed corpus and produce comparable numbers of final seeds that pass the target parser.
+
+    The current experimental setup does not control for seed corpus size. The authors should: (a) report the number of valid seeds generated by each method before fuzzing, (b) normalize the corpus size across baselines, or (c) conduct an experiment where seed counts are equalized. This controlled setting is necessary to isolate the contribution of MORPH's SQL translation technique and demonstrate that improvements are not simply due to differences in seed quantity or diversity.
+
+\reply TODO.
+
+
+\reviewheading{6. Translation overhead is unclear.}
+
+Table VIII reports "Cost/TS" and "Time/TS" but does not specify the unit of measurement (e.g., USD per test suite? seconds per test suite?) or the size of the test suite being translated. Additionally, the paper does not compare MORPH's end-to-end translation time and LLM cost with previous methods such as SEDAR.
+
+    The authors should: (a) clearly define the units for cost and time, (b) report the average number of statements per test suite, (c) report per-seed translation time and cost, and (d) compare these overhead metrics against SEDAR and other baselines to demonstrate the practical feasibility of MORPH in real-world deployment.
+
+\reply TODO.
+
+
+\subsection*{Comments on artifact assessment}
+
+Bug evidence is insufficient. The bug links are inaccessible, and the triggering test cases are not publicly available. The artifact includes complete and executable source code.
+
+\reply TODO.
+
+
+\subsection*{Questions for authors\textquoteright{} response}
+
+Q1. Could the authors clarify whether the reported coverage/bug-finding improvements primarily stem from AQT-based translation or from a larger/richer effective seed corpus? In a controlled experiment where all baselines use exactly the same number and source of initial seeds, how much of the 14\% coverage gain over SEDAR remains attributable to AQT?
+
+\reply TODO.
+
+
+Q2. Regarding the characterization of SEDAR's comment-and-restore mechanism\textemdash{}if both MORPH and SEDAR ultimately feed compatible seeds to GRIFFIN, what is the exact difference in their post-mutation handling? Do seeds repaired by MORPH produce semantically equivalent mutated queries, whereas SEDAR's approach loses that equivalence? If not, what is the claimed advantage?
+
+\reply TODO.
+
+
+\section*{Replies to Reviewer C}
+
+\subsection*{Weaknesses}
+
+\noindent\textbullet\ The "semantic correctness" metric means only "executes without runtime errors," not result equivalence; a seed that runs but computes something different still counts. Using "+130-450\%" as a headline overstates what was measured.
+
+\reply TODO.
+
+
+\noindent\textbullet\ RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are "-", for unsupported targets, and the "528\% over SQLancer" headline is computed over only the two DBMSs that SQLancer supports.
+
+\reply TODO.
+
+
+\noindent\textbullet\ Numeric inconsistency: the text claims RISE transfer improved semantic correctness "from 0.314 to 0.776," but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.
+
+\reply TODO.
+
+
+\noindent\textbullet\ Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
+
+\reply TODO.
+
+
+\noindent\textbullet\ What's novel here is the conjunction of approaches: AST abstraction + RAG + parser-feedback repair, which are established ideas assembled around the AQT.
+
+\reply TODO.
+
+
+\noindent\textbullet\ RQ1 (28 bugs, unspecified "full campaign") vs RQ2 (22 bugs in 24h) relationship and campaign duration are unclear.
+
+\reply TODO.
+
+
+\subsection*{Detailed comments for authors}
+
+I would recommed tightening the validity claims: add a small differential check on transferred seeds (do they return equivalent results on a shared dialect subset?) to back the "semantic correctness" framing, and lean on coverage/bug counts rather than feature-richness as the primary evidence. For RQ2, publish baseline command lines and seed corpora in the artifact; the all-zero bug rows need more transparency, and SQLRight belongs in the comparison.
+
+\reply TODO.
+
+
+\end{document}
