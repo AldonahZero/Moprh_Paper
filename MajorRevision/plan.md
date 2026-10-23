@@ -13,8 +13,8 @@
 | 文件 | 用途 | 处理原则 |
 | --- | --- | --- |
 | `../MajorRevisonBack.tex` | 原始提交版本、最终 diff 基准 | 保持不变，包括文件名中的拼写 |
-| `../main.tex` | clean 正文 | 后续按本计划做局部修改；本轮不改 |
-| `../responseletter.tex` | 回复信 | 后续依据实际完成的修改写回复；本轮不改 |
+| `../main.tex` | clean 正文 | 你逐项认可后，只实施对应单项；本轮不改 |
+| `../responseletter.tex` | 回复信 | 依据实际完成的修改另行确认更新；本轮不改 |
 | `MajorRevision.md` | 评审意见与已有 rebuttal | 作为要求及已有实验陈述的来源 |
 | 本文件 | 修改计划 | 记录拟改内容、证据核查和验收事项 |
 
@@ -22,11 +22,11 @@ RC2 负责更完整的创新性、能力表及其他相关工作讨论；RC4 负
 
 ## 二、建议采用的工作顺序
 
-1. 对照 RC1 和相关 A/B 评论，定位遗漏恢复步骤、错误归因及方法差异不清的句子。
-2. 保留准确的原文和论证结构，优先修改这些句子；图中保留具体 SQL 案例，补全必要阶段。
-3. 核对动机案例和已有 300 种子对照实验的记录，将实验内容按其实际支持范围纳入正文。
-4. 正文落实后更新回复信：说明改了什么、在哪里改、有哪些证据。重复问题简短回答并交叉引用。
-5. 最后核对全文一致性，从冻结原稿与最终 clean 生成提交用高亮 diff。
+1. 对照 RC1 和相关 A/B 评论定位问题，在第四节保留中文说明，在第七节保留对应的英文原文与拟修改源码。
+2. 由你逐项审阅并明确认可某一项；未认可的建议继续保留在计划中，不批量应用到 clean。
+3. 只落实你认可的该项，核对修改范围及结果；涉及案例、图或实验数据时，先满足该项列出的核实条件。
+4. 该项实际实施并核对后，从第四节和第七节删除对应条目，更新相关待办。其余条目和编号保持不变；仅认可方案但尚未实施时不删除。
+5. 回复信根据已完成修改另行确认更新。最后核对全文一致性，从冻结原稿与最终 clean 生成提交用高亮 diff。
 
 ## 三、本条修改的核心立场
 
@@ -45,7 +45,7 @@ RC2 负责更完整的创新性、能力表及其他相关工作讨论；RC4 负
 
 ## 四、逐项修改计划及中文前后对照
 
-以下沿用原计划的条目编号，便于核对位置。编号不代表每条都要产生正文改动；源码注释的处理属于按需整理。
+以下沿用原计划的条目编号，便于核对位置；英文原文与拟修改源码见第七节同号条目。编号不代表每条都要产生正文改动；源码注释的处理属于按需整理。你认可并实施一项后，再删除本节与第七节的对应条目。
 
 ### 2. Introduction：SEDAR 介绍与两项挑战
 
@@ -235,6 +235,8 @@ RC2 负责更完整的创新性、能力表及其他相关工作讨论；RC4 负
 - [x] 调整 RC1 计划为必要的局部纠错，保留原有论证主线。
 - [x] 取消以泛化流程框替代具体 SQL 案例的建议。
 - [x] 合并重复限制声明，区分迁移阶段行为变化与变异后语义等价。
+- [x] 恢复第七节的逐项英文源码对照，明确每项经你认可后单独实施。
+- [ ] 按你认可的单项修改 clean，核对后删除第四节和第七节对应条目。
 - [ ] 在正文中补全 SEDAR 的注释、变异、恢复和执行顺序。
 - [ ] 修正图和文字中由临时注释推导永久逻辑丢失的内容。
 - [ ] 保留并明确 AQT、前向读后写依赖、目标端上下文及反馈修复的贡献。
@@ -246,8 +248,390 @@ RC2 负责更完整的创新性、能力表及其他相关工作讨论；RC4 负
 - [ ] 根据实际修改更新回复信，核对完成式、位置和证据。
 - [ ] 检查引用、数字、图表和页数，从冻结原稿生成最终高亮 diff。
 
-## 七、差异记录的使用方式
+## 七、英文原文与修改后源码完整对照
 
-原附录中的英文 diff 对应此前改写方案，含有本次已收敛的扩写内容，已从当前计划移除，避免被误用为待应用补丁。
+以下各项与第四节编号对应，保留当前 clean 中完整的待替换片段及拟修改源码，供逐项审阅。**“修改后”均为拟稿，尚未应用；你认可哪一项，再只实施该项。** 条件未核实的项先保留，不将拟稿视为已确认的事实。
 
-后续以本计划的局部修改原则及中文对照为依据，在正文实际落实后通过 Git 查看源码差异。提交用高亮版本最终从 `MajorRevisonBack.tex` 与修订正文生成，不在计划中维护第二份正文。
+每项实施并核对后，同时从第四节和本节移除该项，更新相关待办；其他编号保持不变。本文不提供自动应用全部改动的补丁。提交用高亮 diff 仍由冻结原稿与最终 clean 生成。
+
+### 7.2 Introduction：SEDAR 介绍与两项挑战
+
+**状态与范围：** 仅该段的拟稿。QTRAN 的任务与引用归属在 RC2 单独核对。
+
+**修改前（当前 clean）：**
+
+```latex
+Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations:
+(i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
+(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, generated test cases are often sanitized by removing or commenting out unsupported constructs, which may simplify complex SQL structures and weaken execution behaviors.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+Recent fuzzing-oriented approaches instead leverage large language models (LLMs) to transfer existing test cases across DBMSs~\cite{fu2024sedar}. For example, \sedar{}~\cite{fu2024sedar} combines source-schema information and SQL statements as input to an LLM to generate target-dialect seeds. However, transferring high-quality fuzzing seeds still poses two challenges:
+(i) First, translation must coordinate target-dialect constraints with schema references and type dependencies across statements; inconsistencies may introduce syntax or execution errors.
+(ii) Second, transferred seeds must also satisfy the grammar constraints imposed by downstream fuzzers. \sedar{} temporarily comments out parser-incompatible fragments before mutation and restores them afterward, before executing the mutated SQL on the target DBMS; this compatibility mechanism does not itself repair translation errors.
+```
+
+### 7.3 Introduction：旧方法总结注释
+
+**状态与范围：** 源码注释的可选更正，不影响 PDF；保留正向方法解释。
+
+**修改前（当前 clean）：**
+
+```latex
+% This enables fuzzing to retain testing-relevant SQL features while avoiding the translation failures and destructive sanitization caused by direct text translation.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+% This enables fuzzing to retain testing-relevant SQL features through structure-aware instantiation and feedback-guided repair of transfer incompatibilities.
+```
+
+### 7.4 Background：旧失败链注释
+
+**状态与范围：** 可选源码注释更正。
+
+**修改前（当前 clean）：**
+
+```latex
+% - Motivating example 必须写成失败过程：SedaR hallucination -> comment-out sanitization -> logic loss。
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+% - Motivating example：展示翻译结果 -> 临时注释 -> 变异 -> 恢复 -> 实际执行结果；失败原因以案例记录为准。
+```
+
+### 7.5 Cross-Dialect Seed Transfer：实际方法差异
+
+**状态与范围：** 集中说明 SEDAR 的机制和 MORPH 的主要差异；其余相关工作按 RC2 处理。
+
+**修改前（当前 clean）：**
+
+```latex
+Recent work such as \sedar{}~\cite{fu2024sedar} explores fuzzing-oriented seed transfer using LLMs. While it improves automation by translating complete test cases, it still does not explicitly preserve cross-statement dependencies during migration.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+\sedar{}~\cite{fu2024sedar} transfers complete test cases using source-side schema information and handles downstream parser incompatibilities through temporary commenting before mutation and restoration before target-side execution.
+\tool{} explicitly represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and uses parser and execution feedback to repair transferred seeds.
+```
+
+### 7.6 Cross-Dialect Seed Transfer：备用注释
+
+**状态与范围：** 可选更正；若最终决定删除重复注释，可只删除该行。
+
+**修改前（当前 clean）：**
+
+```latex
+% To improve fuzzer compatibility, it applies unparsable commenting to handle parsing errors by commenting out incompatible parts or statements.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+% To improve fuzzer compatibility, it temporarily comments out parser-incompatible fragments before mutation and restores them afterward, before target-side execution.
+```
+
+### 7.7 Motivating Example：两个备用开头注释
+
+**状态与范围：** 原文可保留，当前不建议改动。若确认保留，可直接移出待改清单，无须修改 clean。
+
+**修改前（当前 clean）：**
+
+```latex
+% In the following, we illustrate with a concrete example the limitations of \sedar{} in cross-dialect seed transfer.
+% We illustrate this gap using \sedar{}, the closest existing fuzzing-oriented seed-transfer system.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+% In the following, we illustrate with a concrete example the limitations of \sedar{} in cross-dialect seed transfer.
+% We illustrate this gap using \sedar{}, the closest existing fuzzing-oriented seed-transfer system.
+```
+
+### 7.8 Motivating Example：开头正文
+
+**状态与范围：** 待与原图和原始 SQL 核对具体案例内容后定稿。
+
+**修改前（当前 clean）：**
+
+```latex
+We next present a motivating example to illustrate the limitations of LLM-based fuzzing-oriented seed transfer methods such as \sedar{}.
+LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{syntax or semantic errors} due to hallucinations.
+Moreover, many fuzzers cover only a subset of SQL grammar.
+Existing methods typically comment out unsupported features to support seed mutation after transfer, which alters the query and causes \textit{structural simplification}.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+We next present a PostgreSQL-to-DuckDB test case to illustrate translation and fuzzer-compatibility challenges in cross-dialect seed transfer.
+The test contains a temporal predicate and type casts.
+\sedar{} temporarily comments out parser-incompatible fragments during mutation and restores them before execution.
+We examine the restored query and its execution result to explain the failure in this example.
+```
+
+### 7.9 动机图：图片引用与具体 SQL
+
+**状态与范围：** 待确认：保留具体 SQL 案例并补全恢复阶段。motivating_rc1.pdf 是拟用的新素材文件名，目前未制作，不可直接应用这行替换。先形成可审核的新图，再确认图片引用的修改；本项不包含图注，图注见第 10 项。
+
+**修改前（当前 clean）：**
+
+```latex
+  \includegraphics[width=\linewidth]{media/motivating_71.pdf}
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+  \includegraphics[width=\linewidth]{media/motivating_rc1.pdf}
+```
+
+### 7.10 动机图：备用图注和正式图注
+
+**状态与范围：** 待与补全后的案例图核对。该项一并移除含错误归因的备用图注，保留图标签和其他 figure 代码。
+
+**修改前（当前 clean）：**
+
+```latex
+  % \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
+  \caption{Conventional end-to-end translation methods like \sedar{} suffer from semantic error and structural simplification (Left). \tool{} decouples intent via AQT, successfully instantiating the equivalent \texttt{date\_diff} logic (Right).}
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+  \caption{A PostgreSQL-to-DuckDB test-case transfer example. Left: \sedar{}'s translation, temporary commenting, restoration, and execution result. Right: \tool{}'s AQT abstraction, target-dialect instantiation, and feedback-guided repair.}
+```
+
+### 7.11 动机案例：局限解释
+
+**状态与范围：** 待核实：原始恢复后 SQL、错误信息及其原因。核实前保留为拟稿，不应用到 clean。
+
+**修改前（当前 clean）：**
+
+```latex
+\textit{Limitations of Existing Approaches.} Figure \ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring a test case from \pg{} to \duckdb{}, which contains dialect-specific features like the \texttt{AGE} function in the \texttt{WHERE} clause and the \texttt{::INTERVAL} type cast. With limited knowledge of \duckdb{}’s syntax, the LLM hallucinates and preserves \texttt{AGE}, causing syntax and semantic errors. To satisfy parsing constraints, \sedar{} comments out \texttt{AGE} and replaces the \texttt{WHERE} condition with \texttt{True}, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states.
+As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+\textit{Limitations of Existing Approaches.} In the PostgreSQL-to-DuckDB example in Figure~\ref{fig:motivation}, \sedar{} temporarily comments out parser-incompatible fragments to enable mutation and restores them before target-side execution.
+In the observed case, the restored query still encounters an execution error caused by an incompatibility in the translated construct, preventing this test case from executing successfully.
+```
+
+### 7.12 动机案例：核查记录
+
+**状态与范围：** 原文无对应的新增核查注释；不向 clean 添加说明性注释，记录留在本计划和实验材料中。
+
+**修改前：** 当前 clean 无对应新增内容。
+
+**修改后：** 保持 clean 不变；该项仅保留核查安排。
+
+### 7.13 Basic Idea of MORPH
+
+**状态与范围：** 待核对图中的 AQT 标签和实际操作。保持具体方法解释，去掉不会出错、必然到达更深路径等保证性推断。
+
+**修改前（当前 clean）：**
+
+```latex
+The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution.
+As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation, but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent.
+It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity.
+By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+The core idea of \tool{} is to decouple structural information from dialect-specific syntax through an AQT, enabling structure-aware target-dialect instantiation.
+As shown in Figure~\ref{fig:motivation}, \tool{} abstracts the time-difference operation into a generic $<$\texttt{TimeDiff}$>$ label and instantiates it using target-side dialect and type information.
+Parser and execution feedback then guide the repair of remaining incompatibilities.
+This process aims to produce executable, fuzzer-compatible seeds while retaining useful structures and the filtering complexity of the test case.
+```
+
+### 7.14 反馈驱动节：对比指导注释
+
+**状态与范围：** 可选源码注释更正。
+
+**修改前（当前 clean）：**
+
+```latex
+% - 强调 comment out 是最后兜底，和 SedaR 式默认 sanitization 拉开距离。
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+% - 强调最小范围 comment out 是最后兜底，保留此前映射、检索和修复的优先顺序。
+```
+
+### 7.15 反馈驱动节：处理时机
+
+**状态与范围：** 待按实现核对检查、执行、重试和标记的顺序；仅明确本节流程，不重复 SEDAR 机制说明。
+
+**修改前（当前 clean）：**
+
+```latex
+As shown in Figure~\ref{fig:feedback-driven}, compatible seeds are sanitized, executed in the target DBMS, repaired when necessary, and annotated with mutable regions for fuzzing.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+As shown in Figure~\ref{fig:feedback-driven}, transferred seeds are checked against the fuzzer parser, executed in the target DBMS, repaired when necessary, and annotated with mutable regions before downstream mutation.
+```
+
+### 7.16 反馈驱动节：旧英文备用注释
+
+**状态与范围：** 可选源码注释更正，仅去掉对 SEDAR 的错误比较；具体修复说明保留。
+
+**修改前（当前 clean）：**
+
+```latex
+% Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities not captured by the static translation phase. Instead of discarding these seeds or destructively commenting out unparsable tokens (as in \sedar{}~\cite{fu2024sedar}), the sanitizer captures the parser error message, localizes the unsupported dialect-specific construct to the corresponding AQT node, and repairs it using syntactic feedback. For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+% Specifically, when a transferred seed $Q_{target}$ is fed into the fuzzer, it may still contain subtle syntax incompatibilities not captured by the static translation phase. Instead of discarding these seeds, the sanitizer captures the parser error message, localizes the unsupported dialect-specific construct to the corresponding AQT node, and repairs it using syntactic feedback. For instance, in Figure~\ref{fig:feedback-driven}, it automatically removes excess brackets around the \texttt{date\_diff} function to produce a syntactically valid Mutable Seed.
+```
+
+### 7.17 四级兜底策略结尾
+
+**状态与范围：** 保留前文四级顺序；仅在此说明迁移种子的行为可能变化。
+
+**修改前（当前 clean）：**
+
+```latex
+Thus, destructive commenting is used only after structure-preserving repairs fail.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+Thus, minimal commenting is used only after earlier repair attempts fail.
+Constant substitution and minimal commenting may change the behavior of transferred seeds.
+```
+
+### 7.18 RQ2：漏洞数量结果解释
+
+**状态与范围：** 保留前面的漏洞数量、表格及比较结果；不改实验数字。
+
+**修改前（当前 clean）：**
+
+```latex
+This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
+Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper code logic, and trigger more bugs.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
+\tool{} combines structure-aware transfer, target-side context, and feedback-guided repair to provide executable seeds containing rich SQL structures.
+```
+
+### 7.19 RQ2：已有变异处理对照实验
+
+**状态与范围：** 待核实：已有 rebuttal 的种子清单、实现、版本、重复次数、资源、覆盖原始值和算法。当前 clean 无此段；拟插入 RQ2 漏洞数量结果解释之后。与 100/200/300 种子数量控制实验分别处理。
+
+**修改前：** 当前 clean 无对应新增内容。
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+\textbf{Controlled Comparison of Mutation Handling.}
+To compare the handling strategies under the same downstream fuzzer, we sampled the same 300 translated seeds and applied the two strategies using \griffin{} for 24 hours.
+With \tool{}'s pre-mutation repair, branch coverage was 27.2\% higher on DuckDB and 15.5\% higher on MonetDB than with \sedar{}'s comment-and-restore handling.
+```
+
+### 7.20 对照实验：核查注释
+
+**状态与范围：** 原文无对应新增注释；不向 clean 添加数据来源或“本轮是否新运行”的说明性源码注释。
+
+**修改前：** 当前 clean 无对应新增内容。
+
+**修改后：** 保持 clean 不变；该项仅保留核查安排。
+
+### 7.21 RQ3：SEDAR 基线流程
+
+**状态与范围：** 待核实所评估实现确实包含恢复。We reproduced 暂按原文保留；来源措辞及取得方式由 RC4 按实际情况统一，本条拟稿不代表来源核实完成。
+
+**修改前（当前 clean）：**
+
+```latex
+We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+We reproduced \sedar{}'s complete pipeline, including source-schema capture, LLM-based translation, temporary commenting before mutation, and restoration after mutation and before target-side execution.
+```
+
+### 7.22 RQ3：特征多样性的旧 TODO
+
+**状态与范围：** 可选源码注释更正；不改变特征计数结果。
+
+**修改前（当前 clean）：**
+
+```latex
+% \TODO{The diversity gap mainly comes from sanitization strategy: \sedar{} may comment out unparsable casts or function calls, whereas \tool{} constructively instantiates abstract structures into target-compliant forms, preserving more feature-rich inputs for downstream mutation.}
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+% \TODO{Explain how AQT-guided instantiation and feedback repair provide target-compatible, feature-rich seeds; do not attribute the feature-count difference to permanent removal of temporarily hidden fragments in \sedar{}.}
+```
+
+### 7.23 RQ3：特征计数差距解释
+
+**状态与范围：** 待核实计数阶段和有效输出定义；保留前文数字及表格。
+
+**修改前（当前 clean）：**
+
+```latex
+The diversity gap mainly comes from how each baseline handles unmappable constructs: statement-level translators raise errors or omit them, while \sedar{} comments them out, whereas \tool{} constructively instantiates abstract structures into target-compliant forms via retrieved dialect evidence, preserving more feature-rich inputs for mutation.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+The counts of valid functions, data types, and keywords show that \tool{} produces seeds with richer SQL features.
+Its dialect-guided AQT instantiation and feedback repair aim to adapt complex structures to the target DBMS and downstream fuzzer.
+```
+
+### 7.24 Related Work：LLM-Based Seed Generation
+
+**状态与范围：** 与背景和 RC2 的术语统一；不扩展为对其他系统的笼统归纳。
+
+**修改前（当前 clean）：**
+
+```latex
+\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
+However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
+
+In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair while preserving context.
+```
+
+**修改后（拟稿，尚未应用）：**
+
+```latex
+\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
+It uses source-side schema information for translation and temporarily hides parser-incompatible fragments during mutation, restoring them before target-side execution.
+
+In contrast, \tool{} performs AQT-guided test-case instantiation with explicit forward read-after-write dependencies and evolving target-side context, supporting parser- and execution-feedback repair of transferred structures.
+```
