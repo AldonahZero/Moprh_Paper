@@ -33,19 +33,15 @@
 
 **修改前：** 最近面向模糊测试的方法利用 LLM 进行端到端测试用例迁移。例如，SEDAR 把模式信息和原始 SQL 文本输入 LLM，生成目标方言种子。但这类方法有两个根本局限：第一，对目标方言理解有限、对多语句结构感知较弱，可能引入语法或语义错误，导致无效或不一致的查询行为；第二，为满足下游模糊测试器严格的语法约束，通常删除或注释不支持的结构进行清理，可能简化 SQL 结构并削弱执行行为。
 
-**建议修改后：** 最近面向模糊测试的方法利用 LLM 在 DBMS 之间迁移已有测试用例。例如，SEDAR 把源端模式信息和 SQL 语句输入 LLM，生成目标方言种子。然而，迁移仍面临两个挑战：第一，翻译需要协调目标方言约束与多语句测试中的模式引用和类型依赖，否则可能引入语法错误或执行错误；第二，迁移后的种子还需适配下游模糊测试器的语法约束。SEDAR 通过在变异前临时注释解析器不支持的片段，并在变异后、目标 DBMS 执行前恢复它们来缓解解析不兼容；该机制本身不修复翻译错误。需要解决的挑战是在适配 fuzzer 语法时，仍维持种子的目标端可执行性和有用结构。
+**建议修改后：** 只替换第 (ii) 点：迁移后的测试用例还需满足下游 fuzzer 的严格语法约束。SEDAR 在变异前临时注释解析器不兼容片段，在变异后、目标执行前恢复；恢复保留这些片段，但不修复其中的翻译错误。
 
-**与后文三个挑战的对应：** 此处第一项涵盖结构/依赖与目标方言约束，对应后文挑战 (1)、(2)；此处第二项对应后文挑战 (3) 的解析和变异要求。保持问题与三个组件的衔接，不要求两项概括与三个实现挑战机械地一一对应。
+**修改尺度：** 引导句、第 (i) 点及 `\cite{fu2024sedar, lin2025qtran}` 均保持原样，正文尚未应用。
 
-**修改尺度：** 保留“已有方法 → 两项挑战 → MORPH”的原有结构，优先局部修改。补上恢复步骤，撤掉由注释推导永久结构简化的结论即可，不展开 SEDAR 的全部处理流程，也不新增一段免责声明。
+### 5. Cross-Dialect Seed Transfer：差异说明（后半句，待后续）
 
-### 5. Cross-Dialect Seed Transfer：SEDAR 与 MORPH 的区别
+**已实施：** SEDAR 统一机制定义已写入 main.tex：捕获源端模式信息、用 LLM 翻译语句，变异前临时注释不兼容片段，并在变异后、目标 DBMS 执行前恢复；已删除“不显式保留跨语句依赖”的断言。
 
-**修改前：** SEDAR 等工作探索基于 LLM 的种子迁移。虽然翻译完整测试用例提升了自动化程度，但迁移中仍没有显式保留跨语句依赖。
-
-**建议修改后：** SEDAR 利用源端模式信息迁移完整测试用例，并通过变异前临时注释、变异后恢复处理下游解析器不兼容。MORPH 通过 AQT 显式表示测试结构和前向读后写依赖，结合持续更新的目标端模式与类型上下文进行实例化，并利用解析和执行反馈修复迁移种子。
-
-**修改尺度：** 在这里集中说明完整机制与主要差异。保留跨语句协调这一贡献，不将 SEDAR 概括为完全没有多语句处理能力。
+**剩余范围：** SEDAR 是否维护跨语句的目标端翻译上下文，以及 MORPH 的对应差异，留到 RC1 后半句一起处理，本次未添加。
 
 ### 8. Motivating Example：开头正文（等证据）
 
@@ -121,6 +117,8 @@
 
 ### 24. Related Work：只改 SEDAR 句
 
+**标签核实：** main.tex 的 Background and Motivation 节已有 `\label{sec:background}`，可保留该引用。
+
 **拟改内容：** 仅在介绍 SEDAR 的原句中引用背景处的机制说明，避免重复展开。其后的通用概述与 MORPH 句保持原样，不在此重写相关工作定位。
 
 ### 26. 贡献列表：问题发现的概括
@@ -134,14 +132,14 @@
 - **待 RC4：** SEDAR 实现来源及 reproduced/binary 措辞（原第 21 项来源部分）。
 - **待 RC2/其他意见：** 摘要概括（原第 25 项）。
 - **待 RC2/其他意见：** RQ1 案例的 high-fidelity/路径不可达表述（原第 28 项）。
-- **待 RC2：** QTRAN 引用及其余相关工作定位，另行处理。
+- **待 RC2：** QTRAN 引用及其余相关工作定位，另行处理；Related Work 中 “rely on … post-generation filtering and sanitization” 的旧概括留待 RC2。
 - **待其他 RC：** 方法流程与概述的其余措辞（原第 15、27 项），暂不处理。
 - **待其他 RC：** 纯源码注释整理，暂不处理。
 
 ## 六、当前待办
 
-- [ ] 由你选择并认可一个 RC1 条目。
-- [ ] 仅实施该项并核对，随后删除对应中英文计划条目。
+- [x] 第 5 项的 SEDAR 机制定义已实施并核对 diff；差异说明保留待后续。
+- [ ] 等第 5 项 diff 确认后，再依次处理 2、21、24、18、23；每次仅实施一项。
 - [ ] 8–11、19 取得所列证据后再定稿。
 
 ## 七、英文原文与修改后源码完整对照
@@ -150,7 +148,7 @@
 
 ### 7.2 Introduction：SEDAR 介绍与两项挑战
 
-**状态与范围：** 仅该段的 RC1 拟稿，尚未应用。
+**状态与范围：** 只改第 (ii) 点；引导句、第 (i) 点及 SEDAR/QTRAN 引用保持原样，尚未应用。
 
 **修改前（当前 clean）：**
 
@@ -163,27 +161,14 @@ Recent fuzzing-oriented approaches instead leverage large language models (LLMs)
 **修改后（拟稿，尚未应用）：**
 
 ```latex
-Recent fuzzing-oriented approaches instead leverage large language models (LLMs) to transfer existing test cases across DBMSs~\cite{fu2024sedar}. For example, \sedar{}~\cite{fu2024sedar} combines source-schema information and SQL statements as input to an LLM to generate target-dialect seeds. However, transferring high-quality fuzzing seeds still poses two challenges:
-(i) First, translation must coordinate target-dialect constraints with schema references and type dependencies across statements; inconsistencies may introduce syntax or execution errors.
-(ii) Second, transferred seeds must also satisfy the grammar constraints imposed by downstream fuzzers. \sedar{} temporarily comments out parser-incompatible fragments before mutation and restores them afterward, before executing the mutated SQL on the target DBMS; this compatibility mechanism does not itself repair translation errors. The challenge is to adapt seeds to the fuzzer grammar while maintaining target-side executability and useful structures.
+Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations:
+(i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
+(ii) Second, transferred test cases must also satisfy the strict grammar constraints imposed by downstream fuzzers. \sedar{} addresses this by temporarily commenting out parser-incompatible fragments before mutation and restoring them after mutation, before the mutated SQL is executed on the target DBMS; restoration retains these fragments but does not repair translation errors in them.
 ```
 
-### 7.5 Cross-Dialect Seed Transfer：实际方法差异
+### 7.5 Cross-Dialect Seed Transfer：差异说明（后半句，待后续）
 
-**状态与范围：** 集中说明 SEDAR 的机制和 MORPH 的主要差异。
-
-**修改前（当前 clean）：**
-
-```latex
-Recent work such as \sedar{}~\cite{fu2024sedar} explores fuzzing-oriented seed transfer using LLMs. While it improves automation by translating complete test cases, it still does not explicitly preserve cross-statement dependencies during migration.
-```
-
-**修改后（拟稿，尚未应用）：**
-
-```latex
-\sedar{}~\cite{fu2024sedar} transfers complete test cases using source-side schema information and handles downstream parser incompatibilities through temporary commenting before mutation and restoration before target-side execution.
-\tool{} explicitly represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and uses parser and execution feedback to repair transferred seeds.
-```
+**状态与范围：** 机制定义已实施，原中英文替换对照已移除。SEDAR 的目标端上下文与 MORPH 的差异说明留待后续拟稿，不应用此前的 MORPH 拟稿。
 
 ### 7.8 Motivating Example：开头正文
 
