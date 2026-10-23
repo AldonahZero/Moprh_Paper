@@ -73,26 +73,6 @@ Overall, the reviewers recognize the practical significance of MORPH. The revisi
 
 \section*{Replies to Reviewer A}
 
-% Source: Reviewer A, Weakness (unnumbered).
-\reviewcomment{1.1} The relationship with SEDAR and recent SQL translation systems is not characterized accurately.
-
-\reply TODO.
-
-% Source: Reviewer A, Weakness (unnumbered).
-\reviewcomment{1.2} The independent role of the explicit dependency graph, beyond preserving the original order and propagating context, is insufficiently explained.
-
-\reply TODO.
-
-% Source: Reviewer A, Weakness (unnumbered).
-\reviewcomment{1.3} The configurations and adaptations of several translation baselines are unclear.
-
-\reply TODO.
-
-% Source: Reviewer A, Weakness (unnumbered).
-\reviewcomment{1.4} Some experimental and reproducibility information, including variance, campaign duration, and offline construction cost, is missing.
-
-\reply TODO.
-
 % Source: Reviewer A, Detailed 1.
 \reviewcomment{1.5} \textbf{1. Novelty} SEDAR is the closest predecessor because it addresses the same high-level problem of transferring existing DBMS test cases into fuzzing seeds. SEDAR already processes complete multi-statement test cases. It sequentially executes the source test, captures a referenced source-side sub-schema for each statement, translates individual statements, and restores their original order. Its mutability refinement also temporarily hides regions unsupported by the fuzzer parser during mutation and restores them before sending the resulting SQL to the target DBMS.
 
@@ -176,31 +156,6 @@ For full reproducibility, the paper should additionally document the baseline ad
 \reply TODO.
 
 \section*{Replies to Reviewer B}
-
-% Source: Reviewer B, Weakness (unnumbered).
-\reviewcomment{2.1} Limited novelty
-
-\reply TODO.
-
-% Source: Reviewer B, Weakness (unnumbered).
-\reviewcomment{2.2} Incomplete related work
-
-\reply TODO.
-
-% Source: Reviewer B, Weakness (unnumbered).
-\reviewcomment{2.3} Inaccurate characterization of SEDAR
-
-\reply TODO.
-
-% Source: Reviewer B, Weakness (unnumbered).
-\reviewcomment{2.4} Unclear source of improvement: Coverage gains may stem from larger/richer seed corpus rather than AQT-based translation itself.
-
-\reply TODO.
-
-% Source: Reviewer B, Weakness (unnumbered).
-\reviewcomment{2.5} Translation overhead unclear
-
-\reply TODO.
 
 % Source: Reviewer B, Detailed 1.
 \reviewcomment{2.6} \textbf{1. Limited novelty.} The paper positions AQT as a key contribution, but AQT largely resembles an existing SQL AST or intermediate representation augmented with abstract labels, read/write sets, dependency edges, and schema context. The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). The distinction from these systems is insufficiently developed.
