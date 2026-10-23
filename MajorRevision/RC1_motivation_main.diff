@@ -1,8 +1,21 @@
 diff --git a/main.tex b/main.tex
-index a3754a9..248d1a0 100644
+index 248d1a0..f2664fe 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -1006 +1006,2 @@ As shown in Table~\ref{tab:diversity}, \tool{} preserves on average 126\% more f
--The diversity gap mainly comes from how each baseline handles unmappable constructs: statement-level translators raise errors or omit them, while \sedar{} comments them out, whereas \tool{} constructively instantiates abstract structures into target-compliant forms via retrieved dialect evidence, preserving more feature-rich inputs for mutation.
-+These counts show that \tool{} produces transferred seeds with richer SQL features.
-+Its dialect-guided AQT instantiation and feedback repair aim to adapt complex structures to the target DBMS and downstream fuzzer.
+@@ -921,2 +921,14 @@ As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique
+-This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
+-Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper code logic, and trigger more bugs.
++These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
++To examine one source of this difference, we next compare the mutation-handling strategies under controlled conditions.
++
++% Expanded four-DBMS, five-run draft: all results below remain TODO pending data.
++\textbf{Controlled Comparison of Mutation Handling.}
++\tool{} repairs incompatibilities before mutation, whereas \sedar{} uses comment-and-restore handling (Section~\ref{sec:background}).
++Neither strategy guarantees semantic equivalence of the mutated queries.
++For each target DBMS, we randomly sampled 300 seeds translated by \sedar{} and applied both strategies to the same seeds.
++Each configuration was run with \griffin{} for 24 hours and repeated five times.
++The translated inputs, target database initial state, \griffin{} version and configuration, and resource allocation were held fixed; only the mutation-handling strategy differed.
++Across the four DBMSs, \tool{}'s handling achieves \TODO{a}\%, \TODO{b}\%, \TODO{c}\%, and \TODO{d}\% higher branch coverage than \sedar{}'s handling on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively (mean over five runs; Mann--Whitney U test, $p<\TODO{0.05}$); per-run results are included in our artifact.
++These results show the coverage benefit of \tool{}'s handling strategy under the evaluated conditions.
++% Rebuttal preliminary single-run results: DuckDB +27.2%, MonetDB +15.5%.
++

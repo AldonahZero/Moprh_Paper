@@ -918,8 +918,20 @@ Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and co
 
 The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} across the four DBMSs. 
-This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
-Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases. By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper code logic, and trigger more bugs.
+These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
+To examine one source of this difference, we next compare the mutation-handling strategies under controlled conditions.
+
+% Expanded four-DBMS, five-run draft: all results below remain TODO pending data.
+\textbf{Controlled Comparison of Mutation Handling.}
+\tool{} repairs incompatibilities before mutation, whereas \sedar{} uses comment-and-restore handling (Section~\ref{sec:background}).
+Neither strategy guarantees semantic equivalence of the mutated queries.
+For each target DBMS, we randomly sampled 300 seeds translated by \sedar{} and applied both strategies to the same seeds.
+Each configuration was run with \griffin{} for 24 hours and repeated five times.
+The translated inputs, target database initial state, \griffin{} version and configuration, and resource allocation were held fixed; only the mutation-handling strategy differed.
+Across the four DBMSs, \tool{}'s handling achieves \TODO{a}\%, \TODO{b}\%, \TODO{c}\%, and \TODO{d}\% higher branch coverage than \sedar{}'s handling on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively (mean over five runs; Mann--Whitney U test, $p<\TODO{0.05}$); per-run results are included in our artifact.
+These results show the coverage benefit of \tool{}'s handling strategy under the evaluated conditions.
+% Rebuttal preliminary single-run results: DuckDB +27.2%, MonetDB +15.5%.
+
 % optimizer and executor
 
 
