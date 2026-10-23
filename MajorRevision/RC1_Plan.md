@@ -6,7 +6,7 @@
 
 只处理 RC1：准确说明 SEDAR 的变异前临时注释、变异后且目标执行前恢复，并纠正由临时隐藏推导出的永久结构/逻辑丢失结论。
 
-- 核心条目：**18、23**。
+- 核心条目：**18**。
 - 等证据条目：**19**。
 
 全文及图的既有审计记录已移至 [RC1_Audit_Appendix.md](RC1_Audit_Appendix.md)，不作为新增执行项。
@@ -44,14 +44,6 @@
 
 **归因边界：** 只有同一批翻译后 SQL、其余配置一致且只改变处理策略，才能称 mutation-handling 对照。若分别翻译，则只在本项将比较名称和结论改为完整流程比较；事实未核实前暂不采用隔离机制的归因。
 
-### 23. RQ3：特征计数差距的解释
-
-**修改前要点：** 将多样性差距主要归因于 SEDAR 注释无法映射的结构。
-
-**建议修改后：** 有效迁移输出中的函数、类型和关键字计数表明，MORPH 能够生成包含更丰富 SQL 特征的种子。其方言引导的 AQT 实例化与反馈修复旨在使复杂结构适配目标端和下游 fuzzer。
-
-**修改尺度：** 保留特征数字及其反映的种子丰富度，删除错误的永久丢失归因。计数阶段和“有效输出”的定义按统计脚本核实，不在此重复完整流程无法隔离单个环节的说明。
-
 ## 五、待其他 RC
 
 - **待 RC2：** Basic Idea 首句的 “thoroughly decouple” 和 “more robust structural recursive substitution” 等新颖性措辞，本轮保留。
@@ -65,9 +57,11 @@
 
 ## 六、当前待办
 
+- [ ] 核实 RQ3 特征计数阶段及 valid features 的统计口径；不影响已完成的错误归因删除。
+
 - [ ] Reviewer B Comment 4 (b)：为每个分类提供证据，留待回复信列出文档链接或实验验证。
 
-- [ ] 机制描述与错误归因的剩余修改：18、23；每次仅实施一项。
+- [ ] 机制描述与错误归因的剩余修改：18；每次仅实施一项。
 - [ ] 19 取得所列证据后再定稿。
 
 ## 七、英文原文与修改后源码完整对照
@@ -114,20 +108,3 @@ Branch coverage was 27.2\% higher on DuckDB and 15.5\% higher on MonetDB with \t
 ```
 
 若证据表明两端分别翻译，只在本项调整标题与归因，待事实明确后再给对应拟稿；不将该版本直接写入 clean。
-
-### 7.23 RQ3：特征计数差距解释
-
-**状态与范围：** 待核实计数阶段和有效输出定义；保留前文数字及表格。
-
-**修改前（当前 clean）：**
-
-```latex
-The diversity gap mainly comes from how each baseline handles unmappable constructs: statement-level translators raise errors or omit them, while \sedar{} comments them out, whereas \tool{} constructively instantiates abstract structures into target-compliant forms via retrieved dialect evidence, preserving more feature-rich inputs for mutation.
-```
-
-**修改后（拟稿，尚未应用）：**
-
-```latex
-The counts of valid functions, data types, and keywords show that \tool{} produces seeds with richer SQL features.
-Its dialect-guided AQT instantiation and feedback repair aim to adapt complex structures to the target DBMS and downstream fuzzer.
-```

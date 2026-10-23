@@ -1,18 +1,8 @@
 diff --git a/main.tex b/main.tex
-index 63b971b..a3754a9 100644
+index a3754a9..248d1a0 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -290 +290 @@ In summary, the paper makes the following contributions:
--\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. LLM-based end-to-end translation often introduces errors and structural simplifications, and limited SQL grammar support further hinders mutation and degrades query semantics, reducing testing effectiveness.
-+\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. Transferring existing test cases requires coordinating cross-statement dependencies, target-side executability, and compatibility with downstream fuzzers.
-@@ -944 +944,2 @@ SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL
--We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
-+We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline, including schema capture, end-to-end LLM translation, and mutability refinement; the latter temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before target-side execution.
-+Our artifact includes the \sedar{} configuration and the \sedar{}-generated seeds used in our experiments.
-@@ -1270,2 +1271 @@ Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQv
--\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
--However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
-+\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds; its compatibility mechanism is described in Section~\ref{sec:background}.
-@@ -1273 +1273 @@ However, these methods largely rely on direct text generation or post-generation
--In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair while preserving context.
-+Unlike \sedar{}, which translates each statement of a test case individually under its referenced source-side sub-schema, \tool{} performs AQT-guided instantiation that maintains target-side context across statements, where explicit dependencies, nested structures, and clause-level relationships support local repair with parser and execution feedback before mutation.
+@@ -1006 +1006,2 @@ As shown in Table~\ref{tab:diversity}, \tool{} preserves on average 126\% more f
+-The diversity gap mainly comes from how each baseline handles unmappable constructs: statement-level translators raise errors or omit them, while \sedar{} comments them out, whereas \tool{} constructively instantiates abstract structures into target-compliant forms via retrieved dialect evidence, preserving more feature-rich inputs for mutation.
++These counts show that \tool{} produces transferred seeds with richer SQL features.
++Its dialect-guided AQT instantiation and feedback repair aim to adapt complex structures to the target DBMS and downstream fuzzer.
