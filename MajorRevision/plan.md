@@ -4,7 +4,7 @@
 
 ## 一、范围、文件和当前状态
 
-本计划针对 **RC1：纠正 SEDAR 的 comment-before-mutation and restore-after-mutation 描述，并准确解释 MORPH 与 SEDAR 的方法差异**。不是整篇 Major Revision 的完成报告。
+本计划针对 **RC1：纠正 SEDAR 的 comment-before-mutation and restore-after-mutation 描述，并准确解释 MORPH 与 SEDAR 的方法差异**。不是整篇 Major Revision 的完成报告。在修改稿中，应着重对该研究的技术贡献及其与既有工作之间的关系，给出更准确且论据充分的阐述。
 
 | 文件 | 用途 | 处理原则 |
 | --- | --- | --- |
