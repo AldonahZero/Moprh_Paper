@@ -196,7 +196,7 @@ Existing SQL translation techniques~\cite{sqlglot,jooq,xie2026rise} primarily fo
 
 Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations: 
 (i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
-(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, generated test cases are often sanitized by removing or commenting out unsupported constructs, which may simplify complex SQL structures and weaken execution behaviors.
+(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, parser-incompatible fragments are handled after translation rather than resolved during it. For example, \sedar{} temporarily comments them out during mutation and restores them before execution on the target DBMS, which retains the original query logic but leaves translation errors in these fragments unrepaired.
 
 % (i)  syntactic or semantic errors due to limited understanding of target SQL dialects, (ii) structural simplification, where complex multi-statement interactions are reduced or flattened, resulting in less diverse execution behaviors, and (iii)
 % transferred seeds may violate the strict grammar subset supported by downstream fuzzers.

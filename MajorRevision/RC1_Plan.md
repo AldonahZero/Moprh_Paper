@@ -6,7 +6,7 @@
 
 只处理 RC1：准确说明 SEDAR 的变异前临时注释、变异后且目标执行前恢复，并纠正由临时隐藏推导出的永久结构/逻辑丢失结论。
 
-- 核心条目：**2、13、17、18、23、24（只改 SEDAR 句）、26**。
+- 核心条目：**13、17、18、23、24（只改 SEDAR 句）、26**。
 - 第 **21** 项仅补全恢复步骤。
 - 等证据条目：**8–11、19**。
 
@@ -28,14 +28,6 @@
 - 动机案例依据实际恢复/执行记录；常量替换的行为变化在第 17 项说明，变异后等价性在第 19 项正文明确一次。
 
 ## 四、RC1 条目及中文对照
-
-### 2. Introduction：SEDAR 介绍与两项挑战
-
-**修改前：** 最近面向模糊测试的方法利用 LLM 进行端到端测试用例迁移。例如，SEDAR 把模式信息和原始 SQL 文本输入 LLM，生成目标方言种子。但这类方法有两个根本局限：第一，对目标方言理解有限、对多语句结构感知较弱，可能引入语法或语义错误，导致无效或不一致的查询行为；第二，为满足下游模糊测试器严格的语法约束，通常删除或注释不支持的结构进行清理，可能简化 SQL 结构并削弱执行行为。
-
-**建议修改后：** 只替换第 (ii) 点：迁移后的测试用例还需满足下游 fuzzer 的严格语法约束。SEDAR 在变异前临时注释解析器不兼容片段，在变异后、目标执行前恢复；恢复保留这些片段，但不修复其中的翻译错误。
-
-**修改尺度：** 引导句、第 (i) 点及 `\cite{fu2024sedar, lin2025qtran}` 均保持原样，正文尚未应用。
 
 ### 8. Motivating Example：开头正文（等证据）
 
@@ -134,33 +126,13 @@
 
 - [ ] Reviewer B Comment 4 (b)：为每个分类提供证据，留待回复信列出文档链接或实验验证。
 
-- [ ] 机制描述与错误归因的剩余修改：2、21、24、18、23；每次仅实施一项。
+- [ ] 机制描述与错误归因的剩余修改：21、24、18、23；每次仅实施一项。
 - [ ] 方法说明与贡献概括的剩余修改：13、17、26。
 - [ ] 8–11、19 取得所列证据后再定稿。
 
 ## 七、英文原文与修改后源码完整对照
 
 以下只保留第四节同号条目。修改后均为拟稿，尚未应用；24 只展示要替换的 SEDAR 一句，21 只补全恢复步骤。
-
-### 7.2 Introduction：SEDAR 介绍与两项挑战
-
-**状态与范围：** 只改第 (ii) 点；引导句、第 (i) 点及 SEDAR/QTRAN 引用保持原样，尚未应用。
-
-**修改前（当前 clean）：**
-
-```latex
-Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations:
-(i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
-(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, generated test cases are often sanitized by removing or commenting out unsupported constructs, which may simplify complex SQL structures and weaken execution behaviors.
-```
-
-**修改后（拟稿，尚未应用）：**
-
-```latex
-Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations:
-(i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
-(ii) Second, transferred test cases must also satisfy the strict grammar constraints imposed by downstream fuzzers. \sedar{} addresses this by temporarily commenting out parser-incompatible fragments before mutation and restoring them after mutation, before the mutated SQL is executed on the target DBMS; restoration retains these fragments but does not repair translation errors in them.
-```
 
 ### 7.8 Motivating Example：开头正文
 
