@@ -192,7 +192,7 @@ These fuzzers typically generate new test cases by repeatedly mutating a set of 
 While established DBMSs (e.g., \pg{}~\cite{pg_git}) possess extensive test suites that serve as ideal seeds, emerging engines like \duckdb{}~\cite{duckdb_git} often lack such assets, creating a critical bottleneck that limits the depth of testing for existing fuzzers.
 
 To construct initial seeds for these DBMSs, a common practice is to reuse test cases from other mature systems, but SQL dialect incompatibilities often hinder this process.
-Existing SQL translation techniques~\cite{sqlglot,jooq,xie2026rise} focus on statement-level translation, which treats SQL statements independently. In contrast, DBMS fuzzing seeds are multi-statement test cases with rich cross-statement dependencies (e.g., schema references or type constraints). As a result, statement-level translation may break dependency chains, leading to execution failures when transferred across systems.
+Existing SQL translation techniques~\cite{sqlglot,jooq,xie2026rise} primarily focus on statement-level translation. In contrast, DBMS fuzzing seeds are multi-statement test cases with rich cross-statement dependencies (e.g., schema references or type constraints). As a result, statement-level translation may break dependency chains, leading to execution failures when transferred across systems.
 
 Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar, lin2025qtran}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations: 
 (i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
@@ -331,12 +331,12 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
     \textbf{Tool} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
     & & & & \textbf{Migration} & \textbf{Deps.} \\
     \midrule
-    SQLGlot~\cite{sqlglot} & \cmark & \cmark & \cmark & \xmark & \xmark \\
-    jOOQ~\cite{jooq} & \cmark & \cmark & \cmark & \xmark & \xmark \\
+    SQLGlot~\cite{sqlglot} & \cmark & \cmark & \cmark & \partmark & \xmark \\
+    jOOQ~\cite{jooq} & \cmark & \cmark & \cmark & \xmark & \partmark \\
     RISE~\cite{xie2026rise} & \partmark & \partmark & \cmark & \xmark & \xmark \\
-    CrackSQL~\cite{zhou2025cracking} & \partmark & \cmark & \cmark & \xmark & \xmark \\
+    CrackSQL~\cite{zhou2025cracking} & \partmark & \partmark & \cmark & \xmark & \xmark \\
     QTRAN~\cite{lin2025qtran} & \partmark & \partmark & \cmark & \xmark & \xmark \\
-    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \xmark \\
+    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \partmark \\
     \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
     \bottomrule
 \end{tabular}
@@ -344,14 +344,15 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
 }
 \vspace{0.2em}
 \parbox{\columnwidth}{\scriptsize\raggedright
-\textit{Cross-stmt. Deps.} denotes explicit preservation of schema, data, and state dependencies across statements.
-\cmark: explicit support; \partmark: limited support; \xmark: not supported.}
+\textit{Cross-stmt. Deps.} denotes explicit tracking of forward read-after-write dependencies and schema/type context across statements.
+\cmark: supported and documented or evaluated; \partmark: partially supported, i.e., supported only for some statements or settings, through a separate component, or without systematic evaluation; \xmark: not supported.}
 \end{table}
 
 \textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, cross-DBMS SQL transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
-As shown in Table~\ref{tab:translation-capability}, most existing tools do not explicitly preserve cross-statement dependencies, making them unsuitable for test-case-level transfer in fuzzing.
-Specifically, existing SQL translation techniques~\cite{sqlglot, jooq, xie2026rise} focus on statement-level translation, which treats each SQL statement independently. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and DQL statements.
-Recent work such as \sedar{}~\cite{fu2024sedar} explores fuzzing-oriented seed transfer using LLMs. While it improves automation by translating complete test cases, it still does not explicitly preserve cross-statement dependencies during migration.
+As shown in Table~\ref{tab:translation-capability}, existing tools provide limited support for preserving cross-statement dependencies during test-case-level transfer for fuzzing.
+Specifically, existing SQL translation techniques~\cite{sqlglot, jooq, xie2026rise} primarily focus on statement-level translation. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and DQL statements.
+\sedar{}~\cite{fu2024sedar} transfers complete test cases by capturing source-side schema information and translating their statements with an LLM. To make the transferred seeds usable by downstream fuzzers, it temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before the mutated SQL is executed on the target DBMS.
+However, \sedar{} does not maintain translated target-side context across statements and leaves target-side execution-feedback regeneration as future work. \tool{} instead explicitly represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and uses parser and execution feedback to repair transferred seeds before downstream mutation.
 
 
 
@@ -955,7 +956,7 @@ When the translated outputs are used as initial seeds for fuzzing, \tool{} furth
 % Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
 
 Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
-As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from the lack of explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
+As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from limited support for explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the absence of translated target-side context across statements in \sedar{}, which can break type or reference consistency when target-side schema changes are not propagated to subsequent statements.
 These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability.
 % and executability.
 
@@ -1290,7 +1291,7 @@ General-purpose SQL dialect translators, such as SQLGlot~\cite{sqlglot} and jOOQ
 However, constructing and maintaining these rules requires significant dialect expertise.
 Recent studies have reduced this manual effort by learning or deriving translation behaviors automatically.
 % CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation.
-CrackSQL~\cite{zhou2025cracking} employs genetic algorithms alongside LLMs to mine complex mutation patterns.
+CrackSQL~\cite{zhou2025cracking} combines functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation.
 QTRAN~\cite{lin2025qtran} extends metamorphic-oracle-based testing across DBMS dialects.
 % RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, 
 RISE~\cite{xie2026rise} translates a query by first reducing a complex input to a simpler form, learning the local dialect rewrite from that reduced form, and then applying the rewrite back to the original query.

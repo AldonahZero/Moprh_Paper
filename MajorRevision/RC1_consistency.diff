@@ -1,0 +1,51 @@
+--- a/main.tex
++++ b/main.tex
+@@ -336,7 +336,7 @@
+     RISE~\cite{xie2026rise} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+     CrackSQL~\cite{zhou2025cracking} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+     QTRAN~\cite{lin2025qtran} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+-    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \xmark \\
++    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \partmark \\
+     \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
+     \bottomrule
+ \end{tabular}
+@@ -344,8 +344,8 @@
+ }
+ \vspace{0.2em}
+ \parbox{\columnwidth}{\scriptsize\raggedright
+-\textit{Cross-stmt. Deps.} denotes explicit preservation of schema, data, and state dependencies across statements.
+-\cmark: supported as a documented capability; \partmark: partially supported (e.g., available for some statement types or through a separate component, but not as dependency-aware test-case transfer for fuzzing); \xmark: not supported.}
++\textit{Cross-stmt. Deps.} denotes explicit tracking of forward read-after-write dependencies and schema/type context across statements.
++\cmark: supported and documented or evaluated; \partmark: partially supported, i.e., supported only for some statements or settings, through a separate component, or without systematic evaluation; \xmark: not supported.}
+ \end{table}
+ 
+ \textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, cross-DBMS SQL transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
+@@ -956,7 +956,7 @@
+ % Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
+ 
+ Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
+-As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from limited support for explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the lack of explicit schema-state propagation in \sedar{}, which can break type or reference consistency when DDL-created schema state is not propagated to subsequent statements.
++As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from limited support for explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the absence of translated target-side context across statements in \sedar{}, which can break type or reference consistency when target-side schema changes are not propagated to subsequent statements.
+ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability.
+ % and executability.
+ 
+@@ -1291,7 +1291,7 @@
+ However, constructing and maintaining these rules requires significant dialect expertise.
+ Recent studies have reduced this manual effort by learning or deriving translation behaviors automatically.
+ % CrackSQL~\cite{zhou2025cracking} studies LLM-based dialect translation.
+-CrackSQL~\cite{zhou2025cracking} employs genetic algorithms alongside LLMs to mine complex mutation patterns.
++CrackSQL~\cite{zhou2025cracking} combines functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation.
+ QTRAN~\cite{lin2025qtran} extends metamorphic-oracle-based testing across DBMS dialects.
+ % RISE~\cite{xie2026rise} derives rules through dialect-aware query reduction, 
+ RISE~\cite{xie2026rise} translates a query by first reducing a complex input to a simpler form, learning the local dialect rewrite from that reduced form, and then applying the rewrite back to the original query.
+--- a/MajorRevision/RC1_Plan.md
++++ b/MajorRevision/RC1_Plan.md
+@@ -132,7 +132,7 @@
+ - **待 RC4：** SEDAR 实现来源及 reproduced/binary 措辞（原第 21 项来源部分）。
+ - **待 RC2/其他意见：** 摘要概括（原第 25 项）。
+ - **待 RC2/其他意见：** RQ1 案例的 high-fidelity/路径不可达表述（原第 28 项）。
+-- **待 RC2：** QTRAN 引用及其余相关工作定位，另行处理；Related Work 中 “rely on … post-generation filtering and sanitization” 的旧概括留待 RC2。
++- **待 RC2：** QTRAN 引用及其余相关工作定位，另行处理；Related Work 中 “rely on … post-generation filtering and sanitization” 的旧概括留待 RC2。**已完成：** CrackSQL 机制描述已按 Reviewer A Detailed 1 及 rebuttal 承诺修正为 functionality-based query processing、contrastive-learning-based cross-dialect syntax embedding 和 local-to-global translation。
+ - **待其他 RC：** 方法流程与概述的其余措辞（原第 15、27 项），暂不处理。
+ - **待其他 RC：** 纯源码注释整理，暂不处理。
+ 

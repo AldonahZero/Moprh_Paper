@@ -37,11 +37,11 @@
 
 **修改尺度：** 引导句、第 (i) 点及 `\cite{fu2024sedar, lin2025qtran}` 均保持原样，正文尚未应用。
 
-### 5. Cross-Dialect Seed Transfer：差异说明（后半句，待后续）
+### 5. Cross-Dialect Seed Transfer（已完成）
 
 **已实施：** SEDAR 统一机制定义已写入 main.tex：捕获源端模式信息、用 LLM 翻译语句，变异前临时注释不兼容片段，并在变异后、目标 DBMS 执行前恢复；已删除“不显式保留跨语句依赖”的断言。
 
-**剩余范围：** SEDAR 是否维护跨语句的目标端翻译上下文，以及 MORPH 的对应差异，留到 RC1 后半句一起处理，本次未添加。
+**已完成：** 已补充 SEDAR 不维护跨语句的目标端翻译上下文、将执行反馈再生成留作未来工作，以及 MORPH 的 AQT、持续更新的目标端上下文与反馈修复差异；段首概括已收窄为 limited support。
 
 ### 8. Motivating Example：开头正文（等证据）
 
@@ -132,14 +132,17 @@
 - **待 RC4：** SEDAR 实现来源及 reproduced/binary 措辞（原第 21 项来源部分）。
 - **待 RC2/其他意见：** 摘要概括（原第 25 项）。
 - **待 RC2/其他意见：** RQ1 案例的 high-fidelity/路径不可达表述（原第 28 项）。
-- **待 RC2：** QTRAN 引用及其余相关工作定位，另行处理；Related Work 中 “rely on … post-generation filtering and sanitization” 的旧概括留待 RC2。
+- **待 RC2：** QTRAN 引用及其余相关工作定位，另行处理；Related Work 中 “rely on … post-generation filtering and sanitization” 的旧概括留待 RC2。**已完成：** CrackSQL 机制描述已按 Reviewer A Detailed 1 及 rebuttal 承诺修正为 functionality-based query processing、contrastive-learning-based cross-dialect syntax embedding 和 local-to-global translation。
 - **待其他 RC：** 方法流程与概述的其余措辞（原第 15、27 项），暂不处理。
 - **待其他 RC：** 纯源码注释整理，暂不处理。
 
 ## 六、当前待办
 
-- [x] 第 5 项的 SEDAR 机制定义已实施并核对 diff；差异说明保留待后续。
-- [ ] 等第 5 项 diff 确认后，再依次处理 2、21、24、18、23；每次仅实施一项。
+- [x] Table I 修订对应 Reviewer B Comment 4 (a)(c)，已完成：仅修改 SQLGlot 的 Test Case Migration、jOOQ 的 Cross-stmt. Deps.、CrackSQL 的 DML 三格，补充符号判定标准并收窄直接矛盾的正文。
+- [ ] Reviewer B Comment 4 (b)：为每个分类提供证据，留待回复信列出文档链接或实验验证。
+
+- [x] 第 5 项机制定义与差异说明均已完成。
+- [ ] 本轮第 5 项与 Table I diff 待核对；第 2 项未实施，21、24、18、23 仍待后续。
 - [ ] 8–11、19 取得所列证据后再定稿。
 
 ## 七、英文原文与修改后源码完整对照
@@ -166,9 +169,9 @@ Recent fuzzing-oriented approaches instead leverage large language models (LLMs)
 (ii) Second, transferred test cases must also satisfy the strict grammar constraints imposed by downstream fuzzers. \sedar{} addresses this by temporarily commenting out parser-incompatible fragments before mutation and restoring them after mutation, before the mutated SQL is executed on the target DBMS; restoration retains these fragments but does not repair translation errors in them.
 ```
 
-### 7.5 Cross-Dialect Seed Transfer：差异说明（后半句，待后续）
+### 7.5 Cross-Dialect Seed Transfer（已完成）
 
-**状态与范围：** 机制定义已实施，原中英文替换对照已移除。SEDAR 的目标端上下文与 MORPH 的差异说明留待后续拟稿，不应用此前的 MORPH 拟稿。
+**状态与范围：** 机制定义、目标端上下文与反馈再生成的差异说明均已实施；未将 SEDAR 概括为不处理跨语句依赖。
 
 ### 7.8 Motivating Example：开头正文
 
@@ -336,7 +339,7 @@ We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end
 **修改后（拟稿，尚未应用）：**
 
 ```latex
-We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its temporary commenting before mutation and restoration after mutation, before target-side execution.
+We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its mutability refinement, which temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before target-side execution.
 ```
 
 ### 7.23 RQ3：特征计数差距解释
