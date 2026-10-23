@@ -1,1 +1,9 @@
-c
+diff --git a/main.tex b/main.tex
+index 0ff03d2..1b98549 100644
+--- a/main.tex
++++ b/main.tex
+@@ -413,2 +413,2 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
+-In this example, the LLM-generated translation contains an incompatible fragment in the temporal predicate.
+-To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment during mutation and restores it before execution.
++In this example, the LLM retains \texttt{AGE} in the translated predicate.
++To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment and replaces the predicate with \texttt{TRUE} during mutation, then restores the fragment before execution.

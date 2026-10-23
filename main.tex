@@ -410,8 +410,8 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
 \end{figure*}
 
 \textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a test case transferred by \sedar{} from \pg{} to \duckdb{}, which contains dialect-specific features such as the \texttt{AGE} function and the \texttt{::INTERVAL} type cast.
-In this example, the LLM-generated translation contains an incompatible fragment in the temporal predicate.
-To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment during mutation and restores it before execution.
+In this example, the LLM retains \texttt{AGE} in the translated predicate.
+To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment and replaces the predicate with \texttt{TRUE} during mutation, then restores the fragment before execution.
 Since the restored fragment still contains the translation error, the mutated test case fails on \duckdb{}.
 
 \textit{Basic Idea of \tool{}.}
