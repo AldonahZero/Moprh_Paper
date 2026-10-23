@@ -1,16 +1,18 @@
 diff --git a/main.tex b/main.tex
-index 1b98549..63b971b 100644
+index 63b971b..a3754a9 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -419,3 +419,4 @@ The core idea of \tool{} is to thoroughly decouple logical intent from syntactic
--As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation, but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent.
--It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity.
--By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}.
-+As shown in Figure~\ref{fig:motivation}, \tool{} abstracts the dialect-specific \texttt{AGE} operation into an AQT node labeled $<$\texttt{TimeDiff}$>$.
-+For multi-statement test cases, it propagates target-side schema and type context in statement order and uses this context together with target-dialect information to instantiate AQT nodes.
-+Parser and execution feedback guide the repair of remaining incompatibilities before mutation.
-+In this example, \tool{} instantiates $<$\texttt{TimeDiff}$>$ with \texttt{date\_diff}, producing an executable seed that retains the temporal predicate.
-@@ -697 +698,2 @@ When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} a
--Thus, destructive commenting is used only after structure-preserving repairs fail.
-+Thus, only if the preceding three fallback stages fail does \tool{} comment out the minimal offending fragment.
-+Constant substitution and minimal commenting may change the behavior of transferred seeds.
+@@ -290 +290 @@ In summary, the paper makes the following contributions:
+-\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. LLM-based end-to-end translation often introduces errors and structural simplifications, and limited SQL grammar support further hinders mutation and degrades query semantics, reducing testing effectiveness.
++\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. Transferring existing test cases requires coordinating cross-statement dependencies, target-side executability, and compatibility with downstream fuzzers.
+@@ -944 +944,2 @@ SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL
+-We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
++We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline, including schema capture, end-to-end LLM translation, and mutability refinement; the latter temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before target-side execution.
++Our artifact includes the \sedar{} configuration and the \sedar{}-generated seeds used in our experiments.
+@@ -1270,2 +1271 @@ Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQv
+-\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
+-However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
++\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds; its compatibility mechanism is described in Section~\ref{sec:background}.
+@@ -1273 +1273 @@ However, these methods largely rely on direct text generation or post-generation
+-In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair while preserving context.
++Unlike \sedar{}, which translates each statement of a test case individually under its referenced source-side sub-schema, \tool{} performs AQT-guided instantiation that maintains target-side context across statements, where explicit dependencies, nested structures, and clause-level relationships support local repair with parser and execution feedback before mutation.

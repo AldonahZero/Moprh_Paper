@@ -287,7 +287,7 @@ In summary, the paper makes the following contributions:
 
 
 \begin{enumerate}[leftmargin=*]
-\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. LLM-based end-to-end translation often introduces errors and structural simplifications, and limited SQL grammar support further hinders mutation and degrades query semantics, reducing testing effectiveness.
+\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. Transferring existing test cases requires coordinating cross-statement dependencies, target-side executability, and compatibility with downstream fuzzers.
 \item We propose \tool{}, a dependency-preserving whole-test-case seed transfer framework. Instead of translating isolated SQL statements, \tool{} encodes each source test case as an AQT, instantiates it under target-dialect constraints, and adapts remaining incompatibilities into fuzzer-parsable forms while preserving testing-relevant structures.
 \item We implement \tool{} and evaluate it on four DBMSs, where it discovers \bugcnt{} previously unknown bugs (\bugconfirmcnt{} confirmed, \bugfixcnt{} fixed). 
 Compared to the state-of-the-art method \sedar{}, \tool{} improves the overall semantic correctness of transferred seeds by 130\%, achieving a 14\% increase in branch coverage.
@@ -941,7 +941,8 @@ For translation effectiveness, we compare \tool{} against six baselines, includi
 The No translation strategy directly executes the original test cases collected from source DBMSs without modification. 
 SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
 \sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
-We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
+We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline, including schema capture, end-to-end LLM translation, and mutability refinement; the latter temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before target-side execution.
+Our artifact includes the \sedar{} configuration and the \sedar{}-generated seeds used in our experiments.
 
 % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
 
@@ -1267,10 +1268,9 @@ Unlike these works, \tool{} focuses on the upstream \textit{seed acquisition} pr
 \subsection{LLM-Based Seed Generation}
 Recent work has explored LLMs for generating or enriching testing inputs.
 Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQveL~\cite{zhong2025testing} synthesizes SQL fragments for database testing.
-\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
-However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
+\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds; its compatibility mechanism is described in Section~\ref{sec:background}.
 
-In contrast, \tool{} performs AQT-guided whole-test-case instantiation, where explicit schema dependencies, nested structures, and clause-level relationships support local repair while preserving context.
+Unlike \sedar{}, which translates each statement of a test case individually under its referenced source-side sub-schema, \tool{} performs AQT-guided instantiation that maintains target-side context across statements, where explicit dependencies, nested structures, and clause-level relationships support local repair with parser and execution feedback before mutation.
 
 
 % \subsection{Cross-Dialect SQL Translation}

@@ -6,9 +6,8 @@
 
 只处理 RC1：准确说明 SEDAR 的变异前临时注释、变异后且目标执行前恢复，并纠正由临时隐藏推导出的永久结构/逻辑丢失结论。
 
-- 核心条目：**18、23、24（只改 SEDAR 句）、26**。
-- 第 **21** 项仅补全恢复步骤。
-- 等证据条目：**11、19**。
+- 核心条目：**18、23**。
+- 等证据条目：**19**。
 
 全文及图的既有审计记录已移至 [RC1_Audit_Appendix.md](RC1_Audit_Appendix.md)，不作为新增执行项。
 
@@ -29,12 +28,6 @@
 
 ## 四、RC1 条目及中文对照
 
-### 11. 动机案例：执行证据核实（等证据）
-
-**剩余内容：** 机制解释和错误归因已修正为“恢复不会修复已有翻译错误”，新版图已接入。当前正文按示意案例表述，不宣称已核实具体运行错误。
-
-**所需证据：** 补齐翻译、隐藏、恢复后的完整 SQL、实际错误反馈及 MORPH 对应输出；核实后再把条件性解释落实为该次运行的具体失败原因。不能仅凭 AGE 名称断言目标不支持它。
-
 ### 18. RQ2 漏洞数量结果的解释
 
 **修改前要点：** 漏洞数差异被归因于 SEDAR 通过破坏性清理牺牲语义深度，而 MORPH 保留完整逻辑并触及基线无法到达的路径。
@@ -51,12 +44,6 @@
 
 **归因边界：** 只有同一批翻译后 SQL、其余配置一致且只改变处理策略，才能称 mutation-handling 对照。若分别翻译，则只在本项将比较名称和结论改为完整流程比较；事实未核实前暂不采用隔离机制的归因。
 
-### 21. RQ3：只补全恢复步骤
-
-**修改前：** SEDAR 流程被概括为模式捕获、LLM 翻译和注释式清理。
-
-**拟改内容：** 仅将注释式清理补全为“变异前临时注释，变异后、目标 DBMS 执行前恢复”。句中其他表述保持不变；来源及措辞问题仅记入待 RC4 清单。
-
 ### 23. RQ3：特征计数差距的解释
 
 **修改前要点：** 将多样性差距主要归因于 SEDAR 注释无法映射的结构。
@@ -65,26 +52,14 @@
 
 **修改尺度：** 保留特征数字及其反映的种子丰富度，删除错误的永久丢失归因。计数阶段和“有效输出”的定义按统计脚本核实，不在此重复完整流程无法隔离单个环节的说明。
 
-### 24. Related Work：只改 SEDAR 句
-
-**标签核实：** main.tex 的 Background and Motivation 节已有 `\label{sec:background}`，可保留该引用。
-
-**拟改内容：** 仅在介绍 SEDAR 的原句中引用背景处的机制说明，避免重复展开。其后的通用概述与 MORPH 句保持原样，不在此重写相关工作定位。
-
-### 26. 贡献列表：问题发现的概括
-
-**现状：** 原贡献列表第一项将语法支持有限直接连到 query semantics 退化，与恢复机制容易冲突。
-
-**计划：** 保留种子稀缺和迁移挑战的贡献，改为协调跨语句依赖、目标端可执行性和下游变异兼容性；不把现有 LLM 方法全部描述为必然简化查询或丢失语义。
-
 ## 五、待其他 RC
 
 - **待 RC2：** Basic Idea 首句的 “thoroughly decouple” 和 “more robust structural recursive substitution” 等新颖性措辞，本轮保留。
 
-- **待 RC4：** SEDAR 实现来源及 reproduced/binary 措辞（原第 21 项来源部分）。
+- **待 RC4：** 核对 artifact 中 SEDAR 配置与生成种子的实际位置，并补足 binary 版本与获取信息；正文来源措辞已按作者说明更新。
 - **待 RC2/其他意见：** 摘要概括（原第 25 项）。
 - **待 RC2/其他意见：** RQ1 案例的 high-fidelity/路径不可达表述（原第 28 项）。
-- **待 RC2：** QTRAN 引用及其余相关工作定位，另行处理；Related Work 中 “rely on … post-generation filtering and sanitization” 的旧概括留待 RC2。
+- **待 RC2：** QTRAN 引用及其余相关工作定位，另行处理。
 - **待其他 RC：** 方法流程与概述的其余措辞（原第 15、27 项），暂不处理。
 - **待其他 RC：** 纯源码注释整理，暂不处理。
 
@@ -92,17 +67,12 @@
 
 - [ ] Reviewer B Comment 4 (b)：为每个分类提供证据，留待回复信列出文档链接或实验验证。
 
-- [ ] 机制描述与错误归因的剩余修改：21、24、18、23；每次仅实施一项。
-- [ ] 贡献概括的剩余修改：26。
-- [ ] 11、19 取得所列证据后再定稿。
+- [ ] 机制描述与错误归因的剩余修改：18、23；每次仅实施一项。
+- [ ] 19 取得所列证据后再定稿。
 
 ## 七、英文原文与修改后源码完整对照
 
-以下只保留第四节同号条目。修改后均为拟稿，尚未应用；24 只展示要替换的 SEDAR 一句，21 只补全恢复步骤。
-
-### 7.11 动机案例：执行证据核实（等证据）
-
-**状态：** 原错误归因已删除；当前正文说明恢复机制本身不修复翻译错误。取得第 11 项记录后，再拟定具体执行失败的描述，暂不保留未经核实的运行结论拟稿。
+以下只保留第四节同号条目。修改后均为拟稿，尚未应用。
 
 ### 7.18 RQ2：漏洞数量结果解释
 
@@ -145,22 +115,6 @@ Branch coverage was 27.2\% higher on DuckDB and 15.5\% higher on MonetDB with \t
 
 若证据表明两端分别翻译，只在本项调整标题与归因，待事实明确后再给对应拟稿；不将该版本直接写入 clean。
 
-### 7.21 RQ3：只补全恢复步骤
-
-**范围：** 仅替换流程末尾的注释式清理描述，保留原句其他措辞。
-
-**修改前（当前 clean）：**
-
-```latex
-We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
-```
-
-**修改后（拟稿，尚未应用）：**
-
-```latex
-We reproduced \sedar{}'s complete pipeline, including schema capture, end-to-end LLM translation, and its mutability refinement, which temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before target-side execution.
-```
-
 ### 7.23 RQ3：特征计数差距解释
 
 **状态与范围：** 待核实计数阶段和有效输出定义；保留前文数字及表格。
@@ -176,36 +130,4 @@ The diversity gap mainly comes from how each baseline handles unmappable constru
 ```latex
 The counts of valid functions, data types, and keywords show that \tool{} produces seeds with richer SQL features.
 Its dialect-guided AQT instantiation and feedback repair aim to adapt complex structures to the target DBMS and downstream fuzzer.
-```
-
-### 7.24 Related Work：只改 SEDAR 句
-
-**范围：** 仅替换以下一句；其后的通用概述和 MORPH 句不变。
-
-**修改前（当前 clean）：**
-
-```latex
-\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds.
-```
-
-**修改后（拟稿，尚未应用）：**
-
-```latex
-\sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds; its compatibility mechanism is described in Section~\ref{sec:background}.
-```
-
-### 7.26 贡献列表：问题发现
-
-**状态与范围：** 保留种子稀缺和迁移挑战，避免将临时隐藏写成查询语义退化的根因。
-
-**修改前（当前 clean）：**
-
-```latex
-\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. LLM-based end-to-end translation often introduces errors and structural simplifications, and limited SQL grammar support further hinders mutation and degrades query semantics, reducing testing effectiveness.
-```
-
-**修改后（拟稿，尚未应用）：**
-
-```latex
-\item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. Transferring existing test cases requires coordinating cross-statement dependencies, target-side executability, and compatibility with downstream mutation interfaces.
 ```
