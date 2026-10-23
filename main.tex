@@ -384,13 +384,11 @@ However, \sedar{} does not maintain translated target-side context across statem
 We next present a motivating example to illustrate the limitations of LLM-based fuzzing-oriented seed transfer methods such as \sedar{}.
 LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{syntax or semantic errors} due to hallucinations.
 Moreover, many fuzzers cover only a subset of SQL grammar.
-Existing methods typically comment out unsupported features to support seed mutation after transfer, which alters the query and causes \textit{structural simplification}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth]{media/motivating_71.pdf}
-  % \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
-  \caption{Conventional end-to-end translation methods like \sedar{} suffer from semantic error and structural simplification (Left). \tool{} decouples intent via AQT, successfully instantiating the equivalent \texttt{date\_diff} logic (Right).}
+  \includegraphics[width=\linewidth]{media/motivating_rc1.pdf}
+  \caption{Motivating example observed when running \sedar{} on a \pg{} seed (Left): the incompatible fragment is commented out during mutation and restored before execution, leaving the translation error unrepaired. \tool{} abstracts the dialect-specific logic via AQT and instantiates it in the target dialect (Right).}
   \label{fig:motivation}
 \end{figure}
 
@@ -411,8 +409,10 @@ Existing methods typically comment out unsupported features to support seed muta
   \label{fig:workflow}
 \end{figure*}
 
-\textit{Limitations of Existing Approaches.} Figure \ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring a test case from \pg{} to \duckdb{}, which contains dialect-specific features like the \texttt{AGE} function in the \texttt{WHERE} clause and the \texttt{::INTERVAL} type cast. With limited knowledge of \duckdb{}’s syntax, the LLM hallucinates and preserves \texttt{AGE}, causing syntax and semantic errors. To satisfy parsing constraints, \sedar{} comments out \texttt{AGE} and replaces the \texttt{WHERE} condition with \texttt{True}, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states. 
-As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
+\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a test case transferred by \sedar{} from \pg{} to \duckdb{}, which contains dialect-specific features such as the \texttt{AGE} function and the \texttt{::INTERVAL} type cast.
+In this example, the LLM-generated translation contains an incompatible fragment in the temporal predicate.
+To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment during mutation and restores it before execution.
+Since the restored fragment still contains the translation error, the mutated test case fails on \duckdb{}.
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
