@@ -1,9 +1,16 @@
 diff --git a/main.tex b/main.tex
-index 0ff03d2..1b98549 100644
+index 1b98549..63b971b 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -413,2 +413,2 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
--In this example, the LLM-generated translation contains an incompatible fragment in the temporal predicate.
--To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment during mutation and restores it before execution.
-+In this example, the LLM retains \texttt{AGE} in the translated predicate.
-+To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment and replaces the predicate with \texttt{TRUE} during mutation, then restores the fragment before execution.
+@@ -419,3 +419,4 @@ The core idea of \tool{} is to thoroughly decouple logical intent from syntactic
+-As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation, but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent.
+-It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity.
+-By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}.
++As shown in Figure~\ref{fig:motivation}, \tool{} abstracts the dialect-specific \texttt{AGE} operation into an AQT node labeled $<$\texttt{TimeDiff}$>$.
++For multi-statement test cases, it propagates target-side schema and type context in statement order and uses this context together with target-dialect information to instantiate AQT nodes.
++Parser and execution feedback guide the repair of remaining incompatibilities before mutation.
++In this example, \tool{} instantiates $<$\texttt{TimeDiff}$>$ with \texttt{date\_diff}, producing an executable seed that retains the temporal predicate.
+@@ -697 +698,2 @@ When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} a
+-Thus, destructive commenting is used only after structure-preserving repairs fail.
++Thus, only if the preceding three fallback stages fail does \tool{} comment out the minimal offending fragment.
++Constant substitution and minimal commenting may change the behavior of transferred seeds.

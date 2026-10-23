@@ -6,7 +6,7 @@
 
 只处理 RC1：准确说明 SEDAR 的变异前临时注释、变异后且目标执行前恢复，并纠正由临时隐藏推导出的永久结构/逻辑丢失结论。
 
-- 核心条目：**13、17、18、23、24（只改 SEDAR 句）、26**。
+- 核心条目：**18、23、24（只改 SEDAR 句）、26**。
 - 第 **21** 项仅补全恢复步骤。
 - 等证据条目：**11、19**。
 
@@ -25,7 +25,7 @@
 - 补全恢复流程，不把变异中的隐藏形式当作最终执行查询。
 - 保留 AQT、前向读后写依赖、目标端上下文和反馈修复的原有主线，纠正具体错误比较。
 - 保留正向实验结果，删除没有证据支持的永久逻辑丢失归因。
-- 动机案例依据实际恢复/执行记录；常量替换的行为变化在第 17 项说明，变异后等价性在第 19 项正文明确一次。
+- 动机案例依据实际恢复/执行记录；常量替换和最小范围注释的行为变化仅在兜底策略结尾说明，变异后等价性在第 19 项正文明确一次。
 
 ## 四、RC1 条目及中文对照
 
@@ -34,24 +34,6 @@
 **剩余内容：** 机制解释和错误归因已修正为“恢复不会修复已有翻译错误”，新版图已接入。当前正文按示意案例表述，不宣称已核实具体运行错误。
 
 **所需证据：** 补齐翻译、隐藏、恢复后的完整 SQL、实际错误反馈及 MORPH 对应输出；核实后再把条件性解释落实为该次运行的具体失败原因。不能仅凭 AGE 名称断言目标不支持它。
-
-### 13. Basic Idea of MORPH
-
-**保留内容：** 结构抽象与目标方言实例化的核心思路、案例中的 TimeDiff 表示，以及保留有用测试结构的设计目标。
-
-**局部调整：** 将“不会进行错误翻译”“确保有效”“必然到达更深路径”等保证性措辞改为设计目标或实测结果；仅在当前案例确实涉及时保留窗口分区说明。
-
-**建议表述主线：** MORPH 将方言相关操作抽象为 AQT 节点，结合目标方言和类型信息实例化，并利用解析与执行反馈修复不兼容结构，生成保留有用测试结构的可执行种子。
-
-**修改尺度：** 保留方法解释的具体性与正向动机，不将整段改为修复时机比较，也不追加变异后等价性声明。
-
-### 17. 四级兜底策略结尾
-
-**保留顺序：** 已有映射 → RAG 候选 → 源端执行后常量替换 → 最小范围注释。
-
-**建议局部修改：** 只有前面的修复尝试失败后，才采用最小范围注释。常量替换和最小范围注释可能改变迁移种子的行为。
-
-**修改尺度：** 保留“尽量先修复、最后兜底”的设计理由；在此说明一次迁移阶段的行为变化即可，不延伸为各节重复的免责声明。
 
 ### 18. RQ2 漏洞数量结果的解释
 
@@ -97,6 +79,8 @@
 
 ## 五、待其他 RC
 
+- **待 RC2：** Basic Idea 首句的 “thoroughly decouple” 和 “more robust structural recursive substitution” 等新颖性措辞，本轮保留。
+
 - **待 RC4：** SEDAR 实现来源及 reproduced/binary 措辞（原第 21 项来源部分）。
 - **待 RC2/其他意见：** 摘要概括（原第 25 项）。
 - **待 RC2/其他意见：** RQ1 案例的 high-fidelity/路径不可达表述（原第 28 项）。
@@ -109,7 +93,7 @@
 - [ ] Reviewer B Comment 4 (b)：为每个分类提供证据，留待回复信列出文档链接或实验验证。
 
 - [ ] 机制描述与错误归因的剩余修改：21、24、18、23；每次仅实施一项。
-- [ ] 方法说明与贡献概括的剩余修改：13、17、26。
+- [ ] 贡献概括的剩余修改：26。
 - [ ] 11、19 取得所列证据后再定稿。
 
 ## 七、英文原文与修改后源码完整对照
@@ -119,45 +103,6 @@
 ### 7.11 动机案例：执行证据核实（等证据）
 
 **状态：** 原错误归因已删除；当前正文说明恢复机制本身不修复翻译错误。取得第 11 项记录后，再拟定具体执行失败的描述，暂不保留未经核实的运行结论拟稿。
-
-### 7.13 Basic Idea of MORPH
-
-**状态与范围：** 待核对图中的 AQT 标签和实际操作。保持具体方法解释，去掉不会出错、必然到达更深路径等保证性推断。
-
-**修改前（当前 clean）：**
-
-```latex
-The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution.
-As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation, but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent.
-It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity.
-By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}.
-```
-
-**修改后（拟稿，尚未应用）：**
-
-```latex
-The core idea of \tool{} is to decouple structural information from dialect-specific syntax through an AQT, enabling structure-aware target-dialect instantiation.
-As shown in Figure~\ref{fig:motivation}, \tool{} abstracts the time-difference operation into a generic $<$\texttt{TimeDiff}$>$ label and instantiates it using target-side dialect and type information.
-Parser and execution feedback then guide the repair of remaining incompatibilities.
-This process aims to produce executable, fuzzer-compatible seeds while retaining useful structures and the filtering complexity of the test case.
-```
-
-### 7.17 四级兜底策略结尾
-
-**状态与范围：** 保留前文四级顺序；仅在此说明迁移种子的行为可能变化。
-
-**修改前（当前 clean）：**
-
-```latex
-Thus, destructive commenting is used only after structure-preserving repairs fail.
-```
-
-**修改后（拟稿，尚未应用）：**
-
-```latex
-Thus, minimal commenting is used only after earlier repair attempts fail.
-Constant substitution and minimal commenting may change the behavior of transferred seeds.
-```
 
 ### 7.18 RQ2：漏洞数量结果解释
 

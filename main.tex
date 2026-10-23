@@ -416,9 +416,10 @@ Since the restored fragment still contains the translation error, the mutated te
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
-As shown in Figure~\ref{fig:motivation}, \tool{} does not perform erroneous syntactic translation, but instead abstracts the dialect-specific \texttt{AGE} function into a generic $<$\texttt{TimeDiff}$>$ intent. 
-It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity. 
-By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}.
+As shown in Figure~\ref{fig:motivation}, \tool{} abstracts the dialect-specific \texttt{AGE} operation into an AQT node labeled $<$\texttt{TimeDiff}$>$.
+For multi-statement test cases, it propagates target-side schema and type context in statement order and uses this context together with target-dialect information to instantiate AQT nodes.
+Parser and execution feedback guide the repair of remaining incompatibilities before mutation.
+In this example, \tool{} instantiates $<$\texttt{TimeDiff}$>$ with \texttt{date\_diff}, producing an executable seed that retains the temporal predicate.
 \section{Approach}
 \label{sec:approach}
 % Approach 写作逻辑：
@@ -694,7 +695,8 @@ For example, it removes excess brackets around \texttt{date\_diff} in Figure~\re
 % \textbf{Tiered Fallback Strategy.}
 % When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order. First, it checks the sanitization dictionary and applies an existing mapping when the unsupported construct has a known target-compatible form. Second, if no exact mapping exists, it uses RAG to retrieve candidate replacements from dialect evidence and validates the rewritten fragment with the fuzzer parser. Third, if no suitable replacement can be found, \tool{} executes the original source-side construct in the source DBMS and substitutes the returned value as a constant, preserving the surrounding query structure whenever possible. Finally, only if these structure-preserving attempts fail, \tool{} comments out the minimal offending construct. This ordering makes destructive commenting a last resort rather than the default sanitization strategy.
 When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order: existing sanitization mappings, RAG-retrieved replacements, source-side execution followed by constant substitution, and finally minimal commenting.
-Thus, destructive commenting is used only after structure-preserving repairs fail.
+Thus, only if the preceding three fallback stages fail does \tool{} comment out the minimal offending fragment.
+Constant substitution and minimal commenting may change the behavior of transferred seeds.
 % \smallskip
 % \noindent
 % \textbf{Mutable-Region Annotation.}
