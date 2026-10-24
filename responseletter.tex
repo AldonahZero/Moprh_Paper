@@ -189,17 +189,10 @@ For full reproducibility, the paper should additionally document the baseline ad
 \reply TODO.
 
 % Source: Reviewer B, Detailed 4.
-\reviewcomment{2.6} \textbf{4. Questionable classification in Table I.} The classification of SQLGlot and jOOQ as entirely lacking ``Test Case Migration'' and ``Cross-stmt Deps.'' support is overly absolute. In practice:
+\reviewcomment{2.6} \textbf{Questionable classification in Table I.}
 
-    SQLGlot can parse and transpile multi-statement SQL scripts.
-
-    JOOQ's SQL Interpreter can maintain schema metadata across DDL and subsequent DML statements.
-
-    Conversely, CrackSQL is marked as supporting DML, but this is not sufficiently validated by the paper or external references.
-
-    The authors should: (a) clearly define what \(\checkmark\), \(\triangle\), and \(\times\) mean for each cell with specific criteria, (b) provide evidence for each classification (e.g., cite documentation or experimental verification), and (c) revise the table entries accordingly to avoid overclaiming.
-
-\reply TODO.
+\reply
+We have clarified the criteria for the three symbols in Table~I and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and CrackSQL's \textit{DML} entries are now marked as \partmark{}. These revisions acknowledge SQLGlot's multi-statement transpilation and jOOQ's schema metadata tracking, while qualifying CrackSQL's DML support. Related corrections to the characterization of \sedar{} are described in \requestedref{1}.
 
 % Source: Reviewer B, Detailed 5.
 \reviewcomment{2.7} \textbf{5. Unclear source of the improvement.} The reported coverage and bug-finding improvements may stem from a larger or more diverse effective seed corpus rather than the AQT-based translation technique itself. For a fair comparison with SEDAR, GRIFFIN, and SQUIRREL, all approaches should use exactly the same source seed corpus and produce comparable numbers of final seeds that pass the target parser.
