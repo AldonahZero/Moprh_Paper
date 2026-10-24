@@ -345,7 +345,7 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
 \vspace{0.2em}
 \parbox{\columnwidth}{\scriptsize\raggedright
 \textit{Cross-stmt. Deps.} denotes explicit tracking of forward read-after-write dependencies and schema/type context across statements.
-\cmark: supported and documented or evaluated; \partmark: partially supported, i.e., supported only for some statements or settings, through a separate component, or without systematic evaluation; \xmark: not supported. CrackSQL's DML entry reflects the lack of a separate systematic DML evaluation in Sections~7.1--7.2 of its paper~\cite{zhou2025cracking}.}
+\cmark: supported and documented or evaluated; \partmark: partially supported, i.e., supported only for some statements or settings, or through a separate component; \xmark: not supported.}
 \end{table}
 
 \textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, cross-DBMS SQL transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
