@@ -1,0 +1,26 @@
+diff --git a/bibfile.bib b/bibfile.bib
+index 0133d72..c1531af 100644
+--- a/bibfile.bib
++++ b/bibfile.bib
+@@ -2296,4 +2296,19 @@
+   doi          = {10.5281/zenodo.21021452},
+   url          = {https://doi.org/10.5281/zenodo.21021452},
+   year         = {2026}
+-}
+\ No newline at end of file
++}
++@misc{sqlglot_api,
++  author = {{SQLGlot Contributors}},
++  title = {{SQLGlot} API Documentation: parse and transpile},
++  year = {2026},
++  note = {Accessed: 2026-10-24},
++  url = {https://sqlglot.com/sqlglot.html}
++}
++
++@misc{jooq_interpreter,
++  author = {{jOOQ Contributors}},
++  title = {{jOOQ} User Manual: SQL Interpreter},
++  year = {2026},
++  note = {Accessed: 2026-10-24},
++  url = {https://www.jooq.org/doc/latest/manual/sql-building/sql-interpreter/}
++}

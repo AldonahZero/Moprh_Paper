@@ -1,0 +1,24 @@
+diff --git a/main.tex b/main.tex
+index 90db614..5eb9c98 100644
+--- a/main.tex
++++ b/main.tex
+@@ -331,8 +331,8 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
+     \textbf{Tool} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
+     & & & & \textbf{Migration} & \textbf{Deps.} \\
+     \midrule
+-    SQLGlot~\cite{sqlglot} & \cmark & \cmark & \cmark & \partmark & \xmark \\
+-    jOOQ~\cite{jooq} & \cmark & \cmark & \cmark & \xmark & \partmark \\
++    SQLGlot~\cite{sqlglot,sqlglot_api} & \cmark & \cmark & \cmark & \partmark & \xmark \\
++    jOOQ~\cite{jooq,jooq_interpreter} & \cmark & \cmark & \cmark & \xmark & \partmark \\
+     RISE~\cite{xie2026rise} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+     CrackSQL~\cite{zhou2025cracking} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+     QTRAN~\cite{lin2025qtran} & \partmark & \partmark & \cmark & \xmark & \xmark \\
+@@ -345,7 +345,7 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
+ \vspace{0.2em}
+ \parbox{\columnwidth}{\scriptsize\raggedright
+ \textit{Cross-stmt. Deps.} denotes explicit tracking of forward read-after-write dependencies and schema/type context across statements.
+-\cmark: supported and documented or evaluated; \partmark: partially supported, i.e., supported only for some statements or settings, through a separate component, or without systematic evaluation; \xmark: not supported.}
++\cmark: supported and documented or evaluated; \partmark: partially supported, i.e., supported only for some statements or settings, through a separate component, or without systematic evaluation; \xmark: not supported. CrackSQL's DML entry reflects the lack of a separate systematic DML evaluation in Sections~7.1--7.2 of its paper~\cite{zhou2025cracking}.}
+ \end{table}
+
+ \textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, cross-DBMS SQL transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
