@@ -925,7 +925,7 @@ To examine one source of this difference, we next compare the mutation-handling 
 \textbf{Controlled Comparison of Mutation Handling.}
 \tool{} repairs incompatibilities before mutation, whereas \sedar{} uses comment-and-restore handling (Section~\ref{sec:background}).
 Neither strategy guarantees semantic equivalence of the mutated queries.
-For each target DBMS, we randomly sampled 300 seeds translated by \sedar{} and applied both strategies to the same seeds.
+For each target DBMS, we randomly sampled 300 translated seeds and applied both strategies to the same seeds.
 Each configuration was run with \griffin{} for 24 hours and repeated five times.
 The translated inputs, target database initial state, \griffin{} version and configuration, and resource allocation were held fixed; only the mutation-handling strategy differed.
 Across the four DBMSs, \tool{}'s handling achieves \TODO{a}\%, \TODO{b}\%, \TODO{c}\%, and \TODO{d}\% higher branch coverage than \sedar{}'s handling on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively (mean over five runs; Mann--Whitney U test, $p<\TODO{0.05}$); per-run results are included in our artifact.
