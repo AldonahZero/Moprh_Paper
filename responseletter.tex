@@ -105,6 +105,24 @@ We have clarified the provenance of the \sedar{} binary in Section~IV, stating t
 \reply
 We have added a source-to-target result and state equivalence study in Section~IV. We randomly sampled 100 MySQL test cases and evaluated SQLGlot, RISE, \sedar{}, and \tool{} on the same cases for transfer to DuckDB. We compared query results and the resulting database states, including schemas and table contents. Translation or execution failures count as non-equivalent, and both rates use all 100 cases as the denominator. \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}. This study provides supplementary evidence for the sampled source-target pair, without claiming general semantic equivalence. We have also renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV to distinguish runtime executability from result or state equivalence.
 
+\begin{center}
+\begin{minipage}{\linewidth}
+\centering\small
+Source-to-target equivalence on 100 randomly sampled MySQL-to-DuckDB test cases. Translation or execution failures count as non-equivalent.
+\par\medskip
+\begin{tabular}{lrr}
+\toprule
+Method & Result Eq. (\%) & State Eq. (\%) \\
+\midrule
+SQLGlot & 14.0 & 56.0 \\
+RISE & 34.0 & 65.0 \\
+\sedar{} & 38.0 & 69.0 \\
+\tool{} & \textbf{52.0} & \textbf{74.0} \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
 % Source: Reviewer A, Question 2.
 \reviewcomment{1.2} What independent benefit does the dependency graph provide beyond context propagation?
 
@@ -158,27 +176,26 @@ We have clarified in Sections~I and~VI that \tool{} builds on established techni
 \reply
 We have corrected the related work in Section~VI. CrackSQL is now described as combining functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation. RISE is now described as processing one self-contained query or procedural artifact at a time, rather than an ordered test sequence of independently executed statements.
 
-% Source: Reviewer A, Detailed 2.
-\reviewcomment{1.7} \textbf{Technical Clarity} The AQT is a useful abstraction for organizing a transferred test case. In particular, the combination of normalized statement templates, read and write sets, and evolving schema context provides more structure than independent statement-level translation. The context ablation, where execution success decreases from 65.1\% to 52.4\%, provides evidence that cross-statement context improves target-side executability.
+% Source: Reviewer A, Detailed 2 (paragraph 3).
+\reviewcomment{1.7} \textbf{Technical Clarity} It is therefore unclear what ($G_{tc}$) contributes independently beyond recording the dependencies and preserving an order that is already present. The reported ablation removes context propagation rather than the graph itself, so it establishes the value of context but not an independent benefit from ($G_{tc}$). The paper should explain whether the graph affects retrieval, prompting, repair, or any other step not apparent from the algorithms.
 
-However, the precise role and scope of the explicit dependency graph remain unclear. Algorithm 1 defines an edge from statement (i) to statement (j) when (\(i<j\)) and (\(R_j\cap W_i\neq\varnothing\)). This formalization captures forward read-after-write dependencies. Because every edge follows the original order, the original statement sequence is already a valid topological ordering, and the stable topological sort in Algorithm 2 normally preserves that order.
+\reply
+We have revised Algorithm~2 and its description in Section~III. We have removed the stable topological sort, since the original statement order already satisfies all forward read-after-write dependencies, and we have made the use of the dependency graph explicit: \textsc{SelectContext} uses $\Delta$ to select dependency-relevant predecessors, whose source and translated statements are provided in the prompts for instantiation and repair. We have also added an ablation study in Section~IV that isolates the dependency graph from context propagation. Details can be found in \commentref{1.2}.
 
-It is therefore unclear what ($G_{tc}$) contributes independently beyond recording the dependencies and preserving an order that is already present. The reported ablation removes context propagation rather than the graph itself, so it establishes the value of context but not an independent benefit from (\(G_{tc}\)). The paper should explain whether the graph affects retrieval, prompting, repair, or any other step not apparent from the algorithms.
+% Source: Reviewer A, Detailed 2 (paragraph 4).
+\reviewcomment{1.8} The paper should also define the content and construction of the ``object-state summaries'' in ($D$) and clarify which forms of state are represented. The current formal definition explicitly supports forward RAW dependencies and cumulative schema/type context. Broader descriptions such as preserving all schema, data, and state dependencies should be narrowed unless additional dependency forms are implemented.
 
-The paper should also define the content and construction of the ``object-state summaries'' in (D) and clarify which forms of state are represented. The current formal definition explicitly supports forward RAW dependencies and cumulative schema/type context. Broader descriptions such as preserving all schema, data, and state dependencies should be narrowed unless additional dependency forms are implemented.
-
-These issues do not invalidate the sequence-aware design, but clarifying them would make the technical contribution more precise.
-
-\reply TODO.
+\reply
+We have defined the object-state summaries in Section~III. Each summary records whether a schema object exists, its table definition, column names and types, constraints, and the schema changes induced by preceding DDL statements, and the summaries are updated incrementally in statement order. We have also clarified that $\mathcal{D}$ does not record table contents or other data-level state. In addition, we have revised the broader descriptions in Sections~III and~IV, e.g., ``propagates schema, type, and state context'' to ``propagates schema and type context'', so that they are limited to forward read-after-write dependencies and cumulative schema and type context.
 
 % Source: Reviewer A, Detailed 3.
-\reviewcomment{1.8} \textbf{Semantic Correctness} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
+\reviewcomment{1.9} \textbf{Semantic Correctness} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
 
 \reply
 We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV. We have also revised the description of instantiation in Section~III, revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study as supplementary evidence. Details can be found in \commentref{1.1}.
 
 % Source: Reviewer A, Detailed 4.
-\reviewcomment{1.9} \textbf{Evaluation} The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
+\reviewcomment{1.10} \textbf{Evaluation} The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
 
 My main concern is the configuration of the translation baselines. The original CrackSQL evaluation focuses on PostgreSQL, MySQL, and Oracle, while RISE evaluates PostgreSQL-to-MySQL and PostgreSQL-to-Oracle translation. MORPH applies these systems to MonetDB, Virtuoso, DuckDB, and ClickHouse. The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
 
@@ -193,7 +210,7 @@ Finally, the component ablation is performed only for PostgreSQL-to-DuckDB trans
 \reply TODO.
 
 % Source: Reviewer A, Detailed 6.
-\reviewcomment{1.10} \textbf{Verifiability and transparency} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
+\reviewcomment{1.11} \textbf{Verifiability and transparency} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
 
 For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
 

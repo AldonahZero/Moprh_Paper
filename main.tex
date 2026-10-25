@@ -501,6 +501,8 @@ records the statement type, normalized skeleton, statement-level intra-statement
 $\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies, where $(i,j)\in\Delta$ iff $R_j\cap W_i\neq\emptyset$. 
 $\mathcal{D}$ records the cumulative schema context after executing $\langle s_1,\ldots,s_n\rangle$, including table definitions, column types, constraints, and object-state summaries that are propagated as source-side
 constraints during target-side instantiation.
+Each object-state summary records whether a schema object exists, its table definition, column names and types, constraints, and the schema changes induced by preceding DDL statements; the summaries are updated incrementally in statement order.
+$\mathcal{D}$ does not record table contents or other data-level state.
 $\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where $V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency set and 
 $\mathcal{G}_{tc}$ is its graph representation, used to select dependency-relevant context during instantiation.
 $\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges for deduplication and cache indexing.
@@ -572,7 +574,7 @@ Finally, a statement template is constructed, capturing the parent-child relatio
 % 这一段先陈述输入输出与依赖顺序约束，引出下文 challenge 与 two-level 实例化思路。
 This step instantiates AQTs into syntactically valid target seed sequences while preserving semantic-rich structures from the source seed.
 The instantiation follows the original statement order.
-The dependency edges in $\mathcal{G}_{tc}$ identify dependency-relevant preceding statements whose target-side context is used during instantiation and repair, and the evolving target context is propagated across statements to maintain cross-statement type, reference, and state consistency.
+The dependency edges in $\mathcal{G}_{tc}$ identify dependency-relevant preceding statements whose target-side context is used during instantiation and repair, and the evolving target context is propagated across statements to maintain cross-statement type and reference consistency.
 % 挑战+思路段：challenge 落在“递归实例化时目标侧语义正确 + 不打乱原测试用例顺序”；
 % 解决思路两点：RAG 闭环减少 hallucination；把翻译建模成 two-level instantiation，铺垫下面 Algorithm。
 The challenge is preserving target-side execution validity during recursive AQT-node instantiation without breaking the original test-case order.
@@ -1105,7 +1107,7 @@ With \textit{Structure-Preserving Abstraction}, $\tool{}_{\textit{abs}}$ improve
 Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases execution validity to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
 The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} execution validity.
 
-Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema, type, and state context across statements to preserve test-case-level dependencies.
+Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
 To isolate this effect, we disable context propagation ($\tool{}_{\textit{w/o-ctx}}$) in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
 This reduces execution validity from 0.661 to 0.523 (Table~\ref{tab:ablation_depgraph}).
 The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
