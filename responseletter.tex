@@ -197,7 +197,7 @@ For full reproducibility, the paper should additionally document the baseline ad
 \reviewcomment{2.6} \textbf{Questionable classification in Table I.}
 
 \reply
-We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, CrackSQL's DML support, and \sedar{}'s source-side handling of multi-statement dependencies. We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, CrackSQL's \textit{DML}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}.
+We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, CrackSQL's DML support, and \sedar{}'s source-side handling of multi-statement dependencies. We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}, while CrackSQL's \textit{DML} entry is marked as \cmark{}.
 
 \begin{center}
 \begin{minipage}{\linewidth}
@@ -214,7 +214,7 @@ Capability comparison of existing SQL translation systems for test-case-level DB
     SQLGlot & \cmark & \cmark & \cmark & \partmark & \xmark \\
     jOOQ & \cmark & \cmark & \cmark & \xmark & \partmark \\
     RISE & \partmark & \partmark & \cmark & \xmark & \xmark \\
-    CrackSQL & \partmark & \partmark & \cmark & \xmark & \xmark \\
+    CrackSQL & \partmark & \cmark & \cmark & \xmark & \xmark \\
     QTRAN & \partmark & \partmark & \cmark & \xmark & \xmark \\
     \sedar{} & \partmark & \partmark & \cmark & \cmark & \partmark \\
     \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
