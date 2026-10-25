@@ -603,7 +603,7 @@ $\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Cache k
 % - inner level：InstantiateStmt 在语句内递归，用检索/生成的局部映射 + parser feedback 保证可执行。
 To keep the generated queries valid in the target dialect during test-case instantiation, the system employs a Dialect-Aware AQT Instantiation process as formalized in Algorithm~\ref{alg:translation}.
 At the \emph{outer level}, the algorithm processes statements in their original order.
-For each statement $s_i$, \textsc{SelectContext} uses the dependency set $\Delta$ to select its dependency predecessors $\{j \mid (j,i)\in\Delta\}$, and returns their translated statements together with the target-side object-state summaries of the objects they write and $s_i$ reads (Line~\ref{line:alg2:ctx_sel}).
+For each statement $s_i$, \textsc{SelectContext} uses the dependency set $\Delta$ to select its direct predecessors $\{j \mid (j,i)\in\Delta\}$ (Line~\ref{line:alg2:ctx_sel}). Among the successfully instantiated predecessors, it keeps only the most recent one for each set of objects shared with $s_i$, since earlier writes to the same objects are superseded, and retains at most five predecessors. It returns their source and translated statements together with the target-side object-state summaries of the objects read by $s_i$.
 It then invokes \textsc{InstantiateStmt} with the source constraints and the selected target context, appends the generated query, and updates the target context for subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}).
 After all statements are instantiated, the generated target sequence is indexed by $(\mathcal{H},D_t)$ for future reuse.
 At the \emph{inner level}, \textsc{InstantiateStmt} recursively instantiates the statement-level graph using retrieved or generated local mappings and target-parser feedback to keep fragments executable.
@@ -1123,8 +1123,8 @@ Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}
 The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} execution validity.
 
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema, type, and state context across statements to preserve test-case-level dependencies.
-To isolate this effect, we disable context propagation in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
-This reduces execution validity from 65.1\% to 52.4\% (-12.7\%) while only slightly reducing syntactic correctness to 93.5\% (-1.7\%).
+To isolate this effect, we disable context propagation ($\tool{}_{\textit{w/o-ctx}}$) in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
+This reduces execution validity from 0.661 to 0.523 (Table~\ref{tab:ablation_depgraph}).
 The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
@@ -1135,6 +1135,30 @@ Under the same setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{
 This drop in execution validity shows that executable test-case transfer requires propagating schema, type, and state context across statements.
 \end{comment}
 
+
+\textbf{Contribution of the Dependency Graph.}
+To isolate the dependency graph from context propagation, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{win}}$, which uses the five most recent statements with the same object summaries, and $\tool{}_{\textit{all}}$, which provides all preceding statements and the complete context.
+As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.661 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
+Thus, the dependency graph provides a compact, dependency-relevant context.
+
+\begin{table}[!t]
+\centering
+\footnotesize
+\caption{Dependency-graph ablation. Preds: predecessors per statement; Rel.: dependency-relevant predecessors; Tokens: input tokens per statement.}
+\label{tab:ablation_depgraph}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+\textbf{Variant} & \textbf{Exec.} & \textbf{Preds} & \textbf{Rel. (\%)} & \textbf{Tokens} \\
+\midrule
+$\tool{}_{\textit{full}}$    & \textbf{0.661} & 0.47  & 100.0 & 509.6 \\
+$\tool{}_{\textit{win}}$     & 0.599 & 1.19  & 22.6  & 578.4 \\
+$\tool{}_{\textit{all}}$     & 0.643 & 27.95 & 4.2   & 1,842.3 \\
+$\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
+\bottomrule
+\end{tabular*}
+\vspace{-0.8em}
+\end{table}
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
 To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
@@ -1173,6 +1197,7 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 
 \begin{answerbox}
 \textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\%. $\tool{}_{\textit{rag}}$ improves execution validity, boosting it by 21\%. $\tool{}_{\textit{full}}$ achieves an improvement of 44\% in syntactic correctness and 38\% in execution validity.
+The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.
 % cumulative
 Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
 \end{answerbox}
