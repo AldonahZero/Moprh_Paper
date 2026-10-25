@@ -134,7 +134,7 @@ To isolate this benefit, we have added an ablation study in Section~IV. We compa
 \begin{center}
 \begin{minipage}{0.72\linewidth}
 \centering\footnotesize\renewcommand{\arraystretch}{1.0}
-\textbf{TABLE VII: Contribution of the dependency graph to context selection.}
+\textbf{TABLE VII: Contribution of the dependency graph to context selection across all source-target pairs.}
 \par\smallskip
 \begin{tabular}{lcccc}
 \toprule
@@ -193,23 +193,36 @@ We have defined the object-state summaries in Section~III. Each summary records 
 \reply
 We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV. We have also revised the description of instantiation in Section~III, revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study as supplementary evidence. Details can be found in \commentref{1.1}.
 
-% Source: Reviewer A, Detailed 4.
-\reviewcomment{1.10} The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
+% Source: Reviewer A, Detailed 4 (paragraph 2).
+\reviewcomment{1.10} The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
 
-My main concern is the configuration of the translation baselines. The original CrackSQL evaluation focuses on PostgreSQL, MySQL, and Oracle, while RISE evaluates PostgreSQL-to-MySQL and PostgreSQL-to-Oracle translation. MORPH applies these systems to MonetDB, Virtuoso, DuckDB, and ClickHouse. The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
+\reply
+We have added the configuration of the translation baselines in Section~IV, including the dialect knowledge used by each baseline, how CrackSQL and RISE are applied to complete test sequences, and the schema context provided to each baseline. No baseline receives additional manually written translation rules. \TODO{LLMs and prompts used by CrackSQL and RISE.} Details can be found in \commentref{1.3}.
 
-The SEDAR reproduction also requires clarification. The original SEDAR mutability-refinement algorithm temporarily hides fuzzer-parser-incompatible regions and restores them after mutation. The paper currently summarizes this process as comment-out sanitization and attributes structural simplification to it. The authors should confirm whether their reproduction includes the restoration step. If the motivating example is an observed failure in the reproduced system rather than the general SEDAR algorithm, this distinction should be stated explicitly.
+% Source: Reviewer A, Detailed 4 (paragraph 3).
+\reviewcomment{1.11} The authors should confirm whether their reproduction includes the restoration step. If the motivating example is an observed failure in the reproduced system rather than the general SEDAR algorithm, this distinction should be stated explicitly.
 
-The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
+\reply
+We have clarified in Section~IV that our experiments use the \sedar{} binary obtained from the authors of \sedar{}, which runs its complete pipeline, including the restoration step of mutability refinement. We have revised the descriptions of \sedar{} in Sections~I, II, and~IV accordingly. We have also stated explicitly in Section~II that the motivating example is a failure observed when running \sedar{} on a \textsc{PostgreSQL} seed, rather than a general property of the \sedar{} algorithm. Details can be found in \metareviewref{1} and \metareviewref{4}.
 
-The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
-
-Finally, the component ablation is performed only for PostgreSQL-to-DuckDB transfer. Extending at least the most important ablation, particularly context propagation, to additional source-target pairs would strengthen the generality of the findings.
+% Source: Reviewer A, Detailed 4 (paragraph 4).
+\reviewcomment{1.12} The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
 
 \reply TODO.
 
+% Source: Reviewer A, Detailed 4 (paragraph 5).
+\reviewcomment{1.13} The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
+
+\reply TODO.
+
+% Source: Reviewer A, Detailed 4 (paragraph 6).
+\reviewcomment{1.14} Finally, the component ablation is performed only for PostgreSQL-to-DuckDB transfer. Extending at least the most important ablation, particularly context propagation, to additional source-target pairs would strengthen the generality of the findings.
+
+\reply
+We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQL}-to-DuckDB transfer to all source-target pairs used in RQ3, and have updated the corresponding figure and tables in Section~IV. In particular, across these pairs, disabling target-side context propagation reduces execution validity from 0.661 to 0.523 (Table~VII). The same table also reports the dependency-graph ablation. Details can be found in \commentref{1.2}.
+
 % Source: Reviewer A, Detailed 6.
-\reviewcomment{1.11} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
+\reviewcomment{1.15} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
 
 For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
 

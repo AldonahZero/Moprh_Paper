@@ -1090,7 +1090,7 @@ The results demonstrate that the transfer methods in \tool{} produce seeds that 
 % - fuzzing phase：full vs. no feedback sanitizer，证明 high-quality generation 还需要 runtime feedback 才能转成 covered paths
 % - 解释时同时看 correctness、repair cost/token cost、branch coverage
 To analyze the specific contributions of the individual components within \tool{}, we conducted an ablation study across two phases. 
-For the \textit{translation phase}, we evaluated four main variants using the task of  \pg{}-to-\duckdb{} transfer:
+For the \textit{translation phase}, we evaluated four main variants on all source-target pairs used in RQ3:
 (1) $\tool{}_{\textit{base}}$: the baseline using direct zero-shot LLM translation (i.e., prompting the LLM with the raw SQL and asking for a direct translation, unlike the No translation baseline which executes the raw, untranslated SQL directly);
 (2) $\tool{}_{\textit{abs}}$: equipped solely with \textit{Structure-Preserving Abstraction};
 (3) $\tool{}_{\textit{rag}}$: equipped solely with \textit{Dialect-Aware AQT Instantiation};
@@ -1134,7 +1134,7 @@ Thus, the dependency graph provides a compact, dependency-relevant context.
 \begin{table}[!t]
 \centering
 \footnotesize
-\caption{Dependency-graph ablation. Preds: predecessors per statement; Rel.: dependency-relevant predecessors; Tokens: input tokens per statement.}
+\caption{Dependency-graph ablation across all source-target pairs. Preds: predecessors per statement; Rel.: dependency-relevant predecessors; Tokens: input tokens per statement.}
 \label{tab:ablation_depgraph}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
