@@ -308,7 +308,8 @@ We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata t
 % Source: Reviewer B, Artifact assessment (unnumbered).
 \reviewcomment{2.9} Bug evidence is insufficient. The bug links are inaccessible, and the triggering test cases are not publicly available. The artifact includes complete and executable source code.
 
-\reply \textcolor{red}{TODO.}
+\reply
+We have added the triggering test cases of all detected bugs to our anonymous artifact for bug verification and reproduction. The links to the bug reports will be released after acceptance to preserve double-blind review.
 
 \section*{Replies to Reviewer C}
 
@@ -321,7 +322,8 @@ We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout th
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
 
-\reply \textcolor{red}{TODO.}
+\reply
+We have documented the configuration of the RQ2 baselines in Section~IV. For \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, and we have included them in our artifact. These baselines detect no bugs within 24 hours because the bugs they previously reported have been fixed in the evaluated DBMS versions. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as noted in the footnote of Table~III.
 
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.3} Numeric inconsistency: the text claims RISE transfer improved semantic correctness ``from 0.314 to 0.776,'' but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.

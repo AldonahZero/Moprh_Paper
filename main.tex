@@ -859,6 +859,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 RQ2 evaluates \tool{}'s effectiveness by comparing it to other fuzzing tools under the same setting. 
 We compared \tool{} against four state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), and \sedar{}~\cite{fu2024sedar}.
 % After fuzzing, we normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
+For \sqlancer{}, \squirrel{}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
 After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes using stack-trace hashing followed by manual inspection for verification.
 \begin{table}[!t]
 \centering
