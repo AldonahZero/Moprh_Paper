@@ -71,7 +71,7 @@ We have revised the description of \sedar{} in Sections~I, II, and VI to accurat
 
 We have clarified the methodological differences between \tool{} and \sedar{} in Sections~II and~VI. \sedar{} translates statements individually using their referenced source-side sub-schemas, while \tool{} uses the AQT to propagate evolving target-side schema and type context across statements. In addition, \tool{} uses parser and execution feedback to repair incompatibilities before mutation, whereas \sedar{}'s comment-and-restore mechanism primarily addresses compatibility with the downstream fuzzer during mutation.
 
-We have added a controlled comparison in Section~IV-C to evaluate the two mutation-handling strategies. For each of the four target DBMSs, we applied both strategies to the same 300 translated seeds and ran \griffin{} for 24 hours in five independent repetitions. Compared with \sedar{}'s strategy, \tool{}'s strategy achieves 27.2\%, 15.5\%, 4.04\%, and 9.4\% higher branch coverage on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
+We have added a controlled comparison in Section~IV to evaluate the two mutation-handling strategies. For each of the four target DBMSs, we applied both strategies to the same 300 translated seeds and ran \griffin{} for 24 hours in five independent repetitions. Compared with \sedar{}'s strategy, \tool{}'s strategy achieves 27.2\%, 15.5\%, 4.04\%, and 9.4\% higher branch coverage on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
 
 \metareviewcomment{2} 
 目的不一样，解决的挑战不一样，方法不一样，所以实验效果不一样
@@ -92,8 +92,28 @@ Moderate the novelty claims and better distinguish MORPH from existing SQL trans
 % Source: Reviewer A, Question 1.
 \reviewcomment{1.1} Can the authors evaluate source-to-target result or state equivalence?
 
-\reply TODO.
-We have 干了件什么事情，然后把rebattle细化一下
+\reply
+We have added a source-to-target result and state equivalence study in Section~IV. We randomly sampled 100 MySQL test cases and evaluated SQLGlot, RISE, \sedar{}, and \tool{} on the same cases for transfer to DuckDB. We compared query results and the resulting database states, including schemas and table contents. Translation or execution failures count as non-equivalent, and both rates use all 100 cases as the denominator. \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}. This study provides supplementary evidence for the sampled source-target pair, without claiming general semantic equivalence. We have also renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV to distinguish runtime executability from result or state equivalence.
+
+\begin{center}
+\begin{minipage}{\linewidth}
+\centering\small
+\textbf{TABLE VI}
+\par\smallskip
+Source-to-target equivalence on 100 randomly sampled MySQL-to-DuckDB test cases. Translation or execution failures count as non-equivalent.
+\par\medskip
+\begin{tabular}{lrr}
+\toprule
+Method & Result Eq. (\%) & State Eq. (\%) \\
+\midrule
+SQLGlot & 14.0 & 56.0 \\
+RISE & 34.0 & 65.0 \\
+\sedar{} & 38.0 & 69.0 \\
+\tool{} & \textbf{52.0} & \textbf{74.0} \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
 
 % Source: Reviewer A, Question 2.
 \reviewcomment{1.2} What independent benefit does the dependency graph provide beyond context propagation?

@@ -147,7 +147,7 @@ Specifically, \tool{} first constructs a dialect-independent AQT from the source
 It then performs dialect-aware AQT instantiation to generate target-dialect SQL test cases using dialect-specific knowledge and constraints.
 Finally, \tool{} leverages parser feedback from the downstream fuzzer to repair remaining incompatibilities, ensuring that the generated test cases are parsable and effectively mutable.
 We evaluate \tool{} on four popular DBMSs: \duckdb{}, \clickhouse{}, \monetdb{}, and \virtuoso{}.
-Compared with the state-of-the-art seed transfer approach \sedar{}, \tool{} covers 14\% more branches, finds 16 more bugs in 24 hours, and improves the overall semantic correctness of transferred seeds by 130\%.
+Compared with the state-of-the-art seed transfer approach \sedar{}, \tool{} covers 14\% more branches, finds 16 more bugs in 24 hours, and improves the overall execution validity of transferred seeds by 130\%.
 More importantly, \tool{} uncovers \bugcnt{} previously unknown DBMS bugs, including \bugconfirmcnt{} confirmed by developers and \bugfixcnt{} already fixed.
 
 
@@ -241,7 +241,7 @@ This enables fuzzing to be more accurate and comprehensive, as it retains the es
 % - Challenge 3 对应 Feedback-Driven Adaptive Fuzzing：在无需修改 fuzzer 的前提下把 unsupported constructs 变成 parsable/mutable seeds。
 However, realizing this idea has three challenges:
 (1) First, SQL logic is often tightly coupled with dialect-specific syntax, requiring the separation of syntactic differences while preserving the original structure, dependencies, and semantic richness.
-(2) Second, ensuring target-side semantic correctness during SQL transfer is non-trivial, as operators, functions, and type conversions may differ across dialects, requiring carefully constrained transfer.
+(2) Second, ensuring target-side execution validity during SQL transfer is non-trivial, as operators, functions, and type conversions may differ across dialects, requiring carefully constrained transfer.
 (3) Third, transferred test cases must satisfy strict parsing and mutation requirements imposed by downstream fuzzers, while preserving their structural richness under these constraints.
 % Third, advanced SQL features in target DBMSs often exceed the grammar supported by generic fuzzers; naively removing unsupported constructs can break queries, necessitating structure-preserving adaptations into parsable forms without modifying the fuzzer.
 
@@ -277,7 +277,7 @@ For example, all reported bugs of \monetdb{} have been incorporated into its off
 We further compare \tool{} with state-of-the-art DBMS fuzzing tools, including \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}.
 Across the four DBMSs under 24 hours, \tool{} achieves 14\%--528\% higher branch coverage and discovers 16--22 more bugs than others.
 To evaluate seed transfer quality, we also compare \tool{} against representative relevant techniques, including SQLGlot, jOOQ, CrackSQL, RISE, and \sedar{}.
-\tool{} outperforms these baselines by 5\%--62\% in syntax correctness, 100\%--450\% in semantic correctness, and 11\%--253\% in preservation of SQL functions.
+\tool{} outperforms these baselines by 5\%--62\% in syntax correctness, 100\%--450\% in execution validity, and 11\%--253\% in preservation of SQL functions.
 Finally, we conduct an ablation study to show the contribution of each component in \tool{}.
 % against the state-of-the-art approach \sedar{} 
 % Paragraph 9 写作逻辑：
@@ -290,7 +290,7 @@ In summary, the paper makes the following contributions:
 \item We find that many DBMSs lack high-quality initial seeds for efficient fuzzing. Transferring existing test cases requires coordinating cross-statement dependencies, target-side executability, and compatibility with downstream fuzzers.
 \item We propose \tool{}, a dependency-preserving whole-test-case seed transfer framework. Instead of translating isolated SQL statements, \tool{} encodes each source test case as an AQT, instantiates it under target-dialect constraints, and adapts remaining incompatibilities into fuzzer-parsable forms while preserving testing-relevant structures.
 \item We implement \tool{} and evaluate it on four DBMSs, where it discovers \bugcnt{} previously unknown bugs (\bugconfirmcnt{} confirmed, \bugfixcnt{} fixed). 
-Compared to the state-of-the-art method \sedar{}, \tool{} improves the overall semantic correctness of transferred seeds by 130\%, achieving a 14\% increase in branch coverage.
+Compared to the state-of-the-art method \sedar{}, \tool{} improves the overall execution validity of transferred seeds by 130\%, achieving a 14\% increase in branch coverage.
 \end{enumerate}
 
 % \item We propose \tool{}, a structure-aware cross-dialect SQL transfer framework for constructing high-quality seeds. Instead of direct translation, \tool{} extracts AQTs and performs Dialect-Aware AQT Instantiation with a retrieval-augmented knowledge base. Moreover, \tool{} enables effective fuzzing through parser feedback-driven adaptation.
@@ -573,7 +573,7 @@ The instantiation respects the dependency order in $\mathcal{G}_{tc}$%
 : DDL and DML statements are instantiated before queries that depend on them, and the evolving target context is propagated across statements to maintain cross-statement type, reference, and state consistency.
 % 挑战+思路段：challenge 落在“递归实例化时目标侧语义正确 + 不打乱原测试用例顺序”；
 % 解决思路两点：RAG 闭环减少 hallucination；把翻译建模成 two-level instantiation，铺垫下面 Algorithm。
-The challenge is preserving target-side semantic correctness during recursive AQT-node instantiation without breaking the original test-case order.
+The challenge is preserving target-side execution validity during recursive AQT-node instantiation without breaking the original test-case order.
 To address it, \tool{} transforms the instantiation task into a closed-loop reasoning process built on a Retrieval-Augmented Generation (RAG) architecture, which grounds LLM outputs in retrieved dialect-specific evidence to reduce hallucinations.
 
 We formulate dialect translation as a two-level instantiation problem in which the outer level walks the statement dependency graph while preserving the original sequence for independent statements, and the inner level recursively instantiates each statement-level graph $\mathcal{G}^i$ in a bottom-up manner.
@@ -765,8 +765,8 @@ The dataset aggregates 447,357 SQL statements across 6,875 files, totaling 55.7 
 
 \textbf{Evaluation Metrics.}
 We employ three metrics to evaluate \tool{}.
-First, to assess transfer quality, we measure \textit{Syntactic Correctness}, defined as the proportion of generated seeds that pass the target parser, and \textit{Semantic Correctness}, defined as the proportion of generated seeds that execute without runtime errors.
-Here, semantic correctness is defined by executability in the target DBMS without runtime errors, not by result equivalence between the source and target DBMSs.
+First, to assess transfer quality, we measure \textit{Syntactic Correctness}, defined as the proportion of generated seeds that pass the target parser, and \textit{Execution Validity}, defined as the proportion of generated seeds that execute without runtime errors.
+Here, execution validity is defined by executability in the target DBMS without runtime errors, not by result equivalence between the source and target DBMSs.
 We separately measure semantic richness by counting valid functions, data types, and keywords preserved in executable transferred seeds.
 Second, to quantify the effectiveness in improving fuzzing, we use LLVM's SanitizerCoverage to track \textit{Branch Coverage} over 24-hour campaigns.
 We report the average results across five independent runs to mitigate randomness.
@@ -958,27 +958,27 @@ Our artifact includes the \sedar{} configuration and the \sedar{}-generated seed
 
 % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
 
-We evaluate these methods from two aspects: transferred-seed validity and SQL-feature richness.
-This evaluation targets fuzzing seed quality rather than cross-DBMS result equivalence: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation.
+We evaluate these methods in terms of transferred-seed validity and SQL-feature richness, supplemented by a sampled source-to-target equivalence study.
+The primary evaluation targets fuzzing seed quality: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. The supplementary study separately assesses result and state equivalence.
 
 \textbf{Validity of the Transferred Test Cases.}
-As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods by 5\%--62\% in syntax correctness and 100\%--450\% in semantic correctness.
-Directly executing source seeds yields low semantic correctness, dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
-Existing translators improve syntactic acceptance but still leave a semantic gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 semantic correctness.
+As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods by 5\%--62\% in syntax correctness and 100\%--450\% in execution validity.
+Directly executing source seeds yields low execution validity, dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
+Existing translators improve syntactic acceptance but still leave an execution-validity gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 execution validity.
 
-Existing SQL translation tools primarily operate at the statement level and are designed for query migration rather than fuzzing seed transfer. For example, RISE's statement-level design is particularly limited in seed transfer scenarios. In the SQLite-to-DuckDB setting, our test-case-level transfer improves semantic correctness from 0.314 to 0.776.
+Existing SQL translation tools primarily operate at the statement level and are designed for query migration rather than fuzzing seed transfer. For example, RISE's statement-level design is particularly limited in seed transfer scenarios. In the SQLite-to-DuckDB setting, our test-case-level transfer improves execution validity from 0.314 to 0.776.
 When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves 34\% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
 % Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
 
-Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher semantic correctness across the tested DBMSs.
-As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low semantic scores stem from limited support for explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the absence of translated target-side context across statements in \sedar{}, which can break type or reference consistency when target-side schema changes are not propagated to subsequent statements.
+Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher execution validity across the tested DBMSs.
+As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low execution-validity scores stem from limited support for explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the absence of translated target-side context across statements in \sedar{}, which can break type or reference consistency when target-side schema changes are not propagated to subsequent statements.
 These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability.
 % and executability.
 
 
 \begin{table}[!htbp]
 \centering
-\caption{Syntactic and semantic correctness of transferred seeds.}
+\caption{Syntactic correctness and execution validity of transferred seeds.}
 \label{tab:validity}
 \renewcommand\arraystretch{1}
 \scriptsize
@@ -991,10 +991,10 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
         \multicolumn{2}{c|}{\textbf{Virtuoso}} &
         \multicolumn{2}{c|}{\textbf{DuckDB}} &
         \multicolumn{2}{c}{\textbf{ClickHouse}} \\
-        & \textbf{Syn.} & \textbf{Sem.}
-        & \textbf{Syn.} & \textbf{Sem.}
-        & \textbf{Syn.} & \textbf{Sem.}
-        & \textbf{Syn.} & \textbf{Sem.} \\ \midrule
+        & \textbf{Syn.} & \textbf{Exec.}
+        & \textbf{Syn.} & \textbf{Exec.}
+        & \textbf{Syn.} & \textbf{Exec.}
+        & \textbf{Syn.} & \textbf{Exec.} \\ \midrule
         No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
         SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
         jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
@@ -1006,9 +1006,33 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 	    \end{tabular}
 	}
 \par\vspace{0.2em}
-{\footnotesize Syn./Sem.: syntactic/semantic correctness; ``-'': unsupported dialects.}
+{\footnotesize Syn./Exec.: syntactic correctness/execution validity; ``-'': unsupported dialects.}
 \end{table}
 
+
+\textbf{Source-to-Target Result and State Equivalence.}
+We randomly sampled 100 MySQL test cases and used the same cases to evaluate SQLGlot, RISE, \sedar{}, and \tool{} for transfer to DuckDB.
+We compared query results between the source and target executions for result equivalence, and compared the resulting database states, including schemas and table contents, for state equivalence.
+Translation or execution failures were counted as non-equivalent; both rates use all 100 test cases as the denominator.
+As shown in Table~\ref{tab:equivalence}, \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}.
+These results provide supplementary evidence of behavioral preservation on the sampled MySQL-to-DuckDB cases, rather than a guarantee of semantic equivalence across dialects.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Source-to-target equivalence on 100 randomly sampled MySQL-to-DuckDB test cases. Translation or execution failures count as non-equivalent.}
+\label{tab:equivalence}
+\begin{tabular}{lrr}
+\toprule
+Method & Result Eq. (\%) & State Eq. (\%) \\
+\midrule
+SQLGlot & 14.0 & 56.0 \\
+RISE & 34.0 & 65.0 \\
+\sedar{} & 38.0 & 69.0 \\
+\tool{} & \textbf{52.0} & \textbf{74.0} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \textbf{Semantic Richness of the Transferred Test Cases.}
 Beyond validity, we measure whether transferred seeds retain testing value by counting valid functions, data types, and keywords.
@@ -1059,7 +1083,7 @@ Its dialect-guided AQT instantiation and feedback repair aim to adapt complex st
 \begin{answerbox}
 \textbf{Answer to RQ3:} 
 % \tool{} achieves the strongest validity and feature-richness results, improving semantic correctness by up to 272\% over \sedar{} and preserving 411 more functions, 34 more data types, and 496 more keywords.
-\tool{} outperforms baselines by 5\%--62\% in syntax correctness and 100\%--450\% in semantic correctness.
+\tool{} outperforms baselines by 5\%--62\% in syntax correctness and 100\%--450\% in execution validity.
 It also preserves on average 126\% more functions, 60\% more data types, and 73\% more keywords than baselines.
 % The results demonstrate that the transfer methods in \tool{} ensure generated seeds are both executable and rich in testing logic.
 The results demonstrate that the transfer methods in \tool{} produce seeds that are both executable and rich in testing-relevant logic.
@@ -1084,28 +1108,28 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=\linewidth]{media/ablation_combined_analysis.pdf}
-  \caption{\textbf{Ablation Analysis of \tool{} Components.} Comparison of syntactic/semantic correctness and resource consumption across four variants.}
+  \caption{\textbf{Ablation Analysis of \tool{} Components.} Comparison of syntactic correctness/execution validity and resource consumption across four variants.}
   \label{fig:ablation_analysis}
 \vspace{-0.8em}
 \end{figure}
 
 \textbf{Contribution of Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation. }
-As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Structure-Preserving Abstraction} and the \textit{Dialect-Aware AQT Instantiation} are disabled, the syntactic correctness is 51\% and the semantic correctness of $\tool{}_{\textit{base}}$ is 27\%.
-With \textit{Structure-Preserving Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The semantic correctness also increases to 32\%.
-Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases semantic correctness to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
-The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} semantic correctness.
+As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Structure-Preserving Abstraction} and the \textit{Dialect-Aware AQT Instantiation} are disabled, the syntactic correctness is 51\% and the execution validity of $\tool{}_{\textit{base}}$ is 27\%.
+With \textit{Structure-Preserving Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The execution validity also increases to 32\%.
+Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases execution validity to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
+The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} execution validity.
 
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema, type, and state context across statements to preserve test-case-level dependencies.
 To isolate this effect, we disable context propagation in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
-This reduces semantic correctness from 65.1\% to 52.4\% (-12.7\%) while only slightly reducing syntactic correctness to 93.5\% (-1.7\%).
+This reduces execution validity from 65.1\% to 52.4\% (-12.7\%) while only slightly reducing syntactic correctness to 93.5\% (-1.7\%).
 The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
 \begin{comment}
 \textbf{Contribution of Cross-Statement Context Propagation.}
 To isolate test-case-level dependency modeling, we disable cross-statement context propagation in $\tool{}_{\textit{w/o-ctx}}$ while keeping the same statement-level instantiation and local dialect mappings.
-Under the same setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{w/o-ctx}}$ achieves 93.5\% syntactic correctness (-1.7\%) and 52.4\% semantic correctness (-12.7\%) compared with $\tool{}_{\textit{full}}$.
-This semantic drop shows that executable test-case transfer requires propagating schema, type, and state context across statements.
+Under the same setting as Figure~\ref{fig:ablation_analysis}, $\tool{}_{\textit{w/o-ctx}}$ achieves 93.5\% syntactic correctness (-1.7\%) and 52.4\% execution validity (-12.7\%) compared with $\tool{}_{\textit{full}}$.
+This drop in execution validity shows that executable test-case transfer requires propagating schema, type, and state context across statements.
 \end{comment}
 
 
@@ -1145,7 +1169,7 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 % \end{answerbox}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\%. $\tool{}_{\textit{rag}}$ ensures semantic alignment, boosting validity by 21\%. $\tool{}_{\textit{full}}$ achieves a  improvement of 44\% in syntax and 38\% in semantics. 
+\textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\%. $\tool{}_{\textit{rag}}$ improves execution validity, boosting it by 21\%. $\tool{}_{\textit{full}}$ achieves an improvement of 44\% in syntactic correctness and 38\% in execution validity.
 % cumulative
 Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
 \end{answerbox}
@@ -1178,12 +1202,12 @@ Based on these results, we set $T=0.2$ for all experiments to ensure both reliab
 \begin{table}[!t]
 \centering
 \small
-\caption{LLM comparison. TS denotes Test Suite.}
+\caption{LLM comparison. Syn.: syntactic correctness; Exec.: execution validity; TS: Test Suite.}
 \label{tab:llm_comparison}
 \setlength{\tabcolsep}{2.5pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \toprule
-\textbf{Model} & \textbf{Syn.} & \textbf{Sem.} & \textbf{Cost/TS} & \textbf{Time/TS} \\
+\textbf{Model} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Cost/TS} & \textbf{Time/TS} \\
 \midrule
 Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
 GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
@@ -1202,8 +1226,8 @@ Qwen3.5-27B & 0.971 & 0.852 & 0.119 & 1395.6 \\
 % Table~\ref{tab:llm_comparison} supports Gemini 2.5-Flash-Lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
 % We justify the selection of Gemini 2.5-Flash-Lite for \tool{} by showing the experiments on \monetdb{} with different LLMs: while Qwen3.5-27B achieves slightly higher semantic correctness (0.852), it incurs a 36$\times$ higher monetary cost and 9.5$\times$ longer migration time per test suite. Gemini presents the optimal balance of high validity (0.776 semantic rate), lowest cost, and fastest throughput, making it highly practical for large-scale seed generation tasks.
 % Meanwhile, this result also indirectly validates that the performance gains of \tool{} mainly stem from algorithmic design rather than using different LLMs: under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still achieves 0.89 syntactic correctness and 0.533 semantic correctness, outperforming \sedar{} (i.e., 0.781 and 0.388), indicating that the improvements are primarily driven by the proposed method rather than model capacity.
-We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher semantic correctness (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation.
-Under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still outperforms it in syntactic (0.89 vs. 0.781) and semantic correctness (0.533 vs. 0.388), indicating that the gains mainly come from the proposed method rather than model capacity.
+We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher execution validity (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation.
+Under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still outperforms it in syntactic correctness (0.89 vs. 0.781) and execution validity (0.533 vs. 0.388), indicating that the gains mainly come from the proposed method rather than model capacity.
 
 % Extensibility 写作逻辑 / Reviewer B、C 修改逻辑：
 % Review A-Soundness2/A-Q2 回应位置：表格列出四个 target DBMS 的 auto rules、manual corrections、ratio。
