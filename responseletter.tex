@@ -158,7 +158,7 @@ As shown in the table, \tool{} achieves higher execution validity than $\tool{}_
 We have added the configuration of the translation baselines in Section~IV, and the number of source test cases used for each target DBMS in the experimental setup. Each baseline follows its original translation workflow. SQLGlot and jOOQ use their built-in dialect support; CrackSQL and RISE use the official SQL documentation of each target DBMS as dialect knowledge, while \sedar{} requires no additional dialect knowledge. Since CrackSQL and RISE are designed to translate one query or artifact at a time, we translate the statements of each test case individually and reassemble them in their original order, without schema context. \sedar{} translates complete test cases using the extracted source schemas as context. To ensure a fair comparison, all methods use the same source test cases for each target DBMS (5,879, 4,551, 5,850, and 6,990 test cases for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively), and no method receives additional manually written translation rules.
 
 % Source: Reviewer A, Detailed 1 (paragraph 2).
-\reviewcomment{1.4} \textbf{Novelty} MORPH should therefore not be positioned as the first whole-test-case transfer framework or the first system to adapt transferred seeds to downstream fuzzers.
+\reviewcomment{1.4} MORPH should therefore not be positioned as the first whole-test-case transfer framework or the first system to adapt transferred seeds to downstream fuzzers.
 
 \reply
 We have revised Sections~I, II, III, and VI so that \tool{} is no longer positioned as the first whole-test-case transfer framework or the first approach that adapts transferred seeds to downstream fuzzers. We have also clarified the methodological differences between \tool{} and \sedar{}. Details can be found in \metareviewref{1} and \metareviewref{2}.
@@ -176,7 +176,7 @@ We have clarified in Sections~I and~VI that \tool{} builds on established techni
 We have corrected the related work in Section~VI. CrackSQL is now described as combining functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation. RISE is now described as processing one self-contained query or procedural artifact at a time, rather than an ordered test sequence of independently executed statements.
 
 % Source: Reviewer A, Detailed 2 (paragraph 3).
-\reviewcomment{1.7} \textbf{Technical Clarity} It is therefore unclear what ($G_{tc}$) contributes independently beyond recording the dependencies and preserving an order that is already present. The reported ablation removes context propagation rather than the graph itself, so it establishes the value of context but not an independent benefit from ($G_{tc}$). The paper should explain whether the graph affects retrieval, prompting, repair, or any other step not apparent from the algorithms.
+\reviewcomment{1.7} It is therefore unclear what ($G_{tc}$) contributes independently beyond recording the dependencies and preserving an order that is already present. The reported ablation removes context propagation rather than the graph itself, so it establishes the value of context but not an independent benefit from ($G_{tc}$). The paper should explain whether the graph affects retrieval, prompting, repair, or any other step not apparent from the algorithms.
 
 \reply
 We have revised Algorithm~2 and its description in Section~III. We have removed the stable topological sort, since the original statement order already satisfies all forward read-after-write dependencies, and we have made the use of the dependency graph explicit: \textsc{SelectContext} uses $\Delta$ to select dependency-relevant predecessors, whose source and translated statements are provided in the prompts for instantiation and repair. We have also added an ablation study in Section~IV that isolates the dependency graph from context propagation. Details can be found in \commentref{1.2}.
@@ -188,13 +188,13 @@ We have revised Algorithm~2 and its description in Section~III. We have removed 
 We have defined the object-state summaries in Section~III. Each summary records whether a schema object exists, its table definition, column names and types, constraints, and the schema changes induced by preceding DDL statements, and the summaries are updated incrementally in statement order. We have also clarified that $\mathcal{D}$ does not record table contents or other data-level state. In addition, we have revised the broader descriptions in Sections~III and~IV, e.g., ``propagates schema, type, and state context'' to ``propagates schema and type context'', so that they are limited to forward read-after-write dependencies and cumulative schema and type context.
 
 % Source: Reviewer A, Detailed 3.
-\reviewcomment{1.9} \textbf{Semantic Correctness} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
+\reviewcomment{1.9} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
 
 \reply
 We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV. We have also revised the description of instantiation in Section~III, revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study as supplementary evidence. Details can be found in \commentref{1.1}.
 
 % Source: Reviewer A, Detailed 4.
-\reviewcomment{1.10} \textbf{Evaluation} The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
+\reviewcomment{1.10} The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
 
 My main concern is the configuration of the translation baselines. The original CrackSQL evaluation focuses on PostgreSQL, MySQL, and Oracle, while RISE evaluates PostgreSQL-to-MySQL and PostgreSQL-to-Oracle translation. MORPH applies these systems to MonetDB, Virtuoso, DuckDB, and ClickHouse. The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
 
@@ -209,7 +209,7 @@ Finally, the component ablation is performed only for PostgreSQL-to-DuckDB trans
 \reply TODO.
 
 % Source: Reviewer A, Detailed 6.
-\reviewcomment{1.11} \textbf{Verifiability and transparency} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
+\reviewcomment{1.11} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
 
 For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
 
