@@ -1,0 +1,21 @@
+--- a/main.tex
++++ b/main.tex
+@@ -748,6 +748,7 @@
+ Following the prior methodology~\cite{fu2024sedar}, we collected built-in test cases from mature DBMS repositories (i.e., SQLite~\cite{sqlite}, MySQL~\cite{mysql}, and PostgreSQL~\cite{pg}) for transfer. 
+ % Table~\ref{tab:collected_seeds} shows the statistics on collected test cases in each DBMS.
+ The dataset aggregates 447,357 SQL statements across 6,875 files, totaling 55.7 MiB of query text.
++For each target DBMS, all methods use the same set of source test cases: 5,879, 4,551, 5,850, and 6,990 test cases for \monetdb{}, \virtuoso{}, \duckdb{}, and \clickhouse{}, respectively.
+ 
+ % \begin{table}[t]
+ % \centering
+@@ -960,6 +961,10 @@
+ \sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
+ We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline, including schema capture, end-to-end LLM translation, and mutability refinement; the latter temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before target-side execution.
+ Our artifact includes the \sedar{} configuration and the \sedar{}-generated seeds used in our experiments.
++Each baseline follows its original translation workflow.
++SQLGlot and jOOQ use their built-in dialect support; CrackSQL and RISE use the official SQL documentation of each target DBMS as dialect knowledge, while \sedar{} requires no additional dialect knowledge.
++CrackSQL and RISE translate the statements of a test case individually and reassemble them in their original order without schema context, whereas \sedar{} translates complete test cases using the extracted source schemas as context.
++For a fair comparison, all methods use the same source test cases for each target DBMS (Section~\ref{sec:setup}), and no method receives additional manually written translation rules.
+ 
+ % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
+ 

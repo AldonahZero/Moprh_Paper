@@ -156,7 +156,8 @@ As shown in the table, \tool{} achieves higher execution validity than $\tool{}_
 % Source: Reviewer A, Question 3.
 \reviewcomment{1.3} How were CrackSQL, RISE, and SEDAR adapted and configured for the four target DBMSs, and how did the authors ensure a fair comparison?
 
-\reply TODO.
+\reply
+We have added the configuration of the translation baselines in Section~IV, and the number of source test cases used for each target DBMS in the experimental setup. Each baseline follows its original translation workflow. SQLGlot and jOOQ use their built-in dialect support; CrackSQL and RISE use the official SQL documentation of each target DBMS as dialect knowledge, while \sedar{} requires no additional dialect knowledge. Since CrackSQL and RISE are designed to translate one query or artifact at a time, we translate the statements of each test case individually and reassemble them in their original order, without schema context. \sedar{} translates complete test cases using the extracted source schemas as context. To ensure a fair comparison, all methods use the same source test cases for each target DBMS (5,879, 4,551, 5,850, and 6,990 test cases for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively), and no method receives additional manually written translation rules.
 
 % Source: Reviewer A, Detailed 1 (paragraph 2).
 \reviewcomment{1.4} \textbf{Novelty} MORPH should therefore not be positioned as the first whole-test-case transfer framework or the first system to adapt transferred seeds to downstream fuzzers.
