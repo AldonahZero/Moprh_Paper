@@ -1,48 +1,15 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index 68da2db..f09f78a 100644
+index f09f78a..a6e1bc8 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -36,6 +36,7 @@
- \newcommand{\griffin}{\textsc{Griffin}}
- \newcommand{\tool}{\morph}
- \newcommand{\TODO}[1]{\textcolor{red}{TODO(#1)}}
-+\newcommand{\cmark}{\ensuremath{\checkmark}}
- \newcommand{\xmark}{\ensuremath{\times}}
- \providecommand{\partmark}{}
- \renewcommand{\partmark}{\ensuremath{\triangle}}
-@@ -196,9 +197,32 @@ For full reproducibility, the paper should additionally document the baseline ad
- \reviewcomment{2.6} \textbf{Questionable classification in Table I.}
-
- \reply
--We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, CrackSQL's \textit{DML}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}. These revisions acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, CrackSQL's DML support, and \sedar{}'s source-side handling of multi-statement dependencies.
--
--todo 调整表格的样式放
-+We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, CrackSQL's DML support, and \sedar{}'s source-side handling of multi-statement dependencies. We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, CrackSQL's \textit{DML}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}.
-+
-+\begin{center}
-+\begin{minipage}{\linewidth}
-+\centering\small
-+\textbf{Revised Table I.} Capability comparison for test-case-level DBMS fuzzing seed transfer.
-+\par\medskip
-+\begin{tabular}{lccccc}
-+    \toprule
-+    \textbf{Tool} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
-+    & & & & \textbf{Migration} & \textbf{Deps.} \\
-+    \midrule
-+    SQLGlot & \cmark & \cmark & \cmark & \partmark & \xmark \\
-+    jOOQ & \cmark & \cmark & \cmark & \xmark & \partmark \\
-+    RISE & \partmark & \partmark & \cmark & \xmark & \xmark \\
-+    CrackSQL & \partmark & \partmark & \cmark & \xmark & \xmark \\
-+    QTRAN & \partmark & \partmark & \cmark & \xmark & \xmark \\
-+    \sedar{} & \partmark & \partmark & \cmark & \cmark & \partmark \\
-+    \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
-+    \bottomrule
-+\end{tabular}
+@@ -202,7 +202,9 @@ We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata t
+ \begin{center}
+ \begin{minipage}{\linewidth}
+ \centering\small
+-\textbf{Revised Table I.} Capability comparison for test-case-level DBMS fuzzing seed transfer.
++\textbf{TABLE I}
 +\par\smallskip
-+{\footnotesize\raggedright \textit{Cross-stmt. Deps.} denotes explicit tracking of forward read-after-write dependencies and schema/type context across statements.
-+\cmark: supported and documented or evaluated; \partmark: partially supported, i.e., supported only for some statements or settings, or through a separate component; \xmark: not supported.\par}
-+\end{minipage}
-+\end{center}
-
- % Source: Reviewer B, Detailed 5.
- \reviewcomment{2.7} \textbf{5. Unclear source of the improvement.} The reported coverage and bug-finding improvements may stem from a larger or more diverse effective seed corpus rather than the AQT-based translation technique itself. For a fair comparison with SEDAR, GRIFFIN, and SQUIRREL, all approaches should use exactly the same source seed corpus and produce comparable numbers of final seeds that pass the target parser.
++Capability comparison of existing SQL translation systems for test-case-level DBMS fuzzing seed transfer.
+ \par\medskip
+ \begin{tabular}{lccccc}
+     \toprule
