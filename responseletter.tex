@@ -283,6 +283,35 @@ Capability comparison of existing SQL translation systems for test-case-level DB
 \reply
 We have revised the text in Section~IV to state that, in the SQLite-to-DuckDB setting, \tool{} improves execution validity from 0.314 (RISE) to 0.748, consistent with Table~V. We have also checked the other numbers reported in Section~IV against Table~V.
 
+\begin{center}
+\begin{minipage}{\linewidth}
+\centering\small
+\textbf{TABLE V}
+\par\smallskip
+Syntactic correctness and execution validity of transferred seeds.
+\par\medskip
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l|cc|cc|cc|cc}
+\toprule
+& \multicolumn{2}{c|}{\textbf{MonetDB}} & \multicolumn{2}{c|}{\textbf{Virtuoso}} & \multicolumn{2}{c|}{\textbf{DuckDB}} & \multicolumn{2}{c}{\textbf{ClickHouse}} \\
+\textbf{Method} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Syn.} & \textbf{Exec.} \\
+\midrule
+No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
+SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
+jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
+CrackSQL & - & - & - & - & 0.740 & 0.211 & 0.717 & 0.264 \\
+RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
+\sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
+\tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\
+\midrule
+vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize\raggedright Syn./Exec.: syntactic correctness/execution validity; ``-'': unsupported dialects.\par}
+\end{minipage}
+\end{center}
+
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.4} Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
 
