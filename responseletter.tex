@@ -70,7 +70,7 @@ We have revised the description of \sedar{} in Sections~I, II, and VI to accurat
 
 We have clarified the methodological differences between \tool{} and \sedar{} in Sections~II and~VI. \sedar{} translates statements individually using their referenced source-side sub-schemas, while \tool{} uses the AQT to propagate evolving target-side schema and type context across statements. In addition, \tool{} uses parser and execution feedback to repair incompatibilities before mutation, whereas \sedar{}'s comment-and-restore mechanism primarily addresses compatibility with the downstream fuzzer during mutation.
 
-We have added a controlled comparison in Section~IV-C to evaluate the two mutation-handling strategies. For each of the four target DBMSs, we applied both strategies to the same 300 translated seeds and ran \griffin{} for 24 hours in five independent repetitions. Compared with \sedar{}'s strategy, \tool{}'s strategy achieves \TODO{a}\%, \TODO{b}\%, \TODO{c}\%, and \TODO{d}\% higher branch coverage on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
+We have added a controlled comparison in Section~IV-C to evaluate the two mutation-handling strategies. For each of the four target DBMSs, we applied both strategies to the same 300 translated seeds and ran \griffin{} for 24 hours in five independent repetitions. Compared with \sedar{}'s strategy, \tool{}'s strategy achieves 27.2\%, 15.5\%, 4.04\%, and 9.4\% higher branch coverage on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
 
 \metareviewcomment{2} 
 目的不一样，解决的挑战不一样，方法不一样，所以实验效果不一样
