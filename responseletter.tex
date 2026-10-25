@@ -106,10 +106,10 @@ We have clarified the provenance of the \sedar{} binary in Section~IV, stating t
 We have added a source-to-target result and state equivalence study in Section~IV. We randomly sampled 100 MySQL test cases and evaluated SQLGlot, RISE, \sedar{}, and \tool{} on the same cases for transfer to DuckDB. We compared query results and the resulting database states, including schemas and table contents. Translation or execution failures count as non-equivalent, and both rates use all 100 cases as the denominator. \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}. This study provides supplementary evidence for the sampled source-target pair, without claiming general semantic equivalence. We have also renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV to distinguish runtime executability from result or state equivalence.
 
 \begin{center}
-\begin{minipage}{\linewidth}
-\centering\small
-Source-to-target equivalence on 100 randomly sampled MySQL-to-DuckDB test cases. Translation or execution failures count as non-equivalent.
-\par\medskip
+\begin{minipage}{0.55\linewidth}
+\centering\footnotesize\renewcommand{\arraystretch}{1.0}
+\textbf{Source-to-target equivalence on 100 randomly sampled MySQL-to-DuckDB test cases. Translation or execution failures count as non-equivalent.}
+\par\smallskip
 \begin{tabular}{lrr}
 \toprule
 Method & Result Eq. (\%) & State Eq. (\%) \\
@@ -132,12 +132,10 @@ Context propagation maintains the target-side state of the test case, while the 
 To isolate this benefit, we have added an ablation study in Section~IV. We compare four context-selection modes under the same LLM, knowledge base, source corpus, repair budget, and statement order: (1) \tool{}, which selects dependency predecessors through $\Delta$; (2) $\tool{}_{\textit{win}}$, which replaces dependency-based selection with the five most recent successfully translated statements while keeping the same object summaries, so that it differs from \tool{} only in whether the dependency graph is used; (3) $\tool{}_{\textit{all}}$, which provides all preceding successfully translated statements together with the complete source-side and target-side context; and (4) $\tool{}_{\textit{w/o-ctx}}$, which disables target-side context propagation. We measure execution validity at the test-case level, the number of predecessor statements provided per statement, the proportion of provided predecessors that are dependency-relevant (i.e., connected to the current statement in $\Delta$), and input tokens per statement.
 
 \begin{center}
-\begin{minipage}{\linewidth}
-\centering\small
-\textbf{TABLE VII}
+\begin{minipage}{0.72\linewidth}
+\centering\footnotesize\renewcommand{\arraystretch}{1.0}
+\textbf{TABLE VII: Contribution of the dependency graph to context selection.}
 \par\smallskip
-Contribution of the dependency graph to context selection.
-\par\medskip
 \begin{tabular}{lcccc}
 \toprule
 Mode & Exec. & Preds/Stmt & Relevant Preds (\%) & Input Tokens/Stmt \\
@@ -255,12 +253,10 @@ For full reproducibility, the paper should additionally document the baseline ad
 We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, CrackSQL's DML support, and \sedar{}'s source-side handling of multi-statement dependencies. We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}, while CrackSQL's \textit{DML} entry is marked as \cmark{}.
 
 \begin{center}
-\begin{minipage}{\linewidth}
-\centering\small
-\textbf{TABLE I}
+\begin{minipage}{0.78\linewidth}
+\centering\footnotesize\renewcommand{\arraystretch}{1.0}
+\textbf{TABLE I: Capability comparison of existing SQL translation systems for test-case-level DBMS fuzzing seed transfer.}
 \par\smallskip
-Capability comparison of existing SQL translation systems for test-case-level DBMS fuzzing seed transfer.
-\par\medskip
 \begin{tabular}{lccccc}
     \toprule
     \textbf{Tool} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
@@ -320,12 +316,10 @@ We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout th
 We have revised the text in Section~IV to state that, in the SQLite-to-DuckDB setting, \tool{} improves execution validity from 0.314 (RISE) to 0.748, consistent with Table~V. We have also checked the other numbers reported in Section~IV against Table~V.
 
 \begin{center}
-\begin{minipage}{\linewidth}
-\centering\small
-\textbf{TABLE V}
+\begin{minipage}{0.85\linewidth}
+\centering\footnotesize\renewcommand{\arraystretch}{1.0}
+\textbf{TABLE V: Syntactic correctness and execution validity of transferred seeds.}
 \par\smallskip
-Syntactic correctness and execution validity of transferred seeds.
-\par\medskip
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{l|cc|cc|cc|cc}
 \toprule
