@@ -9,7 +9,35 @@
  It then invokes \textsc{InstantiateStmt} with the source constraints and the selected target context, appends the generated query, and updates the target context for subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}).
  After all statements are instantiated, the generated target sequence is indexed by $(\mathcal{H},D_t)$ for future reuse.
  At the \emph{inner level}, \textsc{InstantiateStmt} recursively instantiates the statement-level graph using retrieved or generated local mappings and target-parser feedback to keep fragments executable.
-@@ -1123,8 +1123,8 @@
+@@ -1017,26 +1017,9 @@
+ We randomly sampled 100 MySQL test cases and used the same cases to evaluate SQLGlot, RISE, \sedar{}, and \tool{} for transfer to DuckDB.
+ We compared query results between the source and target executions for result equivalence, and compared the resulting database states, including schemas and table contents, for state equivalence.
+ Translation or execution failures were counted as non-equivalent; both rates use all 100 test cases as the denominator.
+-As shown in Table~\ref{tab:equivalence}, \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}.
++\tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}.
+ These results provide supplementary evidence of behavioral preservation on the sampled MySQL-to-DuckDB cases, rather than a guarantee of semantic equivalence across dialects.
+ 
+-\begin{table}[t]
+-\centering
+-\small
+-\caption{Source-to-target equivalence on 100 randomly sampled MySQL-to-DuckDB test cases. Translation or execution failures count as non-equivalent.}
+-\label{tab:equivalence}
+-\begin{tabular}{lrr}
+-\toprule
+-Method & Result Eq. (\%) & State Eq. (\%) \\
+-\midrule
+-SQLGlot & 14.0 & 56.0 \\
+-RISE & 34.0 & 65.0 \\
+-\sedar{} & 38.0 & 69.0 \\
+-\tool{} & \textbf{52.0} & \textbf{74.0} \\
+-\bottomrule
+-\end{tabular}
+-\end{table}
+-
+ \textbf{Semantic Richness of the Transferred Test Cases.}
+ Beyond validity, we measure whether transferred seeds retain testing value by counting valid functions, data types, and keywords.
+ As shown in Table~\ref{tab:diversity}, \tool{} preserves on average 126\% more functions, 60\% more data types, and 73\% more keywords than baselines.
+@@ -1123,8 +1106,8 @@
  The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} execution validity.
  
  Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema, type, and state context across statements to preserve test-case-level dependencies.
@@ -20,7 +48,7 @@
  The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
  Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
  
-@@ -1136,6 +1136,30 @@
+@@ -1136,6 +1119,30 @@
  \end{comment}
  
  
@@ -51,7 +79,7 @@
  \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
  To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
  Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
-@@ -1173,6 +1197,7 @@
+@@ -1173,6 +1180,7 @@
  
  \begin{answerbox}
  \textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\%. $\tool{}_{\textit{rag}}$ improves execution validity, boosting it by 21\%. $\tool{}_{\textit{full}}$ achieves an improvement of 44\% in syntactic correctness and 38\% in execution validity.

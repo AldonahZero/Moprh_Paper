@@ -1017,25 +1017,8 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 We randomly sampled 100 MySQL test cases and used the same cases to evaluate SQLGlot, RISE, \sedar{}, and \tool{} for transfer to DuckDB.
 We compared query results between the source and target executions for result equivalence, and compared the resulting database states, including schemas and table contents, for state equivalence.
 Translation or execution failures were counted as non-equivalent; both rates use all 100 test cases as the denominator.
-As shown in Table~\ref{tab:equivalence}, \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}.
+\tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}.
 These results provide supplementary evidence of behavioral preservation on the sampled MySQL-to-DuckDB cases, rather than a guarantee of semantic equivalence across dialects.
-
-\begin{table}[t]
-\centering
-\small
-\caption{Source-to-target equivalence on 100 randomly sampled MySQL-to-DuckDB test cases. Translation or execution failures count as non-equivalent.}
-\label{tab:equivalence}
-\begin{tabular}{lrr}
-\toprule
-Method & Result Eq. (\%) & State Eq. (\%) \\
-\midrule
-SQLGlot & 14.0 & 56.0 \\
-RISE & 34.0 & 65.0 \\
-\sedar{} & 38.0 & 69.0 \\
-\tool{} & \textbf{52.0} & \textbf{74.0} \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \textbf{Semantic Richness of the Transferred Test Cases.}
 Beyond validity, we measure whether transferred seeds retain testing value by counting valid functions, data types, and keywords.

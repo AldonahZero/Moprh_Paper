@@ -105,26 +105,6 @@ We have clarified the provenance of the \sedar{} binary in Section~IV, stating t
 \reply
 We have added a source-to-target result and state equivalence study in Section~IV. We randomly sampled 100 MySQL test cases and evaluated SQLGlot, RISE, \sedar{}, and \tool{} on the same cases for transfer to DuckDB. We compared query results and the resulting database states, including schemas and table contents. Translation or execution failures count as non-equivalent, and both rates use all 100 cases as the denominator. \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}. This study provides supplementary evidence for the sampled source-target pair, without claiming general semantic equivalence. We have also renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV to distinguish runtime executability from result or state equivalence.
 
-\begin{center}
-\begin{minipage}{\linewidth}
-\centering\small
-\textbf{TABLE VI}
-\par\smallskip
-Source-to-target equivalence on 100 randomly sampled MySQL-to-DuckDB test cases. Translation or execution failures count as non-equivalent.
-\par\medskip
-\begin{tabular}{lrr}
-\toprule
-Method & Result Eq. (\%) & State Eq. (\%) \\
-\midrule
-SQLGlot & 14.0 & 56.0 \\
-RISE & 34.0 & 65.0 \\
-\sedar{} & 38.0 & 69.0 \\
-\tool{} & \textbf{52.0} & \textbf{74.0} \\
-\bottomrule
-\end{tabular}
-\end{minipage}
-\end{center}
-
 % Source: Reviewer A, Question 2.
 \reviewcomment{1.2} What independent benefit does the dependency graph provide beyond context propagation?
 
@@ -136,7 +116,7 @@ To isolate this benefit, we have added an ablation study in Section~IV. We compa
 \begin{center}
 \begin{minipage}{\linewidth}
 \centering\small
-\textbf{TABLE VIII}
+\textbf{TABLE VII}
 \par\smallskip
 Contribution of the dependency graph to context selection.
 \par\medskip
