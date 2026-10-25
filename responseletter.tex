@@ -90,7 +90,7 @@ We have revised Sections~I, II, III, and VI so that \tool{} is no longer positio
 
 \metareviewcomment{3} Clarify how MORPH differs from and complements SmartFuzz in seed construction. The additional comparison is useful but limited in its experimental scope. The revision should acknowledge these limitations and avoid overstating comparative advantages.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 \metareviewcomment{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
 
@@ -208,7 +208,7 @@ We have clarified in Section~IV that our experiments use the \sedar{} binary obt
 % Source: Reviewer A, Detailed 4 (paragraph 4).
 \reviewcomment{1.12} The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer A, Detailed 4 (paragraph 5).
 \reviewcomment{1.13} The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
@@ -227,38 +227,38 @@ We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQ
 
 For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 \section*{Replies to Reviewer B}
 
 % Source: Reviewer B, Question Q1.
 \reviewcomment{2.1} Could the authors clarify whether the reported coverage/bug-finding improvements primarily stem from AQT-based translation or from a larger/richer effective seed corpus? In a controlled experiment where all baselines use exactly the same number and source of initial seeds, how much of the 14\% coverage gain over SEDAR remains attributable to AQT?
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer B, Question Q2.
 \reviewcomment{2.2} Regarding the characterization of SEDAR's comment-and-restore mechanism\textemdash{}if both MORPH and SEDAR ultimately feed compatible seeds to GRIFFIN, what is the exact difference in their post-mutation handling? Do seeds repaired by MORPH produce semantically equivalent mutated queries, whereas SEDAR's approach loses that equivalence? If not, what is the claimed advantage?
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer B, Detailed 1.
 \reviewcomment{2.3} \textbf{Limited novelty.} The paper positions AQT as a key contribution, but AQT largely resembles an existing SQL AST or intermediate representation augmented with abstract labels, read/write sets, dependency edges, and schema context. The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). The distinction from these systems is insufficiently developed.
 
     More importantly, the evaluation lacks compositional baselines such as ``existing SQL translator + SEDAR/GRIFFIN'' or ``AST-based translation + GRIFFIN''. Without such ablations, it is difficult to determine whether the contribution is a fundamentally new transfer technique or mainly an engineering integration of existing components. The authors should add such baselines or provide a clearer theoretical argument for why AQT enables capabilities that prior representations cannot achieve.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer B, Detailed 2.
 \reviewcomment{2.4} \textbf{Incomplete discussion of closely related work.} SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer B, Detailed 3.
 \reviewcomment{2.5} \textbf{Potentially inaccurate characterization of SEDAR.} The paper characterizes SEDAR's comment-and-restore mechanism as ``destructive sanitization'' that ``sacrifices semantic depth.'' However, SEDAR's mechanism is designed to temporarily hide target-specific constructs from downstream fuzzers' strict parsers during mutation and restore them afterward. This is a pragmatic compatibility strategy, not a destructive removal of query logic.
 
     The authors should revise their characterization to accurately reflect SEDAR's design intent and clarify the actual difference: MORPH performs pre-migration repair to make seeds parser-compatible, whereas SEDAR defers some compatibility handling until after mutation. A fairer comparison would evaluate both approaches under the same downstream fuzzer (e.g., GRIFFIN) and measure the net effect of each strategy on mutation effectiveness.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer B, Detailed 4.
 \reviewcomment{2.6} \textbf{Questionable classification in Table I.} 
@@ -296,19 +296,19 @@ We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata t
 
     The current experimental setup does not control for seed corpus size. The authors should: (a) report the number of valid seeds generated by each method before fuzzing, (b) normalize the corpus size across baselines, or (c) conduct an experiment where seed counts are equalized. This controlled setting is necessary to isolate the contribution of MORPH's SQL translation technique and demonstrate that improvements are not simply due to differences in seed quantity or diversity.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer B, Detailed 6.
 \reviewcomment{2.8} \textbf{Translation overhead is unclear.} Table VIII reports ``Cost/TS'' and ``Time/TS'' but does not specify the unit of measurement (e.g., USD per test suite? seconds per test suite?) or the size of the test suite being translated. Additionally, the paper does not compare MORPH's end-to-end translation time and LLM cost with previous methods such as SEDAR.
 
     The authors should: (a) clearly define the units for cost and time, (b) report the average number of statements per test suite, (c) report per-seed translation time and cost, and (d) compare these overhead metrics against SEDAR and other baselines to demonstrate the practical feasibility of MORPH in real-world deployment.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer B, Artifact assessment (unnumbered).
 \reviewcomment{2.9} Bug evidence is insufficient. The bug links are inaccessible, and the triggering test cases are not publicly available. The artifact includes complete and executable source code.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 \section*{Replies to Reviewer C}
 
@@ -321,7 +321,7 @@ We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout th
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.3} Numeric inconsistency: the text claims RISE transfer improved semantic correctness ``from 0.314 to 0.776,'' but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.
@@ -359,21 +359,22 @@ vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.4} Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.5} What's novel here is the conjunction of approaches: AST abstraction + RAG + parser-feedback repair, which are established ideas assembled around the AQT.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.6} RQ1 (28 bugs, unspecified ``full campaign'') vs RQ2 (22 bugs in 24h) relationship and campaign duration are unclear.
 
-\reply TODO.
+\reply
+The full campaign in RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 compares fuzzing tools in five independent 24-hour runs and reports the union of unique bugs across these runs. Details can be found in \commentref{1.13}.
 
 % Source: Reviewer C, Detailed comment (unnumbered).
 \reviewcomment{3.7} I would recommed tightening the validity claims: add a small differential check on transferred seeds (do they return equivalent results on a shared dialect subset?) to back the ``semantic correctness'' framing, and lean on coverage/bug counts rather than feature-richness as the primary evidence. For RQ2, publish baseline command lines and seed corpora in the artifact; the all-zero bug rows need more transparency, and SQLRight belongs in the comparison.
 
-\reply TODO.
+\reply \textcolor{red}{TODO.}
 
 \end{document}
