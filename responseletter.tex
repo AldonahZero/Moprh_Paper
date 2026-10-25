@@ -214,7 +214,7 @@ We have clarified in Section~IV that our experiments use the \sedar{} binary obt
 \reviewcomment{1.13} The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
 
 \reply
-The full campaign in RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 compares fuzzing tools in five independent 24-hour runs and reports the union of unique bugs across these runs. We have added the units to the column headers of Table~IX (Table~VIII in the original submission), i.e., Cost/TS (\$) and Time/TS (s), and we have reported in Section~V that processing all test files with Gemini 2.5-Flash-Lite costs \$96 in total.
+We have reported in Section~IV that the full campaign in RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 compares fuzzing tools in five independent 24-hour runs and reports the union of unique bugs across these runs. We have also added the units to the column headers of Table~IX (Table~VIII in the original submission), i.e., Cost/TS (\$) and Time/TS (s), and we have reported in Section~V that processing all test files with Gemini 2.5-Flash-Lite costs \$96 in total.
 
 % Source: Reviewer A, Detailed 4 (paragraph 6).
 \reviewcomment{1.14} Finally, the component ablation is performed only for PostgreSQL-to-DuckDB transfer. Extending at least the most important ablation, particularly context propagation, to additional source-target pairs would strengthen the generality of the findings.
@@ -324,7 +324,7 @@ We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout th
 \reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
 
 \reply
-We have documented the configuration of the RQ2 baselines in Section~IV. For \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, and we have included them in our artifact. These baselines detect no bugs within 24 hours because the bugs they previously reported have been fixed in the evaluated DBMS versions. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as noted in the footnote of Table~III.
+We have documented the configuration of the RQ2 baselines in Section~IV. For \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, and we have included them in our artifact. The zero-bug results reflect that previously reported bugs were fixed in the newer DBMS versions, with no new bugs found. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as noted in the footnote of Table~III.
 
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.3} Numeric inconsistency: the text claims RISE transfer improved semantic correctness ``from 0.314 to 0.776,'' but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.
