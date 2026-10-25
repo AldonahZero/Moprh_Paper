@@ -61,11 +61,13 @@
 The paper has been carefully revised according to the meta-review, and all of the requested changes were implemented.
 Below is our detailed response to the meta-review and each reviewer.
 
-\section*{Replies to Requested Changes}
+\section*{Replies to Metareview}
 
 \requestedchange{1} Correct the description of SEDAR's comment-before-mutation and restore-after-mutation mechanism. Clearly explain the actual methodological differences between MORPH and SEDAR, avoiding misleading characterizations of the latter.
 
 \reply
+todo 我们修改了在xxxx章节，现在sedar的描述是什么xxx
+mutation 机制做了修改，然后再xxx章节做了比较，实验内容xxx，实验x.x证明
 We apologize for the inaccurate description. The original paper described \sedar{}'s mutability refinement as ``destructive sanitization,'' which was incorrect: \sedar{} temporarily comments out parser-incompatible fragments during mutation and restores them before sending the mutated SQL to the target DBMS, so it does not permanently remove query logic. We have revised the paper as follows:
 
 (1) We have corrected the description of \sedar{} throughout the paper. In Section~II, we have described its mutability refinement including the restoration step, revised the motivating example to show the commented fragment as an intermediate state that is restored before execution, and changed \sedar{}'s \textit{Cross-stmt.\ Deps.} entry in Table~I to \partmark{}. In the Introduction, the old version's sentence ``generated test cases are often sanitized by removing or commenting out unsupported constructs, which may simplify complex SQL structures and weaken execution behaviors'' is replaced with ``parser-incompatible fragments are handled after translation rather than resolved during it. For example, \sedar{} temporarily comments them out during mutation and restores them before execution on the target DBMS, which retains the original query logic but leaves translation errors in these fragments unrepaired.''
@@ -74,7 +76,9 @@ We apologize for the inaccurate description. The original paper described \sedar
 
 (3) We have removed the statements attributing \tool{}'s improvements to permanent loss of query logic in \sedar{} (Sections~I, IV-C, IV-D, and VI), and added a controlled comparison in Section~IV-C. For each of the four target DBMSs, we applied both mutation-handling strategies to the same 300 translated seeds and ran \griffin{} for 24 hours with five repetitions. \tool{}'s handling achieves \TODO{a}\%, \TODO{b}\%, \TODO{c}\%, and \TODO{d}\% higher branch coverage on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
 
-\requestedchange{2} Moderate the novelty claims and better distinguish MORPH from existing SQL translation approaches, particularly SEDAR, RISE, QTRAN, and CrackSQL. Explain more concretely what AQT and its associated mechanisms contribute beyond existing techniques, especially in the context of DBMS fuzzing.
+\requestedchange{2} 
+目的不一样，解决的挑战不一样，方法不一样，所以实验效果不一样
+Moderate the novelty claims and better distinguish MORPH from existing SQL translation approaches, particularly SEDAR, RISE, QTRAN, and CrackSQL. Explain more concretely what AQT and its associated mechanisms contribute beyond existing techniques, especially in the context of DBMS fuzzing.
 
 \reply TODO.
 
@@ -92,6 +96,7 @@ We apologize for the inaccurate description. The original paper described \sedar
 \reviewcomment{1.1} Can the authors evaluate source-to-target result or state equivalence?
 
 \reply TODO.
+We have 干了件什么事情，然后把rebattle细化一下
 
 % Source: Reviewer A, Question 2.
 \reviewcomment{1.2} What independent benefit does the dependency graph provide beyond context propagation?
@@ -196,6 +201,8 @@ For full reproducibility, the paper should additionally document the baseline ad
 
 \reply
 We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and CrackSQL's \textit{DML} entries are now marked as \partmark{}. These revisions acknowledge SQLGlot's multi-statement transpilation and jOOQ's schema metadata tracking, while qualifying CrackSQL's DML support. Related corrections to the characterization of \sedar{} are described in \requestedref{1}.
+
+todo 调整表格的样式放
 
 % Source: Reviewer B, Detailed 5.
 \reviewcomment{2.7} \textbf{5. Unclear source of the improvement.} The reported coverage and bug-finding improvements may stem from a larger or more diverse effective seed corpus rather than the AQT-based translation technique itself. For a fair comparison with SEDAR, GRIFFIN, and SQUIRREL, all approaches should use exactly the same source seed corpus and produce comparable numbers of final seeds that pass the target parser.
