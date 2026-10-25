@@ -135,21 +135,26 @@ RISE & 34.0 & 65.0 \\
 
 \reply TODO.
 
-% Source: Reviewer A, Detailed 1.
-\reviewcomment{1.4} \textbf{1. Novelty} SEDAR is the closest predecessor because it addresses the same high-level problem of transferring existing DBMS test cases into fuzzing seeds. SEDAR already processes complete multi-statement test cases. It sequentially executes the source test, captures a referenced source-side sub-schema for each statement, translates individual statements, and restores their original order. Its mutability refinement also temporarily hides regions unsupported by the fuzzer parser during mutation and restores them before sending the resulting SQL to the target DBMS.
+% Source: Reviewer A, Detailed 1 (paragraph 2).
+\reviewcomment{1.4} \textbf{Novelty} MORPH should therefore not be positioned as the first whole-test-case transfer framework or the first system to adapt transferred seeds to downstream fuzzers.
 
-MORPH should therefore not be positioned as the first whole-test-case transfer framework or the first system to adapt transferred seeds to downstream fuzzers. Nevertheless, MORPH provides clear technical advances over SEDAR. In particular, it replaces independent statement-level translation with an explicit AQT representation, forward read-after-write dependencies, evolving target-side context, dialect-evidence-guided instantiation, and parser/execution-feedback repair. SEDAR does not maintain translated target context across statements and explicitly leaves target-side execution-feedback regeneration as future work. I consider these differences meaningful.
+\reply
+We have moderated the novelty claims in Sections~I, II, III, and VI, and no longer position \tool{} as the first whole-test-case transfer framework or the first approach that adapts transferred seeds to downstream fuzzers. We have also clarified the methodological differences between \tool{} and \sedar{}. Details can be found in \metareviewref{1} and \metareviewref{2}.
 
-CrackSQL, RISE, and QTRAN provide relevant methodological precedents but address different tasks. CrackSQL already performs tree-based query decomposition, abstraction of translation-irrelevant content, target-syntax retrieval, localized translation, and operation-scope expansion. RISE reduces a complex query or procedural artifact, extracts a source-to-target AST rule, and applies the rule back to the original artifact. QTRAN uses dialect knowledge and RAG to translate an original query and regenerate its target-side mutant while preserving a metamorphic relation. These works show that structural decomposition, localized translation, and dialect-aware retrieval are not individually new. However, none of them models an independently executed stateful fuzzing test sequence, maintains target-side context across its statements, or integrates the result with coverage-guided seed mutation in the manner proposed by MORPH.
+% Source: Reviewer A, Detailed 1 (paragraph 3).
+\reviewcomment{1.5} \textbf{Novelty} These works show that structural decomposition, localized translation, and dialect-aware retrieval are not individually new. However, none of them models an independently executed stateful fuzzing test sequence, maintains target-side context across its statements, or integrates the result with coverage-guided seed mutation in the manner proposed by MORPH.
 
-The related-work discussion contains several details that should be corrected. In particular, the paper states that CrackSQL employs genetic algorithms to mine mutation patterns, but the cited work instead uses functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation. In addition, describing RISE as strictly processing a single SQL statement is too narrow because it also evaluates complete stored procedures containing control flow and multiple DML statements. A more accurate distinction is that RISE processes one self-contained query or procedural artifact at a time rather than a test file containing an ordered sequence of independently executed statements.
+\reply
+We have clarified in Sections~I and~VI that \tool{} builds on established techniques such as structural decomposition, localized translation, and dialect-aware retrieval, and that its contribution lies in coordinating them across an ordered test sequence through AQT. We have also revised Section~VI to distinguish \tool{} from CrackSQL, RISE, and QTRAN in terms of their goals. Details can be found in \metareviewref{2}.
 
-Overall, the individual translation techniques have precedents, but their extension to explicit stateful seed transfer through AQT, target-context propagation, and feedback-driven repair constitutes a credible contribution.
+% Source: Reviewer A, Detailed 1 (paragraph 4).
+\reviewcomment{1.6} \textbf{Novelty} The related-work discussion contains several details that should be corrected. In particular, the paper states that CrackSQL employs genetic algorithms to mine mutation patterns, but the cited work instead uses functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation. In addition, describing RISE as strictly processing a single SQL statement is too narrow because it also evaluates complete stored procedures containing control flow and multiple DML statements. A more accurate distinction is that RISE processes one self-contained query or procedural artifact at a time rather than a test file containing an ordered sequence of independently executed statements.
 
-\reply TODO.
+\reply
+We have corrected the related work in Section~VI. CrackSQL is now described as combining functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation. RISE is now described as processing one self-contained query or procedural artifact at a time, rather than an ordered test sequence of independently executed statements.
 
 % Source: Reviewer A, Detailed 2.
-\reviewcomment{1.5} \textbf{2. Technical Clarity} The AQT is a useful abstraction for organizing a transferred test case. In particular, the combination of normalized statement templates, read and write sets, and evolving schema context provides more structure than independent statement-level translation. The context ablation, where execution success decreases from 65.1\% to 52.4\%, provides evidence that cross-statement context improves target-side executability.
+\reviewcomment{1.7} \textbf{Technical Clarity} The AQT is a useful abstraction for organizing a transferred test case. In particular, the combination of normalized statement templates, read and write sets, and evolving schema context provides more structure than independent statement-level translation. The context ablation, where execution success decreases from 65.1\% to 52.4\%, provides evidence that cross-statement context improves target-side executability.
 
 However, the precise role and scope of the explicit dependency graph remain unclear. Algorithm 1 defines an edge from statement (i) to statement (j) when (\(i<j\)) and (\(R_j\cap W_i\neq\varnothing\)). This formalization captures forward read-after-write dependencies. Because every edge follows the original order, the original statement sequence is already a valid topological ordering, and the stable topological sort in Algorithm 2 normally preserves that order.
 
@@ -162,13 +167,13 @@ These issues do not invalidate the sequence-aware design, but clarifying them wo
 \reply TODO.
 
 % Source: Reviewer A, Detailed 3.
-\reviewcomment{1.6} \textbf{Semantic Correctness} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
+\reviewcomment{1.8} \textbf{Semantic Correctness} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
 
 \reply
 We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV. We have also narrowed the description of instantiation in Section~III, revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study as supplementary evidence. Details can be found in \commentref{1.1}.
 
 % Source: Reviewer A, Detailed 4.
-\reviewcomment{1.7} \textbf{4. Evaluation} The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
+\reviewcomment{1.9} \textbf{Evaluation} The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
 
 My main concern is the configuration of the translation baselines. The original CrackSQL evaluation focuses on PostgreSQL, MySQL, and Oracle, while RISE evaluates PostgreSQL-to-MySQL and PostgreSQL-to-Oracle translation. MORPH applies these systems to MonetDB, Virtuoso, DuckDB, and ClickHouse. The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
 
@@ -183,7 +188,7 @@ Finally, the component ablation is performed only for PostgreSQL-to-DuckDB trans
 \reply TODO.
 
 % Source: Reviewer A, Detailed 6.
-\reviewcomment{1.8} \textbf{6. Verifiability and transparency} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
+\reviewcomment{1.10} \textbf{Verifiability and transparency} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
 
 For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
 
@@ -202,26 +207,26 @@ For full reproducibility, the paper should additionally document the baseline ad
 \reply TODO.
 
 % Source: Reviewer B, Detailed 1.
-\reviewcomment{2.3} \textbf{1. Limited novelty.} The paper positions AQT as a key contribution, but AQT largely resembles an existing SQL AST or intermediate representation augmented with abstract labels, read/write sets, dependency edges, and schema context. The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). The distinction from these systems is insufficiently developed.
+\reviewcomment{2.3} \textbf{Limited novelty.} The paper positions AQT as a key contribution, but AQT largely resembles an existing SQL AST or intermediate representation augmented with abstract labels, read/write sets, dependency edges, and schema context. The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). The distinction from these systems is insufficiently developed.
 
     More importantly, the evaluation lacks compositional baselines such as ``existing SQL translator + SEDAR/GRIFFIN'' or ``AST-based translation + GRIFFIN''. Without such ablations, it is difficult to determine whether the contribution is a fundamentally new transfer technique or mainly an engineering integration of existing components. The authors should add such baselines or provide a clearer theoretical argument for why AQT enables capabilities that prior representations cannot achieve.
 
 \reply TODO.
 
 % Source: Reviewer B, Detailed 2.
-\reviewcomment{2.4} \textbf{2. Incomplete discussion of closely related work.} SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
+\reviewcomment{2.4} \textbf{Incomplete discussion of closely related work.} SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
 
 \reply TODO.
 
 % Source: Reviewer B, Detailed 3.
-\reviewcomment{2.5} \textbf{3. Potentially inaccurate characterization of SEDAR.} The paper characterizes SEDAR's comment-and-restore mechanism as ``destructive sanitization'' that ``sacrifices semantic depth.'' However, SEDAR's mechanism is designed to temporarily hide target-specific constructs from downstream fuzzers' strict parsers during mutation and restore them afterward. This is a pragmatic compatibility strategy, not a destructive removal of query logic.
+\reviewcomment{2.5} \textbf{Potentially inaccurate characterization of SEDAR.} The paper characterizes SEDAR's comment-and-restore mechanism as ``destructive sanitization'' that ``sacrifices semantic depth.'' However, SEDAR's mechanism is designed to temporarily hide target-specific constructs from downstream fuzzers' strict parsers during mutation and restore them afterward. This is a pragmatic compatibility strategy, not a destructive removal of query logic.
 
     The authors should revise their characterization to accurately reflect SEDAR's design intent and clarify the actual difference: MORPH performs pre-migration repair to make seeds parser-compatible, whereas SEDAR defers some compatibility handling until after mutation. A fairer comparison would evaluate both approaches under the same downstream fuzzer (e.g., GRIFFIN) and measure the net effect of each strategy on mutation effectiveness.
 
 \reply TODO.
 
 % Source: Reviewer B, Detailed 4.
-\reviewcomment{2.6} \textbf{Questionable classification in Table I.}
+\reviewcomment{2.6} \textbf{Questionable classification in Table I.} 
 
 \reply
 We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, CrackSQL's DML support, and \sedar{}'s source-side handling of multi-statement dependencies. We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}, while CrackSQL's \textit{DML} entry is marked as \cmark{}.
@@ -254,14 +259,14 @@ Capability comparison of existing SQL translation systems for test-case-level DB
 \end{center}
 
 % Source: Reviewer B, Detailed 5.
-\reviewcomment{2.7} \textbf{5. Unclear source of the improvement.} The reported coverage and bug-finding improvements may stem from a larger or more diverse effective seed corpus rather than the AQT-based translation technique itself. For a fair comparison with SEDAR, GRIFFIN, and SQUIRREL, all approaches should use exactly the same source seed corpus and produce comparable numbers of final seeds that pass the target parser.
+\reviewcomment{2.7} \textbf{Unclear source of the improvement.} The reported coverage and bug-finding improvements may stem from a larger or more diverse effective seed corpus rather than the AQT-based translation technique itself. For a fair comparison with SEDAR, GRIFFIN, and SQUIRREL, all approaches should use exactly the same source seed corpus and produce comparable numbers of final seeds that pass the target parser.
 
     The current experimental setup does not control for seed corpus size. The authors should: (a) report the number of valid seeds generated by each method before fuzzing, (b) normalize the corpus size across baselines, or (c) conduct an experiment where seed counts are equalized. This controlled setting is necessary to isolate the contribution of MORPH's SQL translation technique and demonstrate that improvements are not simply due to differences in seed quantity or diversity.
 
 \reply TODO.
 
 % Source: Reviewer B, Detailed 6.
-\reviewcomment{2.8} \textbf{6. Translation overhead is unclear.} Table VIII reports ``Cost/TS'' and ``Time/TS'' but does not specify the unit of measurement (e.g., USD per test suite? seconds per test suite?) or the size of the test suite being translated. Additionally, the paper does not compare MORPH's end-to-end translation time and LLM cost with previous methods such as SEDAR.
+\reviewcomment{2.8} \textbf{Translation overhead is unclear.} Table VIII reports ``Cost/TS'' and ``Time/TS'' but does not specify the unit of measurement (e.g., USD per test suite? seconds per test suite?) or the size of the test suite being translated. Additionally, the paper does not compare MORPH's end-to-end translation time and LLM cost with previous methods such as SEDAR.
 
     The authors should: (a) clearly define the units for cost and time, (b) report the average number of statements per test suite, (c) report per-seed translation time and cost, and (d) compare these overhead metrics against SEDAR and other baselines to demonstrate the practical feasibility of MORPH in real-world deployment.
 
