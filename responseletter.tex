@@ -42,14 +42,14 @@
 
 % Every label starts a response unit; long original comments may span pages.
 \newcommand{\reviewstart}{\par\addvspace{0.85\baselineskip}\Needspace{4\baselineskip}\noindent}
-\newcounter{requestanchor}
+\newcounter{metareviewanchor}
 \newcounter{commentanchor}
-\newcommand{\requestedchange}[1]{\reviewstart\renewcommand{\therequestanchor}{#1}\refstepcounter{requestanchor}\label{rc:#1}\textbf{Requested Change #1:}\ }
+\newcommand{\metareviewcomment}[1]{\reviewstart\renewcommand{\themetareviewanchor}{#1}\refstepcounter{metareviewanchor}\label{metareview:#1}\textbf{Metareview Comment #1:}\ }
 \newcommand{\reviewcomment}[1]{\reviewstart\renewcommand{\thecommentanchor}{#1}\refstepcounter{commentanchor}\label{comment:#1}\textbf{Comment #1:}\ }
 % Blue, underlined internal references for use when drafting the replies:
-% Details can be found in \requestedref{4}.
+% Details can be found in \metareviewref{4}.
 % Details can be found in \commentref{1.4}.
-\newcommand{\requestedref}[1]{\hyperref[rc:#1]{\uline{the reply to \textbf{Requested Change~\ref*{rc:#1}}}}}
+\newcommand{\metareviewref}[1]{\hyperref[metareview:#1]{\uline{the reply to \textbf{Metareview Comment~\ref*{metareview:#1}}}}}
 \newcommand{\commentref}[1]{\hyperref[comment:#1]{\uline{the reply to \textbf{Comment~\ref*{comment:#1}}}}}
 \newcommand{\reply}{\par\nobreak\noindent\textbf{Reply:}\ }
 
@@ -58,12 +58,12 @@
 \vspace{0.6\baselineskip}
 
 \noindent We thank the reviewers for their valuable comments.
-The paper has been carefully revised according to the meta-review, and all of the requested changes were implemented.
-Below is our detailed response to the meta-review and each reviewer.
+The paper has been carefully revised according to the metareview, and all of the requested changes were implemented.
+Below is our detailed response to the metareview and each reviewer.
 
 \section*{Replies to Metareview}
 
-\requestedchange{1} Correct the description of SEDAR's comment-before-mutation and restore-after-mutation mechanism. Clearly explain the actual methodological differences between MORPH and SEDAR, avoiding misleading characterizations of the latter.
+\metareviewcomment{1} Correct the description of SEDAR's comment-before-mutation and restore-after-mutation mechanism. Clearly explain the actual methodological differences between MORPH and SEDAR, avoiding misleading characterizations of the latter.
 
 \reply
 todo 我们修改了在xxxx章节，现在sedar的描述是什么xxx
@@ -76,17 +76,17 @@ We apologize for the inaccurate description. The original paper described \sedar
 
 (3) We have removed the statements attributing \tool{}'s improvements to permanent loss of query logic in \sedar{} (Sections~I, IV-C, IV-D, and VI), and added a controlled comparison in Section~IV-C. For each of the four target DBMSs, we applied both mutation-handling strategies to the same 300 translated seeds and ran \griffin{} for 24 hours with five repetitions. \tool{}'s handling achieves \TODO{a}\%, \TODO{b}\%, \TODO{c}\%, and \TODO{d}\% higher branch coverage on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
 
-\requestedchange{2} 
+\metareviewcomment{2} 
 目的不一样，解决的挑战不一样，方法不一样，所以实验效果不一样
 Moderate the novelty claims and better distinguish MORPH from existing SQL translation approaches, particularly SEDAR, RISE, QTRAN, and CrackSQL. Explain more concretely what AQT and its associated mechanisms contribute beyond existing techniques, especially in the context of DBMS fuzzing.
 
 \reply TODO.
 
-\requestedchange{3} Clarify how MORPH differs from and complements SmartFuzz in seed construction. The additional comparison is useful but limited in its experimental scope. The revision should acknowledge these limitations and avoid overstating comparative advantages.
+\metareviewcomment{3} Clarify how MORPH differs from and complements SmartFuzz in seed construction. The additional comparison is useful but limited in its experimental scope. The revision should acknowledge these limitations and avoid overstating comparative advantages.
 
 \reply TODO.
 
-\requestedchange{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
+\metareviewcomment{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
 
 \reply TODO.
 
@@ -200,7 +200,7 @@ For full reproducibility, the paper should additionally document the baseline ad
 \reviewcomment{2.6} \textbf{Questionable classification in Table I.}
 
 \reply
-We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and CrackSQL's \textit{DML} entries are now marked as \partmark{}. These revisions acknowledge SQLGlot's multi-statement transpilation and jOOQ's schema metadata tracking, while qualifying CrackSQL's DML support. Related corrections to the characterization of \sedar{} are described in \requestedref{1}.
+We have clarified the criteria for the three symbols in Table~I (Section~II) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and CrackSQL's \textit{DML} entries are now marked as \partmark{}. These revisions acknowledge SQLGlot's multi-statement transpilation and jOOQ's schema metadata tracking, while qualifying CrackSQL's DML support. Related corrections to the characterization of \sedar{} are described in \metareviewref{1}.
 
 todo 调整表格的样式放
 
