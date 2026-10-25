@@ -502,7 +502,7 @@ $\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies, wher
 $\mathcal{D}$ records the cumulative schema context after executing $\langle s_1,\ldots,s_n\rangle$, including table definitions, column types, constraints, and object-state summaries that are propagated as source-side
 constraints during target-side instantiation.
 $\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where $V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency set and 
-$\mathcal{G}_{tc}$ is its graph representation for dependency-preserving ordering.
+$\mathcal{G}_{tc}$ is its graph representation, used to select dependency-relevant context during instantiation.
 $\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges for deduplication and cache indexing.
 % $\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges, acting as a fingerprint for deduplication and cache indexing.
 % \end{definition}
