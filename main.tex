@@ -966,7 +966,7 @@ As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods b
 Directly executing source seeds yields low execution validity, dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
 Existing translators improve syntactic acceptance but still leave an execution-validity gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 execution validity.
 
-Existing SQL translation tools primarily operate at the statement level and are designed for query migration rather than fuzzing seed transfer. For example, RISE's statement-level design is particularly limited in seed transfer scenarios. In the SQLite-to-DuckDB setting, our test-case-level transfer improves execution validity from 0.314 to 0.776.
+Existing SQL translation tools primarily operate at the statement level and are designed for query migration rather than fuzzing seed transfer. For example, RISE's statement-level design is particularly limited in seed transfer scenarios. In the SQLite-to-DuckDB setting, our test-case-level transfer improves execution validity from 0.314 to 0.748.
 When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves 34\% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
 % Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
 
