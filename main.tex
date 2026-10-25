@@ -601,7 +601,7 @@ $\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Cache k
 % Two-Level Instantiation 段：逐行解读 Algorithm 2。
 % 先做 dependency-preserving + 保序的拓扑排序，再逐语句 InstantiateStmt 并传播 target context，最后整体 index 复用。
 % - inner level：InstantiateStmt 在语句内递归，用检索/生成的局部映射 + parser feedback 保证可执行。
-To guarantee that the generated queries remain semantically consistent with the target dialect during test-case instantiation, the system employs a Dialect-Aware AQT Instantiation process as formalized in Algorithm~\ref{alg:translation}.
+To keep the generated queries valid in the target dialect during test-case instantiation, the system employs a Dialect-Aware AQT Instantiation process as formalized in Algorithm~\ref{alg:translation}.
 At the \emph{outer level}, the algorithm processes statements in their original order.
 For each statement $s_i$, \textsc{SelectContext} uses the dependency set $\Delta$ to select its dependency predecessors $\{j \mid (j,i)\in\Delta\}$, and returns their translated statements together with the target-side object-state summaries of the objects they write and $s_i$ reads (Line~\ref{line:alg2:ctx_sel}).
 It then invokes \textsc{InstantiateStmt} with the source constraints and the selected target context, appends the generated query, and updates the target context for subsequent statements (Lines~\ref{line:alg2:stmt_inst}--\ref{line:alg2:schema_prop}).

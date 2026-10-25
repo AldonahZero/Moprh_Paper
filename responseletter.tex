@@ -161,13 +161,10 @@ These issues do not invalidate the sequence-aware design, but clarifying them wo
 \reply TODO.
 
 % Source: Reviewer A, Detailed 3.
-\reviewcomment{1.6} \textbf{3. Semantic Correctness} The paper explicitly states that its evaluation targets fuzzing-seed quality rather than source-to-target result equivalence. This is a reasonable design choice. For fuzzing, a transferred seed primarily needs to be executable on the target DBMS, retain useful SQL structures, and be compatible with downstream mutation. Full semantic equivalence is not necessarily required for this purpose.
+\reviewcomment{1.6} \textbf{Semantic Correctness} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
 
-However, the metric named ``Semantic Correctness'' only checks whether a seed executes on the target DBMS without a runtime error. This establishes execution validity rather than semantic equivalence. The distinction is important because repair operations such as constant substitution and minimal commenting can change test behavior.
-
-I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
-
-\reply TODO.
+\reply
+We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV. We have also narrowed the description of instantiation in Section~III, revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study as supplementary evidence. Details can be found in \commentref{1.1}.
 
 % Source: Reviewer A, Detailed 4.
 \reviewcomment{1.7} \textbf{4. Evaluation} The evaluation provides strong evidence that the complete MORPH pipeline produces practically useful seeds. In particular, the confirmed bugs and improvements over SEDAR demonstrate that the approach can exercise target DBMS code that remains difficult to reach with existing seeds.
@@ -279,7 +276,8 @@ Capability comparison of existing SQL translation systems for test-case-level DB
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.1} The ``semantic correctness'' metric means only ``executes without runtime errors,'' not result equivalence; a seed that runs but computes something different still counts. Using ``+130-450\%'' as a headline overstates what was measured.
 
-\reply TODO.
+\reply
+We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~V. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study. Details can be found in \commentref{1.1}.
 
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
