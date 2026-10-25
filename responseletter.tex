@@ -128,7 +128,32 @@ RISE & 34.0 & 65.0 \\
 % Source: Reviewer A, Question 2.
 \reviewcomment{1.2} What independent benefit does the dependency graph provide beyond context propagation?
 
-\reply TODO.
+\reply
+Context propagation maintains the target-side state of the test case, while the dependency graph determines which preceding statements are provided as context for the current statement. For each statement, \tool{} uses $\Delta$ to select its direct predecessors, i.e., the preceding statements that write objects read by the current statement, and provides their source and translated statements in the prompts for instantiation and repair. For example, in \texttt{ALTER TABLE t ADD COLUMN b INT; SELECT b FROM t;}, the dependency edge selects the \texttt{ALTER TABLE} statement as context when translating and repairing the \texttt{SELECT}, regardless of how many unrelated statements appear between them.
+
+To isolate this benefit, we have added an ablation study in Section~IV. We compare four context-selection modes under the same LLM, knowledge base, source corpus, repair budget, and statement order: (1) \tool{}, which selects dependency predecessors through $\Delta$; (2) $\tool{}_{\textit{win}}$, which replaces dependency-based selection with the five most recent successfully translated statements while keeping the same object summaries, so that it differs from \tool{} only in whether the dependency graph is used; (3) $\tool{}_{\textit{all}}$, which provides all preceding successfully translated statements together with the complete source-side and target-side context; and (4) $\tool{}_{\textit{w/o-ctx}}$, which disables target-side context propagation. We measure execution validity at the test-case level, the number of predecessor statements provided per statement, the proportion of provided predecessors that are dependency-relevant (i.e., connected to the current statement in $\Delta$), and input tokens per statement.
+
+\begin{center}
+\begin{minipage}{\linewidth}
+\centering\small
+\textbf{TABLE VIII}
+\par\smallskip
+Contribution of the dependency graph to context selection.
+\par\medskip
+\begin{tabular}{lcccc}
+\toprule
+Mode & Exec. & Preds/Stmt & Relevant Preds (\%) & Input Tokens/Stmt \\
+\midrule
+\tool{} & \TODO{} & 0.47 & 100.0 & 509.6 \\
+$\tool{}_{\textit{win}}$ & \TODO{} & 1.19 & 22.6 & 578.4 \\
+$\tool{}_{\textit{all}}$ & \TODO{} & 27.95 & 4.2 & 1,842.3 \\
+$\tool{}_{\textit{w/o-ctx}}$ & \TODO{} & 0.49 & 100.0 & 488.5 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+As shown in the table, \tool{} achieves execution validity comparable to $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ (\TODO{} vs. \TODO{} and \TODO{}), while reducing input tokens per statement by 11.9\% and 72.3\%, respectively. In $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$, only 22.6\% and 4.2\% of the provided predecessors are dependency-relevant. In addition, 15.4\% of statements select dependency predecessors outside the five most recent statements, which a recency-based window cannot capture. The context of $\tool{}_{\textit{all}}$ grows with test-case length: on test cases with more than 20 statements, its input tokens per statement are 4.98$\times$ those of \tool{}. These results show that the independent benefit of the dependency graph lies in selecting a compact, dependency-relevant context whose size does not grow with test-case length, while preserving the execution validity achieved with larger contexts.
 
 % Source: Reviewer A, Question 3.
 \reviewcomment{1.3} How were CrackSQL, RISE, and SEDAR adapted and configured for the four target DBMSs, and how did the authors ensure a fair comparison?
