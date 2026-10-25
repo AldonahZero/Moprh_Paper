@@ -213,7 +213,8 @@ We have clarified in Section~IV that our experiments use the \sedar{} binary obt
 % Source: Reviewer A, Detailed 4 (paragraph 5).
 \reviewcomment{1.13} The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
 
-\reply TODO.
+\reply
+The full campaign in RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 compares fuzzing tools in five independent 24-hour runs and reports the union of unique bugs across these runs. We have added the units to the column headers of Table~IX (Table~VIII in the original submission), i.e., Cost/TS (\$) and Time/TS (s), and we have reported in Section~V that processing all test files with Gemini 2.5-Flash-Lite costs \$96 in total.
 
 % Source: Reviewer A, Detailed 4 (paragraph 6).
 \reviewcomment{1.14} Finally, the component ablation is performed only for PostgreSQL-to-DuckDB transfer. Extending at least the most important ablation, particularly context propagation, to additional source-target pairs would strengthen the generality of the findings.
