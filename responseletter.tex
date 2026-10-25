@@ -144,16 +144,16 @@ Contribution of the dependency graph to context selection.
 \toprule
 Mode & Exec. & Preds/Stmt & Relevant Preds (\%) & Input Tokens/Stmt \\
 \midrule
-\tool{} & \TODO{} & 0.47 & 100.0 & 509.6 \\
-$\tool{}_{\textit{win}}$ & \TODO{} & 1.19 & 22.6 & 578.4 \\
-$\tool{}_{\textit{all}}$ & \TODO{} & 27.95 & 4.2 & 1,842.3 \\
-$\tool{}_{\textit{w/o-ctx}}$ & \TODO{} & 0.49 & 100.0 & 488.5 \\
+\tool{} & \textbf{0.661} & 0.47 & 100.0 & 509.6 \\
+$\tool{}_{\textit{win}}$ & 0.599 & 1.19 & 22.6 & 578.4 \\
+$\tool{}_{\textit{all}}$ & 0.643 & 27.95 & 4.2 & 1,842.3 \\
+$\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49 & 100.0 & 488.5 \\
 \bottomrule
 \end{tabular}
 \end{minipage}
 \end{center}
 
-As shown in the table, \tool{} achieves execution validity comparable to $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ (\TODO{} vs. \TODO{} and \TODO{}), while reducing input tokens per statement by 11.9\% and 72.3\%, respectively. In $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$, only 22.6\% and 4.2\% of the provided predecessors are dependency-relevant. In addition, 15.4\% of statements select dependency predecessors outside the five most recent statements, which a recency-based window cannot capture. The context of $\tool{}_{\textit{all}}$ grows with test-case length: on test cases with more than 20 statements, its input tokens per statement are 4.98$\times$ those of \tool{}. These results show that the independent benefit of the dependency graph lies in selecting a compact, dependency-relevant context whose size does not grow with test-case length, while preserving the execution validity achieved with larger contexts.
+As shown in the table, \tool{} achieves higher execution validity than $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ (0.661 vs. 0.599 and 0.643), while reducing input tokens per statement by 11.9\% and 72.3\%, respectively. In $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$, only 22.6\% and 4.2\% of the provided predecessors are dependency-relevant. In addition, 15.4\% of statements select dependency predecessors outside the five most recent statements, which a recency-based window cannot capture. The context of $\tool{}_{\textit{all}}$ grows with test-case length: on test cases with more than 20 statements, its input tokens per statement are 4.98$\times$ those of \tool{}. These results show that the independent benefit of the dependency graph lies in selecting a compact, dependency-relevant context whose size does not grow with test-case length, while achieving higher execution validity than larger contexts.
 
 % Source: Reviewer A, Question 3.
 \reviewcomment{1.3} How were CrackSQL, RISE, and SEDAR adapted and configured for the four target DBMSs, and how did the authors ensure a fair comparison?
