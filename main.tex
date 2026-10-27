@@ -263,9 +263,6 @@ To address these challenges, we propose \tool{}, a structure-aware cross-dialect
 LLMs are used for bounded rule generation or local repair under structural constraints.
 % recursively mapping AQT nodes into dialect-specific subtrees under target-dialect constraints while propagating the evolving target schema context across statements.
 (3) Finally, it refines generated test cases to satisfy fuzzing requirements using runtime feedback, converting unsupported constructs into parsable forms while preserving their execution behavior as much as possible.
-
-\tool{} builds on established techniques such as structural decomposition, localized translation, and dialect-aware retrieval~\cite{zhou2025cracking, xie2026rise, lin2025qtran}.
-Its contribution lies in coordinating them across an ordered test sequence: the AQT records forward read-after-write dependencies and the cumulative schema context of the source test case, and instantiation propagates the translated target-side context across statements, so that each statement is instantiated and repaired against the translated target state rather than only the source state.
 % (3) Finally, \tool{} adapts SQL queries that are incompatible with fuzzers by using runtime feedback, converting unsupported constructs into parsable forms while preserving their logical structure to maximize testing coverage.
 
 % Paragraph 8 写作逻辑：
@@ -354,8 +351,7 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
 \textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, cross-DBMS SQL transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
 As shown in Table~\ref{tab:translation-capability}, existing tools provide limited support for preserving cross-statement dependencies during test-case-level transfer for fuzzing.
 Specifically, existing SQL translation techniques~\cite{sqlglot, jooq} primarily focus on statement-level translation. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and DQL statements.
-\sedar{}~\cite{fu2024sedar} transfers complete test cases by capturing source-side schema information and translating their statements with an LLM. To make the transferred seeds usable by downstream fuzzers, it temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before the mutated SQL is executed on the target DBMS.
-However, \sedar{} does not maintain translated target-side context across statements and leaves target-side execution-feedback regeneration as future work. \tool{} instead explicitly represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and uses parser and execution feedback to repair transferred seeds before downstream mutation.
+\sedar{}~\cite{fu2024sedar} transfers complete test cases, but it does not maintain translated target-side context across statements and leaves target-side execution-feedback regeneration as future work. \tool{} instead explicitly represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and uses parser and execution feedback to repair transferred seeds before downstream mutation.
 
 
 
@@ -502,7 +498,6 @@ $\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies, wher
 $\mathcal{D}$ records the cumulative schema context after executing $\langle s_1,\ldots,s_n\rangle$, including table definitions, column types, constraints, and object-state summaries that are propagated as source-side
 constraints during target-side instantiation.
 Each object-state summary records whether a schema object exists, its table definition, column names and types, constraints, and the schema changes induced by preceding DDL statements; the summaries are updated incrementally in statement order.
-$\mathcal{D}$ does not record table contents or other data-level state.
 $\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where $V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency set and 
 $\mathcal{G}_{tc}$ is its graph representation, used to select dependency-relevant context during instantiation.
 $\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges for deduplication and cache indexing.
@@ -960,12 +955,10 @@ For translation effectiveness, we compare \tool{} against six baselines, includi
 The No translation strategy directly executes the original test cases collected from source DBMSs without modification. 
 SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
 \sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
-We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline, including schema capture, end-to-end LLM translation, and mutability refinement; the latter temporarily comments out parser-incompatible fragments before mutation and restores them after mutation, before target-side execution.
+We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline (Section~\ref{sec:background}).
 Our artifact includes the \sedar{} configuration and the \sedar{}-generated seeds used in our experiments.
-Each baseline follows its original translation workflow.
-SQLGlot and jOOQ use their built-in dialect support; CrackSQL and RISE use the official SQL documentation of each target DBMS as dialect knowledge, while \sedar{} requires no additional dialect knowledge.
-CrackSQL and RISE translate the statements of a test case individually and reassemble them in their original order without schema context, whereas \sedar{} translates complete test cases using the extracted source schemas as context.
-For a fair comparison, all methods use the same source test cases for each target DBMS (Section~\ref{sec:setup}), and no method receives additional manually written translation rules.
+Each baseline follows its original translation workflow, using the official SQL documentation of each target DBMS as dialect knowledge when required.
+All methods use the same source test cases without additional manually written translation rules.
 
 % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
 
@@ -1024,9 +1017,7 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 \textbf{Source-to-Target Result and State Equivalence.}
 We randomly sampled 100 MySQL test cases and used the same cases to evaluate SQLGlot, RISE, \sedar{}, and \tool{} for transfer to DuckDB.
 We compared query results between the source and target executions for result equivalence, and compared the resulting database states, including schemas and table contents, for state equivalence.
-Translation or execution failures were counted as non-equivalent; both rates use all 100 test cases as the denominator.
 \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}.
-These results provide supplementary evidence of behavioral preservation on the sampled MySQL-to-DuckDB cases, rather than a guarantee of semantic equivalence across dialects.
 
 \textbf{Semantic Richness of the Transferred Test Cases.}
 Beyond validity, we measure whether transferred seeds retain testing value by counting valid functions, data types, and keywords.
@@ -1245,7 +1236,7 @@ Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 % Table~\ref{tab:llm_comparison} supports Gemini 2.5-Flash-Lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
 % We justify the selection of Gemini 2.5-Flash-Lite for \tool{} by showing the experiments on \monetdb{} with different LLMs: while Qwen3.5-27B achieves slightly higher semantic correctness (0.852), it incurs a 36$\times$ higher monetary cost and 9.5$\times$ longer migration time per test suite. Gemini presents the optimal balance of high validity (0.776 semantic rate), lowest cost, and fastest throughput, making it highly practical for large-scale seed generation tasks.
 % Meanwhile, this result also indirectly validates that the performance gains of \tool{} mainly stem from algorithmic design rather than using different LLMs: under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still achieves 0.89 syntactic correctness and 0.533 semantic correctness, outperforming \sedar{} (i.e., 0.781 and 0.388), indicating that the improvements are primarily driven by the proposed method rather than model capacity.
-We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher execution validity (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation. Processing all test files with Gemini 2.5-Flash-Lite costs \$96 in total. On average, each test suite contains 65.1 statements. Across the four target DBMSs, \tool{} takes 219 seconds and \$0.004 per seed, while \sedar{} takes 146 seconds and \$0.006 per seed with a total cost of \$144. Since seed transfer is a one-time offline step and the resulting seeds can be reused across fuzzing campaigns, this overhead is acceptable in practice.
+We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher execution validity (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation. Processing all test files (65.1 statements per test suite on average) with Gemini 2.5-Flash-Lite costs \$96 in total, i.e., \$0.004 and 219 seconds per seed, compared with \$0.006 and 146 seconds per seed and a total cost of \$144 for \sedar{}.
 Under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still outperforms it in syntactic correctness (0.89 vs. 0.781) and execution validity (0.533 vs. 0.388), indicating that the gains mainly come from the proposed method rather than model capacity.
 
 % Extensibility 写作逻辑 / Reviewer B、C 修改逻辑：
