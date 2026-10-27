@@ -228,7 +228,8 @@ We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQ
 
 For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
 
-\reply \textcolor{red}{TODO.}
+\reply
+We have documented these details in the revised paper. (1) \textit{Baseline adaptations:} Section~IV describes the dialect knowledge used by each baseline and how statement-level translators are applied to complete test cases (\commentref{1.10}). (2) \textit{Source-target test allocation:} the experimental setup reports that all methods use the same source test cases for each target DBMS, i.e., 5,879, 4,551, 5,850, and 6,990 test cases for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. (3) \textit{Repeated-run aggregation:} coverage is averaged over five independent runs, Figure~7 displays the means and the 95\% confidence intervals, and bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification (\commentref{1.12}). (4) \textit{Full campaign duration:} RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 consists of five independent 24-hour runs (\commentref{1.13}). (5) \textit{Validation of generated rules:} Section~V now describes that the generated rules are applied to translated test cases and checked for errors, and that rules producing incorrect translations are manually inspected and corrected, which accounts for the 136 corrected rules in Table~X.
 
 \section*{Replies to Reviewer B}
 
