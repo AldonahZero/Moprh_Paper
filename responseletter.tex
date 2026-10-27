@@ -304,7 +304,28 @@ We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata t
 
     The authors should: (a) clearly define the units for cost and time, (b) report the average number of statements per test suite, (c) report per-seed translation time and cost, and (d) compare these overhead metrics against SEDAR and other baselines to demonstrate the practical feasibility of MORPH in real-world deployment.
 
-\reply \textcolor{red}{TODO.}
+\reply
+We have clarified the translation overhead of \tool{} in Section~V. (a) We have added the units to the column headers of Table~IX (Table~VIII in the original submission), i.e., Cost/TS (\$) and Time/TS (s); details can be found in \commentref{1.13}. (b) We have reported that each test suite contains 65.1 statements on average. (c) Across the four target DBMSs, \tool{} takes 219 seconds and \$0.004 per seed on average, and processing all test files costs \$96 in total. (d) Under the same setting, \sedar{} takes 146 seconds and \$0.006 per seed, with a total cost of \$144. Thus, \tool{} costs less than \sedar{} but takes longer per seed, since it performs additional instantiation and repair iterations. Because seed transfer is a one-time offline step and the resulting seeds can be reused across fuzzing campaigns, this overhead is acceptable in practice.
+
+\begin{center}
+\begin{minipage}{0.72\linewidth}
+\centering\footnotesize\renewcommand{\arraystretch}{1.0}
+\textbf{TABLE IX: LLM comparison. Syn.: syntactic correctness; Exec.: execution validity; TS: Test Suite.}
+\par\smallskip
+\begin{tabular}{lrrrr}
+\toprule
+Model & Syn. & Exec. & Cost/TS (\$) & Time/TS (s) \\
+\midrule
+Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
+GPT-3.5-Turbo & 0.890 & 0.533 & 0.015 & 208.66 \\
+DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
+Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize\raggedright $^*$ Qwen3.5-27B with deep thinking mode.\par}
+\end{minipage}
+\end{center}
 
 % Source: Reviewer B, Artifact assessment (unnumbered).
 \reviewcomment{2.9} Bug evidence is insufficient. The bug links are inaccessible, and the triggering test cases are not publicly available. The artifact includes complete and executable source code.

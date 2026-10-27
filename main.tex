@@ -1231,7 +1231,7 @@ Based on these results, we set $T=0.2$ for all experiments to ensure both reliab
 Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
 GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
 DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
-Qwen3.5-27B & 0.971 & 0.852 & 0.119 & 1395.6 \\
+Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \bottomrule
 \multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with deep thinking mode}
 \end{tabular*}
@@ -1245,7 +1245,7 @@ Qwen3.5-27B & 0.971 & 0.852 & 0.119 & 1395.6 \\
 % Table~\ref{tab:llm_comparison} supports Gemini 2.5-Flash-Lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
 % We justify the selection of Gemini 2.5-Flash-Lite for \tool{} by showing the experiments on \monetdb{} with different LLMs: while Qwen3.5-27B achieves slightly higher semantic correctness (0.852), it incurs a 36$\times$ higher monetary cost and 9.5$\times$ longer migration time per test suite. Gemini presents the optimal balance of high validity (0.776 semantic rate), lowest cost, and fastest throughput, making it highly practical for large-scale seed generation tasks.
 % Meanwhile, this result also indirectly validates that the performance gains of \tool{} mainly stem from algorithmic design rather than using different LLMs: under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still achieves 0.89 syntactic correctness and 0.533 semantic correctness, outperforming \sedar{} (i.e., 0.781 and 0.388), indicating that the improvements are primarily driven by the proposed method rather than model capacity.
-We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher execution validity (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation. Processing all test files with Gemini 2.5-Flash-Lite costs \$96 in total.
+We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher execution validity (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation. Processing all test files with Gemini 2.5-Flash-Lite costs \$96 in total. On average, each test suite contains 65.1 statements. Across the four target DBMSs, \tool{} takes 219 seconds and \$0.004 per seed, while \sedar{} takes 146 seconds and \$0.006 per seed with a total cost of \$144. Since seed transfer is a one-time offline step and the resulting seeds can be reused across fuzzing campaigns, this overhead is acceptable in practice.
 Under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still outperforms it in syntactic correctness (0.89 vs. 0.781) and execution validity (0.533 vs. 0.388), indicating that the gains mainly come from the proposed method rather than model capacity.
 
 % Extensibility 写作逻辑 / Reviewer B、C 修改逻辑：
