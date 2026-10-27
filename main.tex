@@ -887,12 +887,13 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
 
 As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest branch coverage across all evaluated DBMSs, covering 422,130 branches in total.
 This corresponds to overall improvements of 528\%, 60\%, 54\%, and 14\% over \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, on their supported targets.
-Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
+Figure~\ref{fig:coverage_over_time} shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of \tool{} over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$).
+The figure further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
 
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
-\caption{Coverage growth over 24-hour fuzzing campaigns.}
+\caption{Coverage growth over 24-hour fuzzing campaigns. Displayed are the means and the 95\% confidence intervals of five runs.}
 \label{fig:coverage_over_time}
 \end{figure}
 
@@ -920,6 +921,7 @@ Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and co
 
 The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} across the four DBMSs. 
+Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
 These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
 To examine one source of this difference, we next compare the mutation-handling strategies under controlled conditions.
 

@@ -208,7 +208,8 @@ We have clarified in Section~IV that our experiments use the \sedar{} binary obt
 % Source: Reviewer A, Detailed 4 (paragraph 4).
 \reviewcomment{1.12} The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
 
-\reply \textcolor{red}{TODO.}
+\reply
+We have reported the variability and statistical significance of the coverage results in Section~IV. The coverage in Table~III is averaged over five independent runs, and Figure~7 now states that it displays the means and the 95\% confidence intervals of the five runs. We have also applied the Mann--Whitney U test to the final coverage of the five runs, and all improvements of \tool{} over the baselines are statistically significant ($p<0.05$). We have also clarified that the reported bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification. \TODO{variance and statistical test for the sanitizer ablation (Table~VIII), after rerunning the ablation}
 
 % Source: Reviewer A, Detailed 4 (paragraph 5).
 \reviewcomment{1.13} The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
