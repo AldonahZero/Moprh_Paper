@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
 %DIF DEL MajorRevisonBack.tex   Tue Oct 27 12:09:57 2026
-%DIF ADD main.tex               Tue Oct 27 15:39:06 2026
+%DIF ADD main.tex               Tue Oct 27 15:42:56 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -1115,12 +1115,14 @@ For translation effectiveness, we compare \tool{} against six baselines, includi
 The No translation strategy directly executes the original test cases collected from source DBMSs without modification. 
 SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
 \sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
-We \DIFdelbegin \DIFdel{reproduced }\DIFdelend \DIFaddbegin \DIFadd{used the original }\DIFaddend \sedar{} \DIFdelbegin \DIFdel{'s complete pipeline , including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy}\DIFdelend \DIFaddbegin \DIFadd{binary obtained from the authors of }\sedar{}\DIFadd{~\mbox{%DIFAUXCMD
+We \DIFdelbegin \DIFdel{reproduced }\DIFdelend \DIFaddbegin \DIFadd{used the original }\DIFaddend \sedar{} \DIFdelbegin \DIFdel{'s complete pipeline , including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
+}\DIFdelend \DIFaddbegin \DIFadd{binary obtained from the authors of }\sedar{}\DIFadd{~\mbox{%DIFAUXCMD
 \cite{fu2024sedar}}\hskip0pt%DIFAUXCMD
 , which runs its complete pipeline (Section~\ref{sec:background}).
 Our artifact includes the }\sedar{} \DIFadd{configuration and the }\sedar{}\DIFadd{-generated seeds used in our experiments.
 Each baseline follows its original translation workflow, using the official SQL documentation of each target DBMS as dialect knowledge when required.
-CrackSQL and RISE translate the statements of a test case individually without schema context, and all methods use the same source test cases without additional manually written translation rules}\DIFaddend .
+All methods use the same source test cases without additional manually written translation rules.
+}\DIFaddend 
 
 % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
 
@@ -1437,7 +1439,7 @@ Qwen3.5-27B\DIFaddbeginFL \DIFaddFL{$^*$ }\DIFaddendFL & 0.971 & 0.852 & 0.119 &
 % Table~\ref{tab:llm_comparison} supports Gemini 2.5-Flash-Lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
 % We justify the selection of Gemini 2.5-Flash-Lite for \tool{} by showing the experiments on \monetdb{} with different LLMs: while Qwen3.5-27B achieves slightly higher semantic correctness (0.852), it incurs a 36$\times$ higher monetary cost and 9.5$\times$ longer migration time per test suite. Gemini presents the optimal balance of high validity (0.776 semantic rate), lowest cost, and fastest throughput, making it highly practical for large-scale seed generation tasks.
 % Meanwhile, this result also indirectly validates that the performance gains of \tool{} mainly stem from algorithmic design rather than using different LLMs: under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still achieves 0.89 syntactic correctness and 0.533 semantic correctness, outperforming \sedar{} (i.e., 0.781 and 0.388), indicating that the improvements are primarily driven by the proposed method rather than model capacity.
-We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation. \DIFaddbegin \DIFadd{Processing all test files (65.1 statements per test suite on average) with Gemini 2.5-Flash-Lite costs \$96 in total, i.e., \$0.004 and 219 seconds per seed, compared with \$0.006 and 146 seconds for }\sedar{}\DIFadd{.
+We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation. \DIFaddbegin \DIFadd{Processing all test files (65.1 statements per test suite on average) with Gemini 2.5-Flash-Lite costs \$96 in total, i.e., \$0.004 and 219 seconds per seed, compared with \$0.006 and 146 seconds per seed and a total cost of \$144 for }\sedar{}\DIFadd{.
 }\DIFaddend Under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still outperforms it in syntactic \DIFaddbegin \DIFadd{correctness }\DIFaddend (0.89 vs. 0.781) and \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend (0.533 vs. 0.388), indicating that the gains mainly come from the proposed method rather than model capacity.
 
 % Extensibility 写作逻辑 / Reviewer B、C 修改逻辑：
