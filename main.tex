@@ -958,7 +958,7 @@ SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL
 We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline (Section~\ref{sec:background}).
 Our artifact includes the \sedar{} configuration and the \sedar{}-generated seeds used in our experiments.
 Each baseline follows its original translation workflow, using the official SQL documentation of each target DBMS as dialect knowledge when required.
-All methods use the same source test cases without additional manually written translation rules.
+CrackSQL and RISE translate each statement individually without schema context, and all methods use the same source test cases without additional manually written translation rules.
 
 % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
 

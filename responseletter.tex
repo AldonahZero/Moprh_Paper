@@ -197,7 +197,7 @@ We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout th
 \reviewcomment{1.10} The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
 
 \reply
-We have added the configuration of the translation baselines in Section~IV, including the dialect knowledge used by each baseline, and no baseline receives additional manually written translation rules. CrackSQL and RISE translate the statements of each test case individually and reassemble them in their original order, without schema context. \TODO{LLMs and prompts used by CrackSQL and RISE.} Details can be found in \commentref{1.3}.
+We have added the configuration of the translation baselines in Section~IV, including the dialect knowledge used by each baseline and how CrackSQL and RISE are applied to complete test sequences: they translate each statement individually without schema context. No baseline receives additional manually written translation rules. \TODO{LLMs and prompts used by CrackSQL and RISE.} Details can be found in \commentref{1.3}.
 
 % Source: Reviewer A, Detailed 4 (paragraph 3).
 \reviewcomment{1.11} The authors should confirm whether their reproduction includes the restoration step. If the motivating example is an observed failure in the reproduced system rather than the general SEDAR algorithm, this distinction should be stated explicitly.
