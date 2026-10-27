@@ -388,7 +388,8 @@ vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.5} What's novel here is the conjunction of approaches: AST abstraction + RAG + parser-feedback repair, which are established ideas assembled around the AQT.
 
-\reply \textcolor{red}{TODO.}
+\reply
+We have revised Sections~I, II, III, and VI to clarify that the contribution of \tool{} lies in coordinating these techniques across an ordered test sequence through the AQT. Specifically, the AQT records forward read-after-write dependencies and cumulative schema context, which \tool{} uses to select dependency-relevant context and to propagate the translated target-side state across statements during instantiation and repair. We have also added an ablation study in Section~IV that isolates the contributions of the dependency graph and context propagation. Details can be found in \metareviewref{2} and \commentref{1.2}.
 
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.6} RQ1 (28 bugs, unspecified ``full campaign'') vs RQ2 (22 bugs in 24h) relationship and campaign duration are unclear.
