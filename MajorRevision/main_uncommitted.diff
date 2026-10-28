@@ -1,0 +1,32 @@
+diff --git a/main.tex b/main.tex
+index e8b443b..d4fabd8 100644
+--- a/main.tex
++++ b/main.tex
+@@ -922,6 +922,17 @@ The figure further shows earlier coverage growth and continued branch gains afte
+ The coverage improvement also brings more detected bugs.
+ As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} across the four DBMSs. 
+ Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
++\textbf{Complementarity with SmartFuzz.} SmartFuzz and \tool{} construct seeds from different sources (Section~\ref{sec:related_work}).
++We further run \griffin{} with the union of their seeds, which covers \TODO{} branches and detects \TODO{} bugs in total.
++Figure~\ref{fig:venn} shows the bugs detected by SmartFuzz, \tool{}, and their combination; \TODO{one sentence on the bugs found only by each seed source and by the combination}.
++
++\begin{figure}[t]
++\centering
++\fbox{\parbox{0.6\linewidth}{\centering\TODO{Venn diagram}}}
++\caption{Bugs detected by SmartFuzz, \tool{}, and SmartFuzz+\tool{}.}
++\label{fig:venn}
++\end{figure}
++
+ These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
+ To examine one source of this difference, we next compare the mutation-handling strategies under controlled conditions.
+ 
+@@ -1319,7 +1330,8 @@ Unlike these works, \tool{} focuses on the upstream \textit{seed acquisition} pr
+ Recent work has explored LLMs for generating or enriching testing inputs.
+ Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQveL~\cite{zhong2025testing} synthesizes SQL fragments for database testing.
+ SmartFuzz~\cite{lin2026smartfuzz} uses LLMs to synthesize new seeds from features extracted from official DBMS documentation and historical bug-triggering inputs, targeting bug-prone execution states.
+-In contrast, \tool{} transfers existing test cases from mature DBMSs and preserves their cross-statement structures; the two approaches draw on different seed sources and could be combined to construct initial seeds for DBMS fuzzing.
++In contrast, \tool{} transfers existing test cases from mature DBMSs, which cover a broad range of SQL features, and preserves their cross-statement structures.
++The two approaches therefore provide complementary seeds: SmartFuzz targets bug-prone features, whereas \tool{} provides broad feature coverage, and they could be combined to construct initial seeds for DBMS fuzzing.
+ \sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds; its compatibility mechanism is described in Section~\ref{sec:background}.
+ 
+ Unlike \sedar{}, which translates each statement of a test case individually under its referenced source-side sub-schema, \tool{} performs AQT-guided instantiation that maintains target-side context across statements, where explicit dependencies, nested structures, and clause-level relationships support local repair with parser and execution feedback before mutation.

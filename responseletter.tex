@@ -91,11 +91,11 @@ We have revised Sections~I, II, III, and VI so that \tool{} is no longer positio
 \metareviewcomment{3} Clarify how MORPH differs from and complements SmartFuzz in seed construction. The additional comparison is useful but limited in its experimental scope. The revision should acknowledge these limitations and avoid overstating comparative advantages.
 
 \reply
-We have clarified how \tool{} differs from and complements SmartFuzz in Section~VI, and we have extended the comparison in Section~IV. SmartFuzz uses LLMs to synthesize new seeds from features extracted from official DBMS documentation and historical bug-triggering inputs, whereas \tool{} transfers existing test cases from mature DBMSs and preserves their cross-statement structures. The two approaches therefore draw on different seed sources.
+We have clarified how \tool{} differs from and complements SmartFuzz in Section~VI, and we have extended the comparison in Section~IV. SmartFuzz uses LLMs to synthesize new seeds from features extracted from official DBMS documentation and historical bug-triggering inputs, whereas \tool{} transfers existing test cases from mature DBMSs, which cover a broad range of SQL features, and preserves their cross-statement structures. The two approaches therefore provide complementary seeds: SmartFuzz targets bug-prone features, whereas \tool{} provides broad feature coverage.
 
 To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. \TODO{coverage and bug results of SmartFuzz vs.\ \tool{}}
 
-To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds. \TODO{results of the combined seeds, the branches and bugs found only by each seed source, and the MonetDB case}
+To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers \TODO{} branches and detects \TODO{} bugs in total. The Venn diagram below shows the bugs detected by SmartFuzz, \tool{}, and their combination. \TODO{one sentence on the bugs found only by each seed source and by the combination}
 
 \begin{center}
 \begin{minipage}{0.92\linewidth}
@@ -140,6 +140,8 @@ Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ &
 
 \end{minipage}
 \end{center}
+
+\TODO{Venn diagram of the bugs detected by SmartFuzz, \tool{}, and SmartFuzz+\tool{}}
 
 \metareviewcomment{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
 
