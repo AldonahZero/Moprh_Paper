@@ -1,0 +1,98 @@
+diff --git a/responseletter.tex b/responseletter.tex
+index 3182e0a..3d18aa4 100644
+--- a/responseletter.tex
++++ b/responseletter.tex
+@@ -90,7 +90,58 @@ We have revised Sections~I, II, III, and VI so that \tool{} is no longer positio
+ 
+ \metareviewcomment{3} Clarify how MORPH differs from and complements SmartFuzz in seed construction. The additional comparison is useful but limited in its experimental scope. The revision should acknowledge these limitations and avoid overstating comparative advantages.
+ 
+-\reply \textcolor{red}{TODO.}
++\reply
++We have clarified how \tool{} differs from and complements SmartFuzz in Section~VI, and we have extended the comparison in Section~IV. SmartFuzz uses LLMs to synthesize new seeds from features extracted from official DBMS documentation and historical bug-triggering inputs, whereas \tool{} transfers existing test cases from mature DBMSs and preserves their cross-statement structures. The two approaches therefore draw on different seed sources.
++
++To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. \TODO{coverage and bug results of SmartFuzz vs.\ \tool{}}
++
++To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds. \TODO{results of the combined seeds, the branches and bugs found only by each seed source, and the MonetDB case}
++
++We have also acknowledged the limitations of this comparison in Section~IV. SmartFuzz was originally evaluated with its extended \textsc{Squirrel}, while we use \griffin{} for all seed sources to isolate the effect of the seeds; our results therefore reflect seed quality under the same fuzzer and do not represent the performance of the complete SmartFuzz system. \TODO{number of runs per configuration}
++
++\begin{center}
++\begin{minipage}{0.92\linewidth}
++\centering\footnotesize\renewcommand{\arraystretch}{1.0}\setlength{\tabcolsep}{3pt}
++\textbf{TABLE III: Number of branches covered by different tools (24h).}
++\par\smallskip
++\begin{tabular}{lccccccc}
++\toprule
++DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \tool{} \\
++\midrule
++MonetDB & - & \textcolor{red}{TODO} & 43,747 & 61,981 & 76,142 & \textcolor{red}{TODO} & \textbf{81,486} \\
++Virtuoso & - & \textcolor{red}{TODO} & 26,302 & 28,017 & 36,583 & \textcolor{red}{TODO} & \textbf{40,183} \\
++DuckDB & 22,188 & \textcolor{red}{TODO} & 96,434 & 96,512 & 114,876 & \textcolor{red}{TODO} & \textbf{144,822} \\
++ClickHouse & 25,618 & \textcolor{red}{TODO} & - & 87,388 & 141,215 & \textcolor{red}{TODO} & \textbf{155,639} \\
++\midrule
++Total & 47,806 & \textcolor{red}{TODO} & 166,483 & 273,898 & 368,816 & \textcolor{red}{TODO} & 422,130 \\
++Improvement* & 528\%$\uparrow$ & \textcolor{red}{TODO} & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & \textcolor{red}{TODO} & - \\
++\bottomrule
++\end{tabular}
++\par\smallskip{\footnotesize\raggedright * Calculated only for commonly supported DBMSs.\par}
++\end{minipage}
++\end{center}
++
++\begin{center}
++\begin{minipage}{0.92\linewidth}
++\centering\footnotesize\renewcommand{\arraystretch}{1.0}\setlength{\tabcolsep}{3pt}
++\textbf{TABLE IV: Number of bugs detected by different tools (24h).}
++\par\smallskip
++\begin{tabular}{lccccccc}
++\toprule
++DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \tool{} \\
++\midrule
++MonetDB & - & \textcolor{red}{TODO} & 0 & 0 & 3 & \textcolor{red}{TODO} & \textbf{14} \\
++Virtuoso & - & \textcolor{red}{TODO} & 0 & 0 & 2 & \textcolor{red}{TODO} & \textbf{3} \\
++DuckDB & 0 & \textcolor{red}{TODO} & 0 & 0 & 1 & \textcolor{red}{TODO} & \textbf{3} \\
++ClickHouse & 0 & \textcolor{red}{TODO} & - & 0 & 0 & \textcolor{red}{TODO} & \textbf{2} \\
++\midrule
++Total & 0 & \textcolor{red}{TODO} & 0 & 0 & 6 & \textcolor{red}{TODO} & 22 \\
++Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & \textcolor{red}{TODO} & - \\
++\bottomrule
++\end{tabular}
++
++\end{minipage}
++\end{center}
+ 
+ \metareviewcomment{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
+ 
+@@ -254,7 +305,8 @@ We have clarified the difference between the two mutation-handling strategies in
+ % Source: Reviewer B, Detailed 2.
+ \reviewcomment{2.4} \textbf{Incomplete discussion of closely related work.} SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
+ 
+-\reply \textcolor{red}{TODO.}
++\reply
++We have added a discussion of SmartFuzz in Section~VI, which clarifies that SmartFuzz synthesizes new seeds from DBMS documentation and historical bug-triggering inputs, whereas \tool{} transfers existing test cases from mature DBMSs. We have also included SmartFuzz as a baseline in RQ2 and examined the complementarity of the two seed sources. Details can be found in \metareviewref{3}.
+ 
+ % Source: Reviewer B, Detailed 3.
+ \reviewcomment{2.5} \textbf{Potentially inaccurate characterization of SEDAR.} The paper characterizes SEDAR's comment-and-restore mechanism as ``destructive sanitization'' that ``sacrifices semantic depth.'' However, SEDAR's mechanism is designed to temporarily hide target-specific constructs from downstream fuzzers' strict parsers during mutation and restore them afterward. This is a pragmatic compatibility strategy, not a destructive removal of query logic.
+@@ -385,7 +437,12 @@ vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \
+ % Source: Reviewer C, Weakness (unnumbered).
+ \reviewcomment{3.4} Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
+ 
+-\reply \textcolor{red}{TODO.}
++\reply
++We have added SQLRight as a baseline in RQ2. \TODO{supported target DBMSs, adaptation, campaign setting, and results of SQLRight}
++
++We have also extended the related work in Section~VI with sqllogictest and seed-selection techniques. sqllogictest validates query results across database engines with a shared test format, whereas \tool{} transfers test cases into seeds for coverage-guided fuzzing. Seed-selection and scheduling techniques, such as corpus minimization and power schedules (e.g., AFLFast), choose or prioritize seeds within an existing corpus, whereas \tool{} constructs the initial corpus for target DBMSs that lack one; the two directions are therefore orthogonal and can be combined.
++
++The updated Table~III and Table~IV with the SQLRight and SmartFuzz columns are shown in \metareviewref{3}.
+ 
+ % Source: Reviewer C, Weakness (unnumbered).
+ \reviewcomment{3.5} What's novel here is the conjunction of approaches: AST abstraction + RAG + parser-feedback repair, which are established ideas assembled around the AQT.
+@@ -402,6 +459,7 @@ The full campaign in RQ1 runs \tool{} for seven days on each target DBMS, wherea
+ % Source: Reviewer C, Detailed comment (unnumbered).
+ \reviewcomment{3.7} I would recommed tightening the validity claims: add a small differential check on transferred seeds (do they return equivalent results on a shared dialect subset?) to back the ``semantic correctness'' framing, and lean on coverage/bug counts rather than feature-richness as the primary evidence. For RQ2, publish baseline command lines and seed corpora in the artifact; the all-zero bug rows need more transparency, and SQLRight belongs in the comparison.
+ 
+-\reply \textcolor{red}{TODO.}
++\reply
++We have revised the paper following these suggestions. (1) \textit{Differential check:} we have renamed ``Semantic Correctness'' to ``Execution Validity'' and added a sampled source-to-target result and state equivalence study (\commentref{1.1}). (2) \textit{Primary evidence:} our main claims rely on branch coverage and bug counts in RQ1 and RQ2, and the feature richness in RQ3 is presented as supplementary evidence of the testing value of transferred seeds. (3) \textit{Baseline transparency:} we have documented the configurations, seed corpora, and command lines of the RQ2 baselines, included them in our artifact, and explained the zero-bug results (\commentref{3.2}). (4) \textit{SQLRight:} we have added SQLRight to the RQ2 comparison (\commentref{3.4}).
+ 
+ \end{document}
+\ No newline at end of file
