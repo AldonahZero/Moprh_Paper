@@ -20,6 +20,7 @@
 \usepackage{mathptmx}
 \usepackage{amsmath,amssymb}
 \usepackage{xcolor}
+\usepackage{graphicx}
 \usepackage{booktabs,tabularx,array}
 \usepackage{needspace}
 \usepackage{titlesec}
@@ -139,7 +140,7 @@ Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ &
 \end{minipage}
 \end{center}
 
-To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers 413,021 branches in total (73,315, 48,030, 132,077, and 159,599 branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects 35 bugs in total. The combination detects more bugs than either seed source alone on all four DBMSs, and achieves higher coverage on Virtuoso and ClickHouse. On MonetDB and DuckDB, its coverage is lower than that of \tool{} alone, and it executes 38.5\% and 22.4\% fewer test cases than SmartFuzz alone within 24 hours, respectively. \TODO{The combined corpus contains more than twice as many seeds, which may include more time-consuming or redundant seeds. Under the fixed 24-hour budget, these seeds reduce the execution throughput and change the seed scheduling, leaving fewer mutation opportunities for valuable seeds.}
+To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers 413,021 branches in total (73,315, 48,030, 132,077, and 159,599 branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects 35 bugs in total. The combination detects more bugs than either seed source alone on all four DBMSs, and achieves higher coverage on Virtuoso and ClickHouse. On MonetDB and DuckDB, its coverage is lower than that of \tool{} alone, and it executes 38.5\% and 22.4\% fewer test cases than SmartFuzz alone within 24 hours, respectively. The additional seeds reduce the execution throughput, leaving fewer mutation opportunities for potentially more valuable seeds.
 
 The Venn diagram below shows the bugs detected by SmartFuzz, \tool{}, and their combination. SmartFuzz and \tool{} share 5 bugs (4 on MonetDB and 1 on DuckDB). SmartFuzz detects 12 bugs that \tool{} misses (7, 3, 1, and 1 on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively), and \tool{} detects 17 bugs that SmartFuzz misses (10, 3, 2, and 2, respectively). The combination detects 29 of the 34 bugs detected by SmartFuzz or \tool{} alone, missing 5 bugs on MonetDB, and additionally detects 6 bugs (4 on MonetDB and 2 on Virtuoso) that neither SmartFuzz nor \tool{} detects alone.
 
