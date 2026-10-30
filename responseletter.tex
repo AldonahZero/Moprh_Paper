@@ -320,7 +320,8 @@ We have added a discussion of SmartFuzz in Section~VI, which clarifies that Smar
 
     The authors should revise their characterization to accurately reflect SEDAR's design intent and clarify the actual difference: MORPH performs pre-migration repair to make seeds parser-compatible, whereas SEDAR defers some compatibility handling until after mutation. A fairer comparison would evaluate both approaches under the same downstream fuzzer (e.g., GRIFFIN) and measure the net effect of each strategy on mutation effectiveness.
 
-\reply \textcolor{red}{TODO.}
+\reply
+We have revised the characterization of \sedar{} in Sections~I, II, and VI and removed the description of its comment-and-restore mechanism as destructive sanitization. We have also clarified the actual difference: \tool{} repairs incompatibilities before mutation, whereas \sedar{} defers compatibility handling until after mutation. In addition, we have added a controlled comparison of the two strategies under \griffin{} in Section~IV. Details can be found in \metareviewref{1}.
 
 % Source: Reviewer B, Detailed 4.
 \reviewcomment{2.6} \textbf{Questionable classification in Table I.} 
