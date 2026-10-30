@@ -924,13 +924,15 @@ As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique
 Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
 
 \textbf{Complementarity with SmartFuzz.} SmartFuzz and \tool{} construct seeds from different sources (Section~\ref{sec:related_work}).
-We further run \griffin{} with the union of their seeds, which covers \TODO{} branches and detects \TODO{} bugs in total.
-Figure~\ref{fig:venn} shows the bugs detected by SmartFuzz, \tool{}, and their combination; \TODO{one sentence on the bugs found only by each seed source and by the combination}.
+We further run \griffin{} with the union of their seeds, which covers 413,021 branches and detects 35 bugs in total.
+Figure~\ref{fig:venn} shows the bugs detected by SmartFuzz, \tool{}, and their combination.
+SmartFuzz and \tool{} share only 5 bugs, and each detects bugs that the other misses (12 by SmartFuzz and 17 by \tool{}).
+The combination further detects 6 bugs (4 on MonetDB and 2 on Virtuoso) that neither SmartFuzz nor \tool{} detects alone.
 
 \begin{figure}[t]
 \centering
-\fbox{\parbox{0.6\linewidth}{\centering\TODO{Venn diagram}}}
-\caption{Bugs detected by SmartFuzz, \tool{}, and SmartFuzz+\tool{}.}
+\includegraphics[width=0.6\linewidth]{media/venn_total.pdf}
+\caption{Bugs detected by SmartFuzz, \tool{}, and their combined seeds (SmartFuzz+\tool{}) on the four target DBMSs.}
 \label{fig:venn}
 \end{figure}
 
