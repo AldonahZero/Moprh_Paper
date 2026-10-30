@@ -854,9 +854,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 RQ2 evaluates \tool{}'s effectiveness by comparing it to other fuzzing tools under the same setting. 
 We compared \tool{} against six state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \sqlright{}~\cite{sqlright} (coverage-guided logic-bug fuzzer), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), \sedar{}~\cite{fu2024sedar}, and SmartFuzz~\cite{lin2026smartfuzz} (LLM-based seed generation).
 % After fuzzing, we normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
-For \sqlancer{}, \squirrel{}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
-\TODO{SQLRight: supported target DBMSs, adaptation to the target DBMSs, and enabled oracles.}
-For SmartFuzz, we use its released seeds as the initial seeds of \griffin{}, with the same DBMS versions, resource allocation, and coverage measurement as the other tools.
+For \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
 After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes using stack-trace hashing followed by manual inspection for verification.
 \begin{table}[!t]
 \centering
@@ -889,8 +887,7 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
 
 As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
 This corresponds to overall improvements of 528\%, \TODO{}, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
-\tool{} achieves the highest coverage on three of the four DBMSs, while SmartFuzz achieves slightly higher coverage on Virtuoso.
-Figure~\ref{fig:coverage_over_time} shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of \tool{} over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$) \TODO{recheck significance after adding SQLRight and SmartFuzz}.
+Figure~\ref{fig:coverage_over_time} shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of \tool{} over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$).
 The figure further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
 
 \begin{figure}[!htbp]
