@@ -139,7 +139,7 @@ Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ &
 \end{minipage}
 \end{center}
 
-To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers \TODO{} branches in total (\TODO{}, \TODO{}, \TODO{}, and \TODO{} branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects \TODO{} bugs in total. The Venn diagram below shows the bugs detected by SmartFuzz, \tool{}, and their combination. \TODO{one sentence on the bugs found only by each seed source and by the combination}
+To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers 413,021 branches in total (73,315, 48,030, 132,077, and 159,599 branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects 35 bugs in total. The combination detects more bugs than either seed source alone on all four DBMSs, and achieves higher coverage on Virtuoso and ClickHouse. On MonetDB and DuckDB, its coverage is lower than that of \tool{} alone, and it executes 38.5\% and 22.4\% fewer test cases than SmartFuzz alone within 24 hours, respectively. The combined corpus contains more than twice as many seeds, which may include more time-consuming or redundant seeds. Under the fixed 24-hour budget, these seeds reduce the execution throughput and change the seed scheduling, leaving fewer mutation opportunities for valuable seeds. The Venn diagram below shows the bugs detected by SmartFuzz, \tool{}, and their combination. Among these bugs, 6 bugs (4 on MonetDB and 2 on Virtuoso) are detected by neither SmartFuzz nor \tool{} alone.
 
 \TODO{Venn diagram of the bugs detected by SmartFuzz, \tool{}, and SmartFuzz+\tool{}}
 
