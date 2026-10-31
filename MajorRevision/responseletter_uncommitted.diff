@@ -1,30 +1,22 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index 4bb92b6..d1cc7e0 100644
+index 15b0fda..e35963b 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -20,6 +20,7 @@
- \usepackage{mathptmx}
- \usepackage{amsmath,amssymb}
- \usepackage{xcolor}
-+\usepackage{graphicx}
- \usepackage{booktabs,tabularx,array}
- \usepackage{needspace}
- \usepackage{titlesec}
-@@ -139,9 +140,15 @@ Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ &
- \end{minipage}
- \end{center}
- 
--To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers 413,021 branches in total (73,315, 48,030, 132,077, and 159,599 branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects 35 bugs in total. The combination detects more bugs than either seed source alone on all four DBMSs, and achieves higher coverage on Virtuoso and ClickHouse. On MonetDB and DuckDB, its coverage is lower than that of \tool{} alone, and it executes 38.5\% and 22.4\% fewer test cases than SmartFuzz alone within 24 hours, respectively. \TODO{The combined corpus contains more than twice as many seeds, which may include more time-consuming or redundant seeds. Under the fixed 24-hour budget, these seeds reduce the execution throughput and change the seed scheduling, leaving fewer mutation opportunities for valuable seeds. The Venn diagram below shows the bugs detected by SmartFuzz, \tool{}, and their combination. Among these bugs, 6 bugs (4 on MonetDB and 2 on Virtuoso) are detected by neither SmartFuzz nor \tool{} alone.}
-+To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers 413,021 branches in total (73,315, 48,030, 132,077, and 159,599 branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects 35 bugs in total. The combination detects more bugs than either seed source alone on all four DBMSs, and achieves higher coverage on Virtuoso and ClickHouse. On MonetDB and DuckDB, its coverage is lower than that of \tool{} alone, and it executes 38.5\% and 22.4\% fewer test cases than SmartFuzz alone within 24 hours, respectively. \TODO{The combined corpus contains more than twice as many seeds, which may include more time-consuming or redundant seeds. Under the fixed 24-hour budget, these seeds reduce the execution throughput and change the seed scheduling, leaving fewer mutation opportunities for valuable seeds.}
- 
--\TODO{Venn diagram of the bugs detected by SmartFuzz, \tool{}, and SmartFuzz+\tool{}}
-+The Venn diagram below shows the bugs detected by SmartFuzz, \tool{}, and their combination. SmartFuzz and \tool{} share 5 bugs (4 on MonetDB and 1 on DuckDB). SmartFuzz detects 12 bugs that \tool{} misses (7, 3, 1, and 1 on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively), and \tool{} detects 17 bugs that SmartFuzz misses (10, 3, 2, and 2, respectively). The combination detects 29 of the 34 bugs detected by SmartFuzz or \tool{} alone, missing 5 bugs on MonetDB, and additionally detects 6 bugs (4 on MonetDB and 2 on Virtuoso) that neither SmartFuzz nor \tool{} detects alone.
-+
-+\begin{center}
-+\includegraphics[width=0.4\linewidth]{media/venn_total.pdf}
-+
-+{\footnotesize Bugs detected by SmartFuzz, \tool{}, and their combined seeds (SmartFuzz+\tool{}) on the four target DBMSs.}
-+\end{center}
- 
- \metareviewcomment{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
- 
+@@ -107,12 +107,12 @@ To compare them under the same setting, we use the seeds released by SmartFuzz a
+ DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \tool{} \\
+ \midrule
+ MonetDB & - & 11,108 & 43,747 & 61,981 & 76,142 & 75,242 & \textbf{81,486} \\
+-Virtuoso & - & \textcolor{red}{TODO} & 26,302 & 28,017 & 36,583 & \textbf{40,773} & 40,183 \\
+-DuckDB & 22,188 & \textcolor{red}{TODO} & 96,434 & 96,512 & 114,876 & 130,966 & \textbf{144,822} \\
+-ClickHouse & 25,618 & \textcolor{red}{TODO} & - & 87,388 & 141,215 & 147,844 & \textbf{155,639} \\
++Virtuoso & - & 9,207 & 26,302 & 28,017 & 36,583 & \textbf{40,773} & 40,183 \\
++DuckDB & 22,188 & 25,624 & 96,434 & 96,512 & 114,876 & 130,966 & \textbf{144,822} \\
++ClickHouse & 25,618 & 22,383 & - & 87,388 & 141,215 & 147,844 & \textbf{155,639} \\
+ \midrule
+-Total & 47,806 & \textcolor{red}{TODO} & 166,483 & 273,898 & 368,816 & 394,825 & 422,130 \\
+-Improvement* & 528\%$\uparrow$ & \textcolor{red}{TODO} & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
++Total & 47,806 & 68,322 & 166,483 & 273,898 & 368,816 & 394,825 & 422,130 \\
++Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
+ \bottomrule
+ \end{tabular}
+ \par\smallskip{\footnotesize\raggedright * Calculated only for commonly supported DBMSs.\par}
