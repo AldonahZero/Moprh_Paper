@@ -1,15 +1,20 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index f432669..a97d5c4 100644
+index a97d5c4..d9c6d2e 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -136,8 +136,8 @@ DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \too
+@@ -135,12 +135,12 @@ Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparro
+ DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \tool{} \\
  \midrule
  MonetDB & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
- Virtuoso & - & \textcolor{red}{TODO} & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
--DuckDB & 0 & \textcolor{red}{TODO} & 0 & 0 & 1 & 2 & \textbf{3} \\
--ClickHouse & 0 & \textcolor{red}{TODO} & - & 0 & 0 & 1 & \textbf{2} \\
-+DuckDB & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
-+ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
+-Virtuoso & - & \textcolor{red}{TODO} & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
++Virtuoso & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
+ DuckDB & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
+ ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
  \midrule
- Total & 0 & \textcolor{red}{TODO} & 0 & 0 & 6 & 17 & 22 \\
- Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
+-Total & 0 & \textcolor{red}{TODO} & 0 & 0 & 6 & 17 & 22 \\
+-Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
++Total & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
++Increment & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
+ \bottomrule
+ \end{tabular}
+ 

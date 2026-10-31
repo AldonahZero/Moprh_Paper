@@ -1,15 +1,29 @@
 diff --git a/main.tex b/main.tex
-index 66c4084..bf9fa20 100644
+index bf9fa20..76cf468 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -909,8 +909,8 @@ The figure further shows earlier coverage growth and continued branch gains afte
+@@ -908,12 +908,12 @@ The figure further shows earlier coverage growth and continued branch gains afte
+     \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
      \midrule
      MonetDB    & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
-     Virtuoso   & - & \textcolor{red}{TODO} & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
--    DuckDB     & 0 & \textcolor{red}{TODO} & 0 & 0 & 1 & 2 & \textbf{3} \\
--    ClickHouse & 0 & \textcolor{red}{TODO} & - & 0 & 0 & 1 & \textbf{2} \\
-+    DuckDB     & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
-+    ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
+-    Virtuoso   & - & \textcolor{red}{TODO} & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
++    Virtuoso   & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
+     DuckDB     & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
+     ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
      \midrule
-     Total      & 0 & \textcolor{red}{TODO} & 0 & 0 & 6 & 17 & 22 \\
-     Increment  & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
+-    Total      & 0 & \textcolor{red}{TODO} & 0 & 0 & 6 & 17 & 22 \\
+-    Increment  & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
++    Total      & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
++    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
+     \bottomrule
+ \end{tabular*}
+ }
+@@ -955,7 +955,7 @@ These results show the coverage benefit of \tool{}'s handling strategy under the
+ 
+ 
+ \begin{answerbox}
+-\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, \TODO{}, 22, 22, 16, and 5 more bugs, respectively. 
++\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 22, 22, 16, and 5 more bugs, respectively. 
+ The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
+ \end{answerbox}
+ 
