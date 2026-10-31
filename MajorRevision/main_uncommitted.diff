@@ -1,40 +1,13 @@
 diff --git a/main.tex b/main.tex
-index b1af8ed..4505dcf 100644
+index 4505dcf..66c4084 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -867,12 +867,12 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
-     \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
-     \midrule
-     MonetDB    & - & 11,108 & 43,747 & 61,981 & 76,142 & 75,242 & \textbf{81,486} \\
--    Virtuoso   & - & \textcolor{red}{TODO} & 26,302 & 28,017 & 36,583 & \textbf{40,773} & 40,183 \\
--    DuckDB     & 22,188 & \textcolor{red}{TODO} & 96,434 & 96,512 & 114,876 & 130,966 & \textbf{144,822} \\
--    ClickHouse & 25,618 & \textcolor{red}{TODO} & - & 87,388 & 141,215 & 147,844 & \textbf{155,639} \\
-+    Virtuoso   & - & 9,207 & 26,302 & 28,017 & 36,583 & \textbf{40,773} & 40,183 \\
-+    DuckDB     & 22,188 & 25,624 & 96,434 & 96,512 & 114,876 & 130,966 & \textbf{144,822} \\
-+    ClickHouse & 25,618 & 22,383 & - & 87,388 & 141,215 & 147,844 & \textbf{155,639} \\
-     \midrule
--    Total      & 47,806 & \textcolor{red}{TODO} & 166,483 & 273,898 & 368,816 & 394,825 & 422,130 \\
--    Improvement* & 528\%$\uparrow$ & \textcolor{red}{TODO} & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
-+    Total      & 47,806 & 68,322 & 166,483 & 273,898 & 368,816 & 394,825 & 422,130 \\
-+    Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
-     \bottomrule
- \end{tabular*}
- 
-@@ -886,7 +886,7 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
- 
- 
- As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
--This corresponds to overall improvements of 528\%, \TODO{}, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
-+This corresponds to overall improvements of 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
- Figure~\ref{fig:coverage_over_time} shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of \tool{} over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$).
- The figure further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
- 
-@@ -955,7 +955,7 @@ These results show the coverage benefit of \tool{}'s handling strategy under the
- 
- 
- \begin{answerbox}
--\textbf{Answer to RQ2:} \tool{} covers 528\%, \TODO{}, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, \TODO{}, 22, 22, 16, and 5 more bugs, respectively. 
-+\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, \TODO{}, 22, 22, 16, and 5 more bugs, respectively. 
- The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
- \end{answerbox}
- 
+@@ -275,7 +275,7 @@ Although these DBMSs have been extensively tested, \tool{} still uncovers \bugcn
+ These bugs have received attention from developers.
+ For example, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
+ We further compare \tool{} with state-of-the-art DBMS fuzzing tools, including \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}.
+-Across the four DBMSs under 24 hours, \tool{} achieves 7\%--528\% higher branch coverage and discovers 5--22 more bugs than others \TODO{check the ranges after the SQLRight results}.
++Across the four DBMSs under 24 hours, \tool{} achieves 7\%--528\% higher branch coverage and discovers 5--22 more bugs than others.
+ To evaluate seed transfer quality, we also compare \tool{} against representative relevant techniques, including SQLGlot, jOOQ, CrackSQL, RISE, and \sedar{}.
+ \tool{} outperforms these baselines by 5\%--62\% in syntax correctness, 100\%--450\% in execution validity, and 11\%--253\% in preservation of SQL functions.
+ Finally, we conduct an ablation study to show the contribution of each component in \tool{}.
