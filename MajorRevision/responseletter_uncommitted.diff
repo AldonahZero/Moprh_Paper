@@ -1,26 +1,15 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index e35963b..f432669 100644
+index f432669..a97d5c4 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -95,7 +95,7 @@ We have revised Sections~I, II, III, and VI so that \tool{} is no longer positio
- \reply
- We have clarified how \tool{} differs from and complements SmartFuzz in Section~VI, and we have extended the comparison in Section~IV. SmartFuzz uses LLMs to synthesize new seeds from features extracted from official DBMS documentation and historical bug-triggering inputs, whereas \tool{} transfers existing test cases from mature DBMSs, which cover a broad range of SQL features, and preserves their cross-statement structures. The two approaches therefore provide complementary seeds: SmartFuzz targets bug-prone features, whereas \tool{} provides broad feature coverage.
- 
--To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. As shown in Table~III and Table~IV below, \tool{} covers 422,130 branches and detects 22 bugs in total, compared with 394,825 branches and 17 bugs for SmartFuzz, i.e., 7\% more branches and 5 more bugs. On Virtuoso, SmartFuzz achieves slightly higher coverage than \tool{}, and both detect 3 bugs.
-+To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. As shown in Table~III, Table~IV, and Figure~7 below, \tool{} covers 422,130 branches and detects 22 bugs in total, compared with 394,825 branches and 17 bugs for SmartFuzz, i.e., 7\% more branches and 5 more bugs. On Virtuoso, SmartFuzz achieves slightly higher coverage than \tool{}, and both detect 3 bugs.
- 
- \begin{center}
- \begin{minipage}{0.92\linewidth}
-@@ -119,6 +119,12 @@ Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparro
- \end{minipage}
- \end{center}
- 
-+\begin{center}
-+\includegraphics[width=0.75\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
-+
-+{\footnotesize Figure 7: Coverage growth over 24-hour fuzzing campaigns. Displayed are the means and the 95\% confidence intervals of five runs.}
-+\end{center}
-+
- \begin{center}
- \begin{minipage}{0.92\linewidth}
- \centering\footnotesize\renewcommand{\arraystretch}{1.0}\setlength{\tabcolsep}{3pt}
+@@ -136,8 +136,8 @@ DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \too
+ \midrule
+ MonetDB & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
+ Virtuoso & - & \textcolor{red}{TODO} & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
+-DuckDB & 0 & \textcolor{red}{TODO} & 0 & 0 & 1 & 2 & \textbf{3} \\
+-ClickHouse & 0 & \textcolor{red}{TODO} & - & 0 & 0 & 1 & \textbf{2} \\
++DuckDB & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
++ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
+ \midrule
+ Total & 0 & \textcolor{red}{TODO} & 0 & 0 & 6 & 17 & 22 \\
+ Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
