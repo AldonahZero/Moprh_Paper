@@ -1,20 +1,18 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index a97d5c4..d9c6d2e 100644
+index d9c6d2e..a97a2f2 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -135,12 +135,12 @@ Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparro
- DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \tool{} \\
- \midrule
- MonetDB & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
--Virtuoso & - & \textcolor{red}{TODO} & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
-+Virtuoso & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
- DuckDB & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
- ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
- \midrule
--Total & 0 & \textcolor{red}{TODO} & 0 & 0 & 6 & 17 & 22 \\
--Increment & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
-+Total & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
-+Increment & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
- \bottomrule
- \end{tabular}
+@@ -476,11 +476,11 @@ vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \
+ \reviewcomment{3.4} Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
  
+ \reply
+-We have added SQLRight as a baseline in RQ2. \TODO{supported target DBMSs, adaptation, campaign setting, and results of SQLRight}
++We have added SQLRight as a baseline in RQ2. Since SQLRight officially supports only SQLite, PostgreSQL, and MySQL, we have adapted it to the four target DBMSs while keeping its AFL-based queue scheduling, AST-based mutator, and oracle framework, and we have included the adaptation code in our artifact. The results can be found in \metareviewref{3}.
++
+ 
+ We have also extended the related work in Section~VI with SQLRight, sqllogictest, and seed-selection techniques. SQLRight performs coverage-guided DBMS fuzzing for logic bugs, whereas \tool{} constructs initial seeds for DBMS fuzzers. sqllogictest validates query results across database engines with a shared test format, whereas \tool{} transfers test cases into seeds for coverage-guided fuzzing. Seed-selection and scheduling techniques, such as corpus minimization and power schedules (e.g., AFLFast), choose or prioritize seeds within an existing corpus, whereas \tool{} constructs the initial corpus for target DBMSs that lack one; the two directions are therefore orthogonal and can be combined.
+ 
+-The updated Table~III and Table~IV with the SQLRight and SmartFuzz columns are shown in \metareviewref{3}.
+ 
+ % Source: Reviewer C, Weakness (unnumbered).
+ \reviewcomment{3.5} What's novel here is the conjunction of approaches: AST abstraction + RAG + parser-feedback repair, which are established ideas assembled around the AQT.
