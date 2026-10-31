@@ -1,29 +1,22 @@
 diff --git a/main.tex b/main.tex
-index bf9fa20..76cf468 100644
+index 76cf468..ce48794 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -908,12 +908,12 @@ The figure further shows earlier coverage growth and continued branch gains afte
-     \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
-     \midrule
-     MonetDB    & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
--    Virtuoso   & - & \textcolor{red}{TODO} & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
-+    Virtuoso   & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
-     DuckDB     & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
-     ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
-     \midrule
--    Total      & 0 & \textcolor{red}{TODO} & 0 & 0 & 6 & 17 & 22 \\
--    Increment  & 22$\uparrow$ & \textcolor{red}{TODO} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
-+    Total      & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
-+    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
-     \bottomrule
- \end{tabular*}
- }
-@@ -955,7 +955,7 @@ These results show the coverage benefit of \tool{}'s handling strategy under the
+@@ -1319,7 +1319,8 @@ Fuzzing is one of the most effective automated testing techniques for identifyin
+ % Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlancer, rigger2020testing}, and DynSQL~\cite{jiang2023dynsql}, construct SQL queries from hard-coded rules or semantic oracles, while recent clause-guided and differential methods further improve logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}. 
+ Generation-based tools construct queries via predefined rules or semantic oracles. 
+ SQLsmith~\cite{sqlsmith} randomly instantiates queries from a grammar. 
+-SQLancer~\cite{sqlancer,rigger2020testing} applies oracles to detect logic bugs.
++SQLancer~\cite{sqlancer,rigger2020testing} applies oracles to detect logic bugs, and \sqlright{}~\cite{sqlright} combines coverage-guided mutation with logic-bug oracles.
++sqllogictest~\cite{sqllogictest} validates query results across database engines with a shared test format.
+ DynSQL~\cite{jiang2023dynsql} leverages dynamic feedback to guide query mutation. 
+ More recently, clause-guided and differential methods have further improved logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}.
+ However, predefined templates can limit complex scenarios~\cite{gao2023comprehensive}. 
+@@ -1327,6 +1328,7 @@ However, predefined templates can limit complex scenarios~\cite{gao2023comprehen
+ Mutation-based fuzzers generate test cases by continuously evolving a pool of seed inputs, rather than constructing them from scratch. 
+ \squirrel{}~\cite{zhong2020squirrel} uses IR-based mutations, \griffin{}~\cite{fu2022griffin} uses grammar-free metadata replacement, and LEGO~\cite{liang2023sequence} combines SQL statement sequences. 
+ These fuzzers are effective once suitable seeds or generation rules are available, but they do not directly address how to obtain high-quality seeds for emerging DBMSs.
++Seed-selection and scheduling techniques, such as corpus minimization~\cite{herrera2021seed} and power schedules~\cite{aflfast}, choose or prioritize seeds within an existing corpus, whereas \tool{} constructs the initial corpus for target DBMSs that lack one; the two directions are orthogonal and can be combined.
  
- 
- \begin{answerbox}
--\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, \TODO{}, 22, 22, 16, and 5 more bugs, respectively. 
-+\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 22, 22, 16, and 5 more bugs, respectively. 
- The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
- \end{answerbox}
+ Unlike these works, \tool{} focuses on the upstream \textit{seed acquisition} problem by transferring mature DBMS test cases into target-compatible seed sequences.
  

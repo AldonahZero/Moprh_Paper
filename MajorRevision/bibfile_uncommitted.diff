@@ -1,0 +1,24 @@
+diff --git a/bibfile.bib b/bibfile.bib
+index 2dc15bb..31d61be 100644
+--- a/bibfile.bib
++++ b/bibfile.bib
+@@ -2331,3 +2331,19 @@
+   publisher={ACM, New York, NY, USA},
+   doi={10.1145/3839476}
+ }
++
++@misc{sqllogictest,
++  author       = {{SQLite}},
++  title        = {sqllogictest},
++  howpublished = {\url{https://www.sqlite.org/sqllogictest/}},
++  year         = {2008}
++}
++
++@inproceedings{herrera2021seed,
++  author    = {Herrera, Adrian and Gunadi, Hendra and Magrath, Shane and Norrish, Michael and Payer, Mathias and Hosking, Antony L.},
++  title     = {Seed Selection for Successful Fuzzing},
++  booktitle = {Proceedings of the 30th ACM SIGSOFT International Symposium on Software Testing and Analysis},
++  pages     = {230--243},
++  year      = {2021},
++  doi       = {10.1145/3460319.3464795}
++}
