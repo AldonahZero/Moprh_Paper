@@ -338,29 +338,7 @@ We have clarified the difference between the two mutation-handling strategies in
 \reply
 We have clarified what the AQT contributes beyond existing SQL representations and translation systems in Sections~II, III, and VI. Details can be found in \metareviewref{2}.
 
-We have also added compositional baselines in Section~IV, which pair different translators with the same downstream fuzzer (\griffin{}). All configurations transfer the same source test cases and run for 24 hours in five independent runs. On DuckDB, \tool{} covers 33.6\%, 16.7\%, and 26.1\% more branches than SQLGlot+\griffin{}, RISE+\griffin{}, and \sedar{}+\griffin{}, respectively, and detects 3, 3, and 2 more bugs. \TODO{results on MonetDB, Virtuoso, and ClickHouse}
-
-\begin{center}
-\begin{minipage}{0.92\linewidth}
-\centering\footnotesize\renewcommand{\arraystretch}{1.0}\setlength{\tabcolsep}{6pt}
-\textbf{Branch coverage (number of bugs) of different translators with the same downstream fuzzer (24h).}
-\par\smallskip
-\begin{tabular}{lcccc}
-\toprule
-DBMS & SQLGlot+\griffin{} & RISE+\griffin{} & \sedar{}+\griffin{} & \tool{}+\griffin{} \\
-\midrule
-MonetDB & \textcolor{red}{TODO} & \textcolor{red}{TODO} & 76,142 (3) & \textbf{81,486 (14)} \\
-Virtuoso & \textcolor{red}{TODO} & \textcolor{red}{TODO} & 36,583 (2) & \textbf{40,183 (3)} \\
-DuckDB & 108,385 (0) & 124,147 (0) & 114,876 (1) & \textbf{144,822 (3)} \\
-ClickHouse & \textcolor{red}{TODO} & \textcolor{red}{TODO} & 141,215 (0) & \textbf{155,639 (2)} \\
-\midrule
-Total & \textcolor{red}{TODO} & \textcolor{red}{TODO} & 368,816 (6) & 422,130 (22) \\
-Improvement* & \textcolor{red}{TODO} & \textcolor{red}{TODO} & 14\%$\uparrow$ (16$\uparrow$) & - \\
-\bottomrule
-\end{tabular}
-\par\smallskip{\footnotesize\raggedright * Calculated only for commonly supported DBMSs.\par}
-\end{minipage}
-\end{center}
+We have also added compositional baselines on DuckDB in Section~IV, which pair different translators with the same downstream fuzzer (\griffin{}). All configurations transfer the same source test cases and run for 24 hours in five independent runs. \tool{} covers 33.6\%, 16.7\%, and 26.1\% more branches than SQLGlot+\griffin{}, RISE+\griffin{}, and \sedar{}+\griffin{}, respectively, and detects 3, 3, and 2 more bugs. On all four target DBMSs, \tool{} also outperforms \sedar{}+\griffin{}, i.e., the \sedar{} configuration in RQ2 (Table~III and Table~IV).
 
 % Source: Reviewer B, Detailed 2.
 \reviewcomment{2.4} \textbf{Incomplete discussion of closely related work.} SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.

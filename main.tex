@@ -922,6 +922,7 @@ The figure further shows earlier coverage growth and continued branch gains afte
 The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} and 5 more bugs than SmartFuzz across the four DBMSs. 
 Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
+We further pair existing translators with the same downstream fuzzer on DuckDB: \tool{} covers 33.6\% and 16.7\% more branches than SQLGlot+\griffin{} and RISE+\griffin{}, respectively, and detects 3 more bugs than each.
 
 \textbf{Complementarity with SmartFuzz.} SmartFuzz and \tool{} construct seeds from different sources (Section~\ref{sec:related_work}).
 We further run \griffin{} with the union of their seeds, which covers 413,021 branches and detects 35 bugs in total.
