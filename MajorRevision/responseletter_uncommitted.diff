@@ -1,17 +1,19 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index f33ab8d..0f8bd13 100644
+index 0f8bd13..b38fb85 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -286,7 +286,11 @@ We have reported in Section~IV that the full campaign in RQ1 runs \tool{} for se
+@@ -286,10 +286,12 @@ We have reported in Section~IV that the full campaign in RQ1 runs \tool{} for se
  \reviewcomment{1.14} Finally, the component ablation is performed only for PostgreSQL-to-DuckDB transfer. Extending at least the most important ablation, particularly context propagation, to additional source-target pairs would strengthen the generality of the findings.
  
  \reply
--We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQL}-to-DuckDB transfer to all source-target pairs used in RQ3, and have updated the corresponding figure and tables in Section~IV. In particular, across these pairs, disabling target-side context propagation reduces execution validity from 0.716 to 0.523 (Table~VII). The same table also reports the dependency-graph ablation. Details can be found in \commentref{1.2}.
-+We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQL}-to-DuckDB transfer to all source-target pairs used in RQ3, and have updated the corresponding figure and tables in Section~IV. Across these pairs, $\tool{}_{\textit{abs}}$ improves syntactic correctness from 43.1\% to 73.6\%, $\tool{}_{\textit{rag}}$ improves execution validity from 35.2\% to 65.5\%, and $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (87.1\%) and execution validity (71.6\%), as shown in the updated Figure~8 below. In particular, across these pairs, disabling target-side context propagation reduces execution validity from 0.716 to 0.523 (Table~VII). The same table also reports the dependency-graph ablation. Details can be found in \commentref{1.2}.
+-We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQL}-to-DuckDB transfer to all source-target pairs used in RQ3, and have updated the corresponding figure and tables in Section~IV. Across these pairs, $\tool{}_{\textit{abs}}$ improves syntactic correctness from 43.1\% to 73.6\%, $\tool{}_{\textit{rag}}$ improves execution validity from 35.2\% to 65.5\%, and $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (87.1\%) and execution validity (71.6\%), as shown in the updated Figure~8 below. In particular, across these pairs, disabling target-side context propagation reduces execution validity from 0.716 to 0.523 (Table~VII). The same table also reports the dependency-graph ablation. Details can be found in \commentref{1.2}.
++We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQL}-to-DuckDB transfer to all source-target pairs used in RQ3, and have updated the corresponding figure and tables in Section~IV. Across these pairs, $\tool{}_{\textit{abs}}$ improves syntactic correctness from 43.1\% to 73.6\%, $\tool{}_{\textit{rag}}$ improves execution validity from 35.2\% to 65.5\%, and $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (87.1\%) and execution validity (71.6\%) (Figure~8). In particular, across these pairs, disabling target-side context propagation reduces execution validity from 0.716 to 0.523 (Table~VII). The same table also reports the dependency-graph ablation. Details can be found in \commentref{1.2}.
+ 
+ \begin{center}
+-\TODO{updated Figure~8: ablation of \tool{} components across all source-target pairs}
++\includegraphics[width=0.5\linewidth]{media/ablation_combined_analysis.pdf}
 +
-+\begin{center}
-+\TODO{updated Figure~8: ablation of \tool{} components across all source-target pairs}
-+\end{center}
++{\scriptsize Figure 8: Ablation analysis of \tool{} components across all source-target pairs.}
+ \end{center}
  
  % Source: Reviewer A, Detailed 6.
- \reviewcomment{1.15} The paper reports the target DBMS versions, corpus size, primary model, temperature, hardware environment, and an anonymous artifact.
