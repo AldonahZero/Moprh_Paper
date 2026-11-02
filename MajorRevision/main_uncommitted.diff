@@ -1,13 +1,36 @@
 diff --git a/main.tex b/main.tex
-index 8a9a5a5..a97e761 100644
+index a97e761..df8c8aa 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -1162,7 +1162,7 @@ $\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
+@@ -1120,11 +1120,11 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
+ As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Structure-Preserving Abstraction} and the \textit{Dialect-Aware AQT Instantiation} are disabled, the syntactic correctness is 51\% and the execution validity of $\tool{}_{\textit{base}}$ is 27\%.
+ With \textit{Structure-Preserving Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The execution validity also increases to 32\%.
+ Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases execution validity to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
+-The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} execution validity.
++The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{87.1\%} syntactic and \textbf{71.6\%} execution validity.
  
- \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
- To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
--Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
-+Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign ($p<0.05$).
- % Taking \duckdb{} as an example, \tooldisfuzzer{} achieves a coverage of 118,453 branches. 
- When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
- In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and be used for fuzzers to explore more state space of target DBMSs. 
+ Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
+ To isolate this effect, we disable context propagation ($\tool{}_{\textit{w/o-ctx}}$) in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
+-This reduces execution validity from 0.661 to 0.523 (Table~\ref{tab:ablation_depgraph}).
++This reduces execution validity from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
+ The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
+ Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
+ 
+@@ -1138,7 +1138,7 @@ This drop in execution validity shows that executable test-case transfer require
+ 
+ \textbf{Contribution of the Dependency Graph.}
+ To isolate the dependency graph from context propagation, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{win}}$, which uses the five most recent statements with the same object summaries, and $\tool{}_{\textit{all}}$, which provides all preceding statements and the complete context.
+-As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.661 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
++As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.716 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
+ Thus, the dependency graph provides a compact, dependency-relevant context.
+ 
+ \begin{table}[!t]
+@@ -1151,7 +1151,7 @@ Thus, the dependency graph provides a compact, dependency-relevant context.
+ \toprule
+ \textbf{Variant} & \textbf{Exec.} & \textbf{Preds} & \textbf{Rel. (\%)} & \textbf{Tokens} \\
+ \midrule
+-$\tool{}_{\textit{full}}$    & \textbf{0.661} & 0.47  & 100.0 & 509.6 \\
++$\tool{}_{\textit{full}}$    & \textbf{0.716} & 0.47  & 100.0 & 509.6 \\
+ $\tool{}_{\textit{win}}$     & 0.599 & 1.19  & 22.6  & 578.4 \\
+ $\tool{}_{\textit{all}}$     & 0.643 & 27.95 & 4.2   & 1,842.3 \\
+ $\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
