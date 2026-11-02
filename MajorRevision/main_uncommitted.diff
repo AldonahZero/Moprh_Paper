@@ -1,13 +1,28 @@
 diff --git a/main.tex b/main.tex
-index 0a43a23..51b7137 100644
+index 51b7137..d4b70d8 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -743,7 +743,7 @@ All experiments were conducted on a Linux server equipped with an Intel Xeon CPU
- Following the prior methodology~\cite{fu2024sedar}, we collected built-in test cases from mature DBMS repositories (i.e., SQLite~\cite{sqlite}, MySQL~\cite{mysql}, and PostgreSQL~\cite{pg}) for transfer. 
- % Table~\ref{tab:collected_seeds} shows the statistics on collected test cases in each DBMS.
- The dataset aggregates 447,357 SQL statements across 6,875 test files, totaling 55.7 MiB of query text.
--For each target DBMS, all methods use the same number of initial seeds, i.e., 5,879, 4,551, 5,850, and 6,990 seeds for \monetdb{}, \virtuoso{}, \duckdb{}, and \clickhouse{}, respectively.
-+For each target DBMS, all methods use the same number of initial seeds, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for \monetdb{}, \virtuoso{}, \duckdb{}, and \clickhouse{}, respectively.
+@@ -1117,10 +1117,10 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
+ \end{figure}
  
- % \begin{table}[t]
- % \centering
+ \textbf{Contribution of Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation. }
+-As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Structure-Preserving Abstraction} and the \textit{Dialect-Aware AQT Instantiation} are disabled, the syntactic correctness is 51\% and the execution validity of $\tool{}_{\textit{base}}$ is 27\%.
+-With \textit{Structure-Preserving Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The execution validity also increases to 32\%.
+-Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases execution validity to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
+-The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{87.1\%} syntactic and \textbf{71.6\%} execution validity.
++As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both components are disabled, $\tool{}_{\textit{base}}$ achieves 43.1\% syntactic correctness and 35.2\% execution validity.
++\textit{Structure-Preserving Abstraction} mainly improves syntactic correctness: $\tool{}_{\textit{abs}}$ raises it to 73.6\% (+30.5\%) by leveraging AQT to provide a more stable structural skeleton, and raises execution validity to 55.0\%.
++\textit{Dialect-Aware AQT Instantiation} mainly improves execution validity: $\tool{}_{\textit{rag}}$ raises it to 65.5\% (+30.3\%) by grounding generation in retrieved dialect evidence, and raises syntactic correctness to 63.9\%.
++Combining both components, $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (\textbf{87.1\%}) and execution validity (\textbf{71.6\%}).
+ 
+ Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
+ To isolate this effect, we disable context propagation ($\tool{}_{\textit{w/o-ctx}}$) in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
+@@ -1196,7 +1196,7 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
+ % \end{answerbox}
+ 
+ \begin{answerbox}
+-\textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\%. $\tool{}_{\textit{rag}}$ improves execution validity, boosting it by 21\%. $\tool{}_{\textit{full}}$ achieves an improvement of 44\% in syntactic correctness and 38\% in execution validity.
++\textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntactic correctness by 30.5\%. $\tool{}_{\textit{rag}}$ improves execution validity by 30.3\%. $\tool{}_{\textit{full}}$ improves syntactic correctness by 44.0\% and execution validity by 36.4\%.
+ The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.
+ % cumulative
+ Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
