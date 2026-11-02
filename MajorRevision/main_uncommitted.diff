@@ -1,36 +1,15 @@
 diff --git a/main.tex b/main.tex
-index a97e761..df8c8aa 100644
+index df8c8aa..0a43a23 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -1120,11 +1120,11 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
- As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Structure-Preserving Abstraction} and the \textit{Dialect-Aware AQT Instantiation} are disabled, the syntactic correctness is 51\% and the execution validity of $\tool{}_{\textit{base}}$ is 27\%.
- With \textit{Structure-Preserving Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The execution validity also increases to 32\%.
- Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases execution validity to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
--The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} execution validity.
-+The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{87.1\%} syntactic and \textbf{71.6\%} execution validity.
+@@ -742,8 +742,8 @@ All experiments were conducted on a Linux server equipped with an Intel Xeon CPU
+ \textbf{Collected Test Cases.}
+ Following the prior methodology~\cite{fu2024sedar}, we collected built-in test cases from mature DBMS repositories (i.e., SQLite~\cite{sqlite}, MySQL~\cite{mysql}, and PostgreSQL~\cite{pg}) for transfer. 
+ % Table~\ref{tab:collected_seeds} shows the statistics on collected test cases in each DBMS.
+-The dataset aggregates 447,357 SQL statements across 6,875 files, totaling 55.7 MiB of query text.
+-For each target DBMS, all methods use the same set of source test cases: 5,879, 4,551, 5,850, and 6,990 test cases for \monetdb{}, \virtuoso{}, \duckdb{}, and \clickhouse{}, respectively.
++The dataset aggregates 447,357 SQL statements across 6,875 test files, totaling 55.7 MiB of query text.
++For each target DBMS, all methods use the same number of initial seeds, i.e., 5,879, 4,551, 5,850, and 6,990 seeds for \monetdb{}, \virtuoso{}, \duckdb{}, and \clickhouse{}, respectively.
  
- Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
- To isolate this effect, we disable context propagation ($\tool{}_{\textit{w/o-ctx}}$) in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
--This reduces execution validity from 0.661 to 0.523 (Table~\ref{tab:ablation_depgraph}).
-+This reduces execution validity from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
- The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
- Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
- 
-@@ -1138,7 +1138,7 @@ This drop in execution validity shows that executable test-case transfer require
- 
- \textbf{Contribution of the Dependency Graph.}
- To isolate the dependency graph from context propagation, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{win}}$, which uses the five most recent statements with the same object summaries, and $\tool{}_{\textit{all}}$, which provides all preceding statements and the complete context.
--As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.661 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
-+As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.716 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
- Thus, the dependency graph provides a compact, dependency-relevant context.
- 
- \begin{table}[!t]
-@@ -1151,7 +1151,7 @@ Thus, the dependency graph provides a compact, dependency-relevant context.
- \toprule
- \textbf{Variant} & \textbf{Exec.} & \textbf{Preds} & \textbf{Rel. (\%)} & \textbf{Tokens} \\
- \midrule
--$\tool{}_{\textit{full}}$    & \textbf{0.661} & 0.47  & 100.0 & 509.6 \\
-+$\tool{}_{\textit{full}}$    & \textbf{0.716} & 0.47  & 100.0 & 509.6 \\
- $\tool{}_{\textit{win}}$     & 0.599 & 1.19  & 22.6  & 578.4 \\
- $\tool{}_{\textit{all}}$     & 0.643 & 27.95 & 4.2   & 1,842.3 \\
- $\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
+ % \begin{table}[t]
+ % \centering
