@@ -979,8 +979,8 @@ CrackSQL and RISE translate each statement individually without schema context, 
 
 % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
 
-We evaluate these methods in terms of transferred-seed validity and SQL-feature richness, supplemented by a sampled source-to-target equivalence study.
-The primary evaluation targets fuzzing seed quality: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. The supplementary study separately assesses result and state equivalence.
+We evaluate these methods in terms of transferred-seed validity, SQL-feature richness, and source-to-target equivalence on sampled test cases.
+Validity and richness reflect fuzzing seed quality: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. Equivalence measures whether transferred seeds preserve the query results and database states of the source test cases.
 
 \textbf{Validity of the Transferred Test Cases.}
 As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods by 5\%--62\% in syntax correctness and 100\%--450\% in execution validity.

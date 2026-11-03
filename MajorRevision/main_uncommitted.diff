@@ -1,14 +1,15 @@
 diff --git a/main.tex b/main.tex
-index 65691cc..1e6b5ea 100644
+index 85911da..799d58e 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -885,8 +885,7 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
+@@ -979,8 +979,8 @@ CrackSQL and RISE translate each statement individually without schema context,
  
- As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
- This corresponds to overall improvements of 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
--Figure~\ref{fig:coverage_over_time} shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of \tool{} over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$).
--The figure further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
-+Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
+ % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
  
- \begin{figure}[!htbp]
- \centering
+-We evaluate these methods in terms of transferred-seed validity and SQL-feature richness, supplemented by a sampled source-to-target equivalence study.
+-The primary evaluation targets fuzzing seed quality: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. The supplementary study separately assesses result and state equivalence.
++We evaluate these methods in terms of transferred-seed validity, SQL-feature richness, and source-to-target equivalence on sampled test cases.
++Validity and richness reflect fuzzing seed quality: valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. Equivalence measures whether transferred seeds preserve the query results and database states of the source test cases.
+ 
+ \textbf{Validity of the Transferred Test Cases.}
+ As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods by 5\%--62\% in syntax correctness and 100\%--450\% in execution validity.
