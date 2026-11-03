@@ -568,7 +568,6 @@ Finally, a statement template is constructed, capturing the parent-child relatio
 % 概述段：本小节对应 challenge 2（目标侧语义正确性），以组件一产出的 AQT 为输入。
 % 这一段先陈述输入输出与依赖顺序约束，引出下文 challenge 与 two-level 实例化思路。
 This step instantiates AQTs into syntactically valid target seed sequences while preserving semantic-rich structures from the source seed.
-The instantiation follows the original statement order.
 The dependency edges in $\mathcal{G}_{tc}$ identify dependency-relevant preceding statements whose target-side context is used during instantiation and repair, and the evolving target context is propagated across statements to maintain cross-statement type and reference consistency.
 % 挑战+思路段：challenge 落在“递归实例化时目标侧语义正确 + 不打乱原测试用例顺序”；
 % 解决思路两点：RAG 闭环减少 hallucination；把翻译建模成 two-level instantiation，铺垫下面 Algorithm。
