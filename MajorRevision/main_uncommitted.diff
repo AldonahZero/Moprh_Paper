@@ -1,13 +1,14 @@
 diff --git a/main.tex b/main.tex
-index c96e5e7..65691cc 100644
+index 65691cc..1e6b5ea 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -815,7 +815,7 @@ Total & 9 components & \textbf{20 confirmed, 28 detected} \\
- {\footnotesize \textbf{UAF}: Use-After-Free; \textbf{AF}: Assertion Failure; \textbf{NPD}: Null Pointer Dereference; \textbf{DBZ}: Divide-by-Zero; \textbf{SEGV}: Segfault; \textbf{OOM}: Out of Memory.}
- \end{table}
+@@ -885,8 +885,7 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
  
--RQ1 evaluates \tool{}'s real-world bug-finding impact over the full campaign. We deployed \tool{} on the development versions of the four target DBMSs for seven days on each target DBMS. As summarized in Table~\ref{tab:real-world-bugs}, the campaign uncovered \bugcnt{} unique bugs. 
-+RQ1 evaluates \tool{}'s real-world bug-finding impact over the full campaign. We deployed \tool{} on the development versions of the four target DBMSs for seven days each. As summarized in Table~\ref{tab:real-world-bugs}, the campaign uncovered \bugcnt{} unique bugs. 
- Among these issues, \bugconfirmcnt{} have been confirmed by the vendors, of which \bugfixcnt{} critical bugs have already been fixed. 
+ As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
+ This corresponds to overall improvements of 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
+-Figure~\ref{fig:coverage_over_time} shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of \tool{} over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$).
+-The figure further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
++Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
  
- These bugs have received positive feedback and careful attention from the corresponding database developers.
+ \begin{figure}[!htbp]
+ \centering

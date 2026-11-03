@@ -885,8 +885,7 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
 
 As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
 This corresponds to overall improvements of 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
-Figure~\ref{fig:coverage_over_time} shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of \tool{} over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$).
-The figure further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
+Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
 
 \begin{figure}[!htbp]
 \centering
