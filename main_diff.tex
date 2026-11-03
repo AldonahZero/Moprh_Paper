@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
 %DIF DEL MajorRevisonBack.tex   Tue Nov  3 11:02:15 2026
-%DIF ADD main.tex               Tue Nov  3 16:24:13 2026
+%DIF ADD main.tex               Tue Nov  3 20:13:57 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -780,7 +780,7 @@ Specifically, existing SQL translation techniques~\DIFdelbegin \DIFdel{\mbox{%DI
 }\DIFdelend \DIFaddbegin \DIFadd{\mbox{%DIFAUXCMD
 \cite{sqlglot, jooq} }\hskip0pt%DIFAUXCMD
 primarily }\DIFaddend focus on statement-level translation\DIFdelbegin \DIFdel{, which treats each SQL statement independently}\DIFdelend . In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and DQL statements.
-\DIFdelbegin \DIFdel{Recent work such as }\DIFdelend \sedar{}~\cite{fu2024sedar} \DIFdelbegin \DIFdel{explores fuzzing-oriented seed transfer using LLMs. While it improves automation by translating }\DIFdelend \DIFaddbegin \DIFadd{transfers }\DIFaddend complete test cases, \DIFdelbegin \DIFdel{it still does not explicitly preserve cross-statement dependencies during migration}\DIFdelend \DIFaddbegin \DIFadd{but it does not maintain translated target-side context across statements and leaves target-side execution-feedback regeneration as future work. \tool{} instead explicitly represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and uses parser and execution feedback to repair transferred seeds before downstream mutation}\DIFaddend .
+\DIFdelbegin \DIFdel{Recent work such as }\DIFdelend \sedar{}~\cite{fu2024sedar} \DIFdelbegin \DIFdel{explores fuzzing-oriented seed transfer using LLMs. While it improves automation by translating }\DIFdelend \DIFaddbegin \DIFadd{transfers }\DIFaddend complete test cases, \DIFdelbegin \DIFdel{it still does not explicitly preserve cross-statement dependencies during migration}\DIFdelend \DIFaddbegin \DIFadd{but it does not maintain translated target-side context across statements. \tool{} instead explicitly represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and uses parser and execution feedback to repair transferred seeds before downstream mutation}\DIFaddend .
 
 
 
@@ -917,8 +917,8 @@ For each statement $s_i$, $R_i$ and $W_i$ denote the objects it
 reads/references and writes/creates, respectively.
 \end{comment}
 
-\textit{Definition 1 (SQL Abstraction Rule)}: An abstraction rule maps a dialect-specific SQL construct to an abstract
-semantic label:
+\textit{Definition 1 (SQL Abstraction Rule)}: An abstraction rule maps a dialect-specific SQL construct to \DIFdelbegin \DIFdel{an abstract
+}\DIFdelend \DIFaddbegin \DIFadd{a }\DIFaddend semantic label:
 \[
     [\textit{Function} \mid \textit{Type} \mid \cdots]
     \rightarrow
@@ -941,7 +941,7 @@ records the statement type, normalized skeleton, statement-level intra-statement
 $\Delta \subseteq \{(i,j)\mid i<j\}$ captures cross-statement dependencies, where $(i,j)\in\Delta$ iff $R_j\cap W_i\neq\emptyset$. 
 $\mathcal{D}$ records the cumulative schema context after executing $\langle s_1,\ldots,s_n\rangle$, including table definitions, column types, constraints, and object-state summaries that are propagated as source-side
 constraints during target-side instantiation.
-\DIFaddbegin \DIFadd{Each object-state summary records whether a schema object exists, its table definition, column names and types, constraints, and the schema changes induced by preceding DDL statements; the summaries are updated incrementally in statement order.
+\DIFaddbegin \DIFadd{Each object-state summary additionally records whether a schema object exists and the schema changes induced by preceding DDL statements, and is updated incrementally in statement order.
 }\DIFaddend $\mathcal{G}_{tc}=(V_{tc},E_{tc})$ is the test-case dependency graph, where $V_{tc}=\{1,\ldots,n\}$ and $E_{tc}=\Delta$; thus, $\Delta$ is the dependency set and 
 $\mathcal{G}_{tc}$ is its graph representation\DIFdelbegin \DIFdel{for dependency-preserving ordering}\DIFdelend \DIFaddbegin \DIFadd{, used to select dependency-relevant context during instantiation}\DIFaddend .
 $\mathcal{H}$ is a structural hash over the ordered normalized skeletons and dependency edges for deduplication and cache indexing.
@@ -1012,8 +1012,7 @@ Finally, a statement template is constructed, capturing the parent-child relatio
 % 概述段：本小节对应 challenge 2（目标侧语义正确性），以组件一产出的 AQT 为输入。
 % 这一段先陈述输入输出与依赖顺序约束，引出下文 challenge 与 two-level 实例化思路。
 This step instantiates AQTs into syntactically valid target seed sequences while preserving semantic-rich structures from the source seed.
-The instantiation \DIFdelbegin \DIFdel{respects the dependency order}\DIFdelend \DIFaddbegin \DIFadd{follows the original statement order.
-The dependency edges }\DIFaddend in $\mathcal{G}_{tc}$ %DIF < 
+The \DIFdelbegin \DIFdel{instantiation respects the dependency order }\DIFdelend \DIFaddbegin \DIFadd{dependency edges }\DIFaddend in $\mathcal{G}_{tc}$ %DIF < 
 %DIF <  , the graph representation of $\Delta$
 \DIFdelbegin \DIFdel{: DDL and DML statements are instantiated before queries that depend on them}\DIFdelend \DIFaddbegin \DIFadd{identify dependency-relevant preceding statements whose target-side context is used during instantiation and repair}\DIFaddend , and the evolving target context is propagated across statements to maintain cross-statement type \DIFdelbegin \DIFdel{, reference, and state }\DIFdelend \DIFaddbegin \DIFadd{and reference }\DIFaddend consistency.
 % 挑战+思路段：challenge 落在“递归实例化时目标侧语义正确 + 不打乱原测试用例顺序”；
@@ -1273,7 +1272,7 @@ Total & 9 components & \textbf{20 confirmed, 28 detected} \\
 {\footnotesize \textbf{UAF}: Use-After-Free; \textbf{AF}: Assertion Failure; \textbf{NPD}: Null Pointer Dereference; \textbf{DBZ}: Divide-by-Zero; \textbf{SEGV}: Segfault; \textbf{OOM}: Out of Memory.}
 \end{table}
 
-RQ1 evaluates \tool{}'s real-world bug-finding impact over the full campaign. We deployed \tool{} on the development versions of the four target DBMSs \DIFaddbegin \DIFadd{for seven days on each target DBMS}\DIFaddend . As summarized in Table~\ref{tab:real-world-bugs}, the campaign uncovered \bugcnt{} unique bugs. 
+RQ1 evaluates \tool{}'s real-world bug-finding impact over the full campaign. We deployed \tool{} on the development versions of the four target DBMSs \DIFaddbegin \DIFadd{for seven days each}\DIFaddend . As summarized in Table~\ref{tab:real-world-bugs}, the campaign uncovered \bugcnt{} unique bugs. 
 Among these issues, \bugconfirmcnt{} have been confirmed by the vendors, of which \bugfixcnt{} critical bugs have already been fixed. 
 
 These bugs have received positive feedback and careful attention from the corresponding database developers.
@@ -1350,12 +1349,11 @@ We compared \tool{} against \DIFdelbegin \DIFdel{four }\DIFdelend \DIFaddbegin \
 
 As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest \DIFdelbegin \DIFdel{branch coverage across all evaluated DBMSs}\DIFdelend \DIFaddbegin \DIFadd{total branch coverage}\DIFaddend , covering 422,130 branches \DIFdelbegin \DIFdel{in total}\DIFdelend \DIFaddbegin \DIFadd{across the four DBMSs}\DIFaddend .
 This corresponds to overall improvements of 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend over \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{\sedar{}, and SmartFuzz, }\DIFaddend respectively, on their supported targets.
-Figure~\ref{fig:coverage_over_time} \DIFaddbegin \DIFadd{shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of \tool{} over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$).
-The figure }\DIFaddend further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
+Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.92\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
+\DIFaddincludegraphics[width=0.92\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
 \caption{Coverage growth over 24-hour fuzzing campaigns. \DIFaddbeginFL \DIFaddFL{Displayed are the means and the 95\% confidence intervals of five runs.}\DIFaddendFL }
 \label{fig:coverage_over_time}
 \end{figure}
@@ -1388,11 +1386,11 @@ The figure }\DIFaddend further shows earlier coverage growth and continued branc
 The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} \DIFaddbegin \DIFadd{and 5 more bugs than SmartFuzz }\DIFaddend across the four DBMSs. 
 \DIFdelbegin \DIFdel{This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
-Unlike \sedar{} }\DIFdelend \DIFaddbegin \DIFadd{Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
-We further pair existing translators with the same downstream fuzzer on DuckDB: \tool{} covers 33.6\% and 16.7\% more branches than SQLGlot+\griffin{} and RISE+\griffin{}, respectively, and detects 3 more bugs than each.
-To control for seed quantity, we also randomly sample 100}\DIFaddend , \DIFdelbegin \DIFdel{which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases.
+Unlike \sedar{}, which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases.
 By preserving executable semantics during transfer, \tool{}enables fuzzers to bypass early engine rejections, exercise deeper code logic, and trigger more bugs.
-}\DIFdelend \DIFaddbegin \DIFadd{200, and 300 seeds generated by \tool{} and \sedar{} as the initial seeds of \griffin{} (24 hours, five runs).
+}\DIFdelend \DIFaddbegin \DIFadd{Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
+We further pair existing translators with the same downstream fuzzer on DuckDB: \tool{} covers 33.6\% and 16.7\% more branches than SQLGlot+\griffin{} and RISE+\griffin{}, respectively, and detects 3 more bugs than each.
+To control for seed quantity, we also randomly sample 100, 200, and 300 seeds generated by \tool{} and \sedar{} as the initial seeds of \griffin{}.
 Under the same seed count, \tool{} achieves 17.2\%--92.4\% higher coverage than \sedar{} across the four DBMSs, all exceeding the 14\% gain with the full seed corpora, which indicates that the improvement does not stem from a larger seed corpus.
 }
 
@@ -1406,7 +1404,7 @@ However, its coverage is lower than that of \tool{} alone on MonetDB and DuckDB,
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.6\linewidth]{media/venn_total.pdf}
+\DIFaddincludegraphics[width=0.6\linewidth]{media/venn_total.pdf}
 \caption{\DIFaddFL{Bugs detected by SmartFuzz, \tool{}, and their combined seeds (SmartFuzz+\tool{}) on the four target DBMSs.}}
 \label{fig:venn}
 \end{figure}
@@ -1457,9 +1455,9 @@ CrackSQL and RISE translate each statement individually without schema context, 
 
 % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
 
-We evaluate these methods \DIFdelbegin \DIFdel{from two aspects: }\DIFdelend \DIFaddbegin \DIFadd{in terms of }\DIFaddend transferred-seed validity and SQL-feature richness\DIFdelbegin \DIFdel{.
-This }\DIFdelend \DIFaddbegin \DIFadd{, supplemented by a sampled source-to-target equivalence study.
-The primary }\DIFaddend evaluation targets fuzzing seed quality\DIFdelbegin \DIFdel{rather than cross-DBMS result equivalence}\DIFdelend : valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. \DIFaddbegin \DIFadd{The supplementary study separately assesses result and state equivalence.
+We evaluate these methods \DIFdelbegin \DIFdel{from two aspects: }\DIFdelend \DIFaddbegin \DIFadd{in terms of }\DIFaddend transferred-seed validity\DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend SQL-feature richness\DIFdelbegin \DIFdel{.
+This evaluation targets }\DIFdelend \DIFaddbegin \DIFadd{, and source-to-target equivalence on sampled test cases.
+Validity and richness reflect }\DIFaddend fuzzing seed quality\DIFdelbegin \DIFdel{rather than cross-DBMS result equivalence}\DIFdelend : valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. \DIFaddbegin \DIFadd{Equivalence measures whether transferred seeds preserve the query results and database states of the source test cases.
 }\DIFaddend 
 
 \textbf{Validity of the Transferred Test Cases.}
@@ -1613,7 +1611,7 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 
 \begin{figure}[!htbp]
   \centering
-  \includegraphics[width=\linewidth]{media/ablation_combined_analysis.pdf}
+  \DIFaddincludegraphics[width=\linewidth]{media/ablation_combined_analysis.pdf}
   \caption{\textbf{Ablation Analysis of \tool{} Components.} Comparison of syntactic \DIFdelbeginFL \DIFdelFL{/semantic }\DIFdelendFL correctness\DIFaddbeginFL \DIFaddFL{/execution validity }\DIFaddendFL and resource consumption across four variants.}
   \label{fig:ablation_analysis}
 \vspace{-0.8em}
