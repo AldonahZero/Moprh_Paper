@@ -750,40 +750,23 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
 \label{tab:translation-capability}
 {\scriptsize
 \setlength{\tabcolsep}{3pt}
-\DIFdelbeginFL %DIFDELCMD < \resizebox{\columnwidth}{!}{%
-%DIFDELCMD < \begin{tabular}{lccccc}
-%DIFDELCMD <     \toprule
-%DIFDELCMD <     \textbf{Tool} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
-%DIFDELCMD <     & & & & \textbf{Migration} & \textbf{Deps.} \\
-%DIFDELCMD <     \midrule
-%DIFDELCMD <     SQLGlot~\cite{sqlglot} & \cmark & \cmark & \cmark & \xmark & \xmark \\
-%DIFDELCMD <     jOOQ~\cite{jooq} & \cmark & \cmark & \cmark & \xmark & \xmark \\
-%DIFDELCMD <     RISE~\cite{xie2026rise} & \partmark & \partmark & \cmark & \xmark & \xmark \\
-%DIFDELCMD <     CrackSQL~\cite{zhou2025cracking} & \partmark & \cmark & \cmark & \xmark & \xmark \\
-%DIFDELCMD <     QTRAN~\cite{lin2025qtran} & \partmark & \partmark & \cmark & \xmark & \xmark \\
-%DIFDELCMD <     \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \xmark \\
-%DIFDELCMD <     \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
-%DIFDELCMD <     \bottomrule
-%DIFDELCMD < \end{tabular}
-%DIFDELCMD < }
-%DIFDELCMD < %%%
-\DIFdelendFL \DIFaddbeginFL \resizebox{\columnwidth}{!}{%
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccccc}
     \toprule
     \textbf{Tool} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
-    & & & & \textbf{Migration} & \textbf{Deps.} \\
+     &  &  &  & \textbf{Migration} & \textbf{Deps.} \\
     \midrule
-    SQLGlot~\cite{sqlglot,sqlglot_api} & \cmark & \cmark & \cmark & \partmark & \xmark \\
-    jOOQ~\cite{jooq,jooq_interpreter} & \cmark & \cmark & \cmark & \xmark & \partmark \\
+    SQLGlot~\cite{sqlglot,sqlglot_api} & \cmark & \cmark & \cmark & \DIFdelFL{\xmark}\DIFaddFL{\partmark} & \xmark \\
+    jOOQ~\cite{jooq,jooq_interpreter} & \cmark & \cmark & \cmark & \xmark & \DIFdelFL{\xmark}\DIFaddFL{\partmark} \\
     RISE~\cite{xie2026rise} & \partmark & \partmark & \cmark & \xmark & \xmark \\
     CrackSQL~\cite{zhou2025cracking} & \partmark & \cmark & \cmark & \xmark & \xmark \\
     QTRAN~\cite{lin2025qtran} & \partmark & \partmark & \cmark & \xmark & \xmark \\
-    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \partmark \\
+    \sedar{}~\cite{fu2024sedar} & \partmark & \partmark & \cmark & \cmark & \DIFdelFL{\xmark}\DIFaddFL{\partmark} \\
     \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
     \bottomrule
 \end{tabular}
 }
-\DIFaddendFL }
+}
 \vspace{0.2em}
 \parbox{\columnwidth}{\scriptsize\raggedright
 \textit{Cross-stmt. Deps.} denotes explicit \DIFdelbeginFL \DIFdelFL{preservation }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{tracking }\DIFaddendFL of \DIFdelbeginFL \DIFdelFL{schema, data, and state }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{forward read-after-write }\DIFaddendFL dependencies \DIFaddbeginFL \DIFaddFL{and schema/type context }\DIFaddendFL across statements.
@@ -1344,15 +1327,15 @@ We compared \tool{} against \DIFdelbegin \DIFdel{four }\DIFdelend \DIFaddbegin \
 \DIFdelendFL \DIFaddbeginFL \setlength{\tabcolsep}{1pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
     \toprule
-    \textbf{DBMS} & \sqlancer{} & \DIFaddbeginFL \DIFaddFL{\sqlright{} }& \DIFaddendFL \squirrel{} & \griffin{} & \sedar{} & \DIFaddbeginFL \DIFaddFL{SmartFuzz }& \DIFaddendFL \textsc{Morph} \\
+    \textbf{DBMS} & \sqlancer{} & \DIFaddFL{\sqlright{}} & \squirrel{} & \griffin{} & \sedar{} & \DIFaddFL{SmartFuzz} & \textsc{Morph} \\
     \midrule
-    MonetDB    & - & \DIFaddbeginFL \DIFaddFL{11,108 }& \DIFaddendFL 43,747 & 61,981 & 76,142 & \DIFaddbeginFL \DIFaddFL{75,242 }& \DIFaddendFL \textbf{81,486} \\
-    Virtuoso   & - & \DIFaddbeginFL \DIFaddFL{9,207 }& \DIFaddendFL 26,302 & 28,017 & 36,583 & \textbf{40,\DIFdelbeginFL \DIFdelFL{183}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{773}\DIFaddendFL } \DIFaddbeginFL & \DIFaddFL{40,183 }\DIFaddendFL \\
-    DuckDB     & 22,188 & \DIFaddbeginFL \DIFaddFL{25,624 }& \DIFaddendFL 96,434 & 96,512 & 114,876 & \DIFaddbeginFL \DIFaddFL{130,966 }& \DIFaddendFL \textbf{144,822} \\
-    ClickHouse & 25,618 & \DIFaddbeginFL \DIFaddFL{22,383 }& \DIFaddendFL - & 87,388 & 141,215 & \DIFaddbeginFL \DIFaddFL{147,844 }& \DIFaddendFL \textbf{155,639} \\
+    MonetDB & - & \DIFaddFL{11,108} & 43,747 & 61,981 & 76,142 & \DIFaddFL{75,242} & \textbf{81,486} \\
+    Virtuoso & - & \DIFaddFL{9,207} & 26,302 & 28,017 & 36,583 & \DIFaddFL{\textbf{40,773}} & 40,183 \\
+    DuckDB & 22,188 & \DIFaddFL{25,624} & 96,434 & 96,512 & 114,876 & \DIFaddFL{130,966} & \textbf{144,822} \\
+    ClickHouse & 25,618 & \DIFaddFL{22,383} & - & 87,388 & 141,215 & \DIFaddFL{147,844} & \textbf{155,639} \\
     \midrule
-    Total      & 47,806 & \DIFaddbeginFL \DIFaddFL{68,322 }& \DIFaddendFL 166,483 & 273,898 & 368,816 & \DIFaddbeginFL \DIFaddFL{394,825 }& \DIFaddendFL 422,130 \\
-    Improvement* & 528\%$\uparrow$ & \DIFaddbeginFL \DIFaddFL{518\%$\uparrow$ }& \DIFaddendFL 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & \DIFaddbeginFL \DIFaddFL{7\%$\uparrow$ }& \DIFaddendFL - \\
+    Total & 47,806 & \DIFaddFL{68,322} & 166,483 & 273,898 & 368,816 & \DIFaddFL{394,825} & 422,130 \\
+    Improvement* & 528\%$\uparrow$ & \DIFaddFL{518\%$\uparrow$} & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & \DIFaddFL{7\%$\uparrow$} & - \\
     \bottomrule
 \end{tabular*}
 
@@ -1388,15 +1371,15 @@ The figure }\DIFaddend further shows earlier coverage growth and continued branc
 \DIFdelendFL \DIFaddbeginFL \setlength{\tabcolsep}{1pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
     \toprule
-    \textbf{DBMS} & \sqlancer{} & \DIFaddbeginFL \DIFaddFL{\sqlright{} }& \DIFaddendFL \squirrel{} & \griffin{} & \sedar{} & \DIFaddbeginFL \DIFaddFL{SmartFuzz }& \DIFaddendFL \textsc{Morph} \\
+    \textbf{DBMS} & \sqlancer{} & \DIFaddFL{\sqlright{}} & \squirrel{} & \griffin{} & \sedar{} & \DIFaddFL{SmartFuzz} & \textsc{Morph} \\
     \midrule
-    MonetDB    & - & 0 & 0 & \DIFaddbeginFL \DIFaddFL{0 }& \DIFaddendFL 3 & \DIFaddbeginFL \DIFaddFL{11 }& \DIFaddendFL \textbf{14} \\
-    Virtuoso   & - & 0 & 0 & \DIFaddbeginFL \DIFaddFL{0 }& \DIFaddendFL 2 & \textbf{3} \DIFaddbeginFL & \textbf{\DIFaddFL{3}} \DIFaddendFL \\
-    DuckDB     & 0 & 0 & 0 & \DIFaddbeginFL \DIFaddFL{0 }& \DIFaddendFL 1 & \DIFaddbeginFL \DIFaddFL{2 }& \DIFaddendFL \textbf{3} \\
-    ClickHouse & 0 & \DIFaddbeginFL \DIFaddFL{0 }& \DIFaddendFL - & 0 & 0 & \DIFaddbeginFL \DIFaddFL{1 }& \DIFaddendFL \textbf{2} \\
+    MonetDB & - & \DIFaddFL{0} & 0 & 0 & 3 & \DIFaddFL{11} & \textbf{14} \\
+    Virtuoso & - & \DIFaddFL{0} & 0 & 0 & 2 & \DIFaddFL{\textbf{3}} & \textbf{3} \\
+    DuckDB & 0 & \DIFaddFL{0} & 0 & 0 & 1 & \DIFaddFL{2} & \textbf{3} \\
+    ClickHouse & 0 & \DIFaddFL{0} & - & 0 & 0 & \DIFaddFL{1} & \textbf{2} \\
     \midrule
-    Total      & 0 & 0 & 0 & \DIFaddbeginFL \DIFaddFL{0 }& \DIFaddendFL 6 & \DIFaddbeginFL \DIFaddFL{17 }& \DIFaddendFL 22 \\
-    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & \DIFaddbeginFL \DIFaddFL{22$\uparrow$ }& \DIFaddendFL 16$\uparrow$ & \DIFaddbeginFL \DIFaddFL{5$\uparrow$ }& \DIFaddendFL - \\
+    Total & 0 & \DIFaddFL{0} & 0 & 0 & 6 & \DIFaddFL{17} & 22 \\
+    Increment & 22$\uparrow$ & \DIFaddFL{22$\uparrow$} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & \DIFaddFL{5$\uparrow$} & - \\
     \bottomrule
 \end{tabular*}
 }
