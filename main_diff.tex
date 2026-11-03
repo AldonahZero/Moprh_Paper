@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL MajorRevisonBack.tex   Tue Oct 27 12:09:57 2026
-%DIF ADD main.tex               Tue Oct 27 15:48:26 2026
+%DIF DEL MajorRevisonBack.tex   Tue Nov  3 11:02:15 2026
+%DIF ADD main.tex               Tue Nov  3 11:02:15 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -71,7 +71,331 @@
 \usepackage{enumitem}
 \usepackage{float}
 
-\input{utils}
+% Useful macros etc for paper.
+
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+	\node[shape=circle,draw,inner sep=0.2pt] (char) {#1};}}
+%\newcommand{\circled}[1]{\textcircled{\scriptsize{#1}}}
+
+% \newcommand{\n}{CollabFuzz\xspace}
+\def\Plus{\texttt{+}}
+% \newcommand{\tool}{\textsc{Clotho}\xspace}
+\newcommand{\tool}{\textsc{Morph}\xspace}
+
+\newcommand{\tooldisfuzzer}{\tool{}$_{direct}$\xspace}
+\newcommand{\sedar}{\textsc{Sedar}\xspace}
+
+\newcommand{\bugcnt}{28\xspace}
+\newcommand{\bugconfirmcnt}{20\xspace}
+\newcommand{\bugfixcnt}{14\xspace}
+\newcommand{\translateratio}{100\%--272\% \xspace}
+\newcommand{\synatxratio}{5\%--19\% \xspace}
+
+
+
+
+
+% \newcommand{\dsquirrel}{\textsc{Squirrel$^D$}\xspace}
+% \newcommand{\rsquirrel}{\textsc{Squirrel$^R$}\xspace}
+% \newcommand{\sqlancer}{\textsc{Sqlancer$^R$}\xspace}
+
+\newcommand{\seedOrigin}{$S^{-}$\xspace}
+\newcommand{\seedCompat}{$S$\xspace}
+\newcommand{\seedMutable}{$S^{+}$\xspace}
+
+% \newcommand{\sedarsquirrel}{\tool{}-\squirrel{}\xspace}
+% \newcommand{\sedargriffin}{\tool{}-\griffin{}\xspace}
+% \newcommand{\othersquirrel}{\squirrel{}$^{P}$\xspace}
+% \newcommand{\othergriffin}{\griffin{}$^{P}$\xspace}
+% \newcommand{\defaultsquirrel}{\squirrel{}\xspace}
+% \newcommand{\defaultgriffin}{\griffin{}\xspace}
+% \newcommand{\nativesquirrel}{\tool{}-\squirrel{}$^{N-}$\xspace}
+% \newcommand{\nativegriffin}{\tool{}-\griffin{}$^{N-}$\xspace}
+% \newcommand{\sedarnativesquirrel}{\tool{}-\squirrel{}$^{N}$\xspace}
+% \newcommand{\sedarnativegriffin}{\tool{}-\griffin{}$^{N}$\xspace}
+
+\newcommand{\gtool}{\textsc{\toolo$^G$}\xspace}
+\newcommand{\itool}{\textsc{\toolo$^I$}\xspace}
+
+\newcommand{\noseqtool}{\textsc{\toolo$^{synthesis-}$}\xspace}
+\newcommand{\noanalyzetool}{\textsc{\toolo$^{analysis-}$}\xspace}
+\newcommand{\nodeduptool}{\textsc{\toolo$^{dedup-}$}\xspace}
+\newcommand{\nominetool}{\textsc{\toolo$^{mine-}$}\xspace}
+
+\newcommand{\nextended}{\textsc{DynCollabExt}\xspace}
+\newcommand{\pname}{\n}
+\newcommand{\seeds}{queries\xspace}
+\newcommand{\seed}{query\xspace}
+\newcommand{\query}{query\xspace}
+
+
+
+
+\newif\ifshowtoAF
+\showtoAFtrue  % toggle (red colored) toAF
+\newif\ifshowtodos
+\showtodostrue 
+
+\def\UrlBreaks{\do\/\do-\do\.\do\:\do\_\do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D\do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N\do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X\do\Y\do\Z\do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9}
+
+%\newcommand{\threatmodel}[1]{{\textcolor{blue}{#1}}}
+%\newcommand{\overhead}[1]{{\textcolor{red}{#1}}}
+%\newcommand{\crash}[1]{{\textcolor{Orange}{#1}}}
+%\definecolor{darkgreen}{RGB}{20,80,20}
+%\newcommand{\automation}[1]{{\textcolor{darkgreen}{#1}}}
+%\newcommand{\applywork}[1]{{\textcolor{violet}{#1}}}
+\newcommand{\TODO}[1]{\ifshowtodos {\textcolor{red}{TODO(#1)}} \fi}
+\newcommand{\lqf}[1]{{\textcolor{blue}{#1}}}
+\newcommand{\EXPTODO}[1]{\ifshowtodos {\red{EXPTODO(#1)}} \fi}
+\newcommand{\EXPDONE}[1]{\ifshowtodos {\textcolor{blue}{#1}}\fi}
+\newcommand{\COMMENT}[1]{\ifshowtodos {\textcolor{violet}{COMMENT(#1)}} \fi}
+% \newcommand{\recheck}[1]{{\textcolor{orange}{READ:#1}}}
+\newcommand{\inlineTODO}[1]{\ifshowtodos {\textcolor{red}{TODO(#1)}} \fi}
+\newcommand{\STUDYDONE}[1]{\ifshowtodos {#1}\fi}
+% \newcommand{\STUDYDONE}[1]{\ifshowtodos {\textcolor{blue}{#1}}\fi}
+\newcommand{\STUDYTODO}[1]{\ifshowtodos {\textcolor{red}{#1}}\fi}
+%Data
+
+
+
+
+
+%\newcommand{\kafl}{KAFL\xspace}
+\newcommand{\antifuzz}{\textsc{AntiFuzz}\xspace}
+\newcommand{\obb}{{\tt obb}\xspace}
+\newcommand{\smt}{SMT\xspace}
+\newcommand{\cpl}{{\tt CPL}\xspace}
+\newcommand{\tbb}{{\tt tbb}\xspace}
+\newcommand{\afl}{\textsc{AFL}\xspace}
+\newcommand{\entropic}{\textsc{Entropic}\xspace}
+\newcommand{\aflgo}{\textsc{AFLGo}\xspace}
+\newcommand{\aflpp}{\textsc{AFL++}\xspace}
+\newcommand{\symcc}{\textsc{SymCC}\xspace}
+\newcommand{\winafl}{\textsc{WinAFL}\xspace}
+\newcommand{\fexm}{\textsc{FExM}\xspace}
+\newcommand{\lafintel}{\textsc{lafIntel}\xspace}
+\newcommand{\aflfast}{\textsc{AFLFast}\xspace}
+\newcommand{\ossfuzz}{\textsc{OSS-Fuzz}\xspace}
+\newcommand{\grr}{\textsc{GRR}\xspace}
+\newcommand{\vuzzer}{\textsc{VUzzer}\xspace}
+\newcommand{\tigress}{\textsc{Tigress}\xspace}
+\newcommand{\radamsa}{\textsc{radamsa}\xspace}
+\newcommand{\libfuzzer}{\textsc{libFuzzer}\xspace}
+\newcommand{\buzzfuzz}{\textsc{BuzzFuzz}\xspace}
+\newcommand{\trailofbits}{\textsc{Trail of Bits}\xspace}
+\newcommand{\driller}{\textsc{Driller}\xspace}
+\newcommand{\steelix}{\textsc{steelix}\xspace}
+\newcommand{\angora}{\textsc{Angora}\xspace}
+\newcommand{\tfuzz}{\textsc{T-Fuzz}\xspace}
+\newcommand{\collafl}{\textsc{CollAFL}\xspace}
+\newcommand{\flayer}{\textsc{flayer}\xspace}
+\newcommand{\honggfuzz}{\textsc{Honggfuzz}\xspace}
+\newcommand{\mopt}{\textsc{MOpt}\xspace}
+\newcommand{\fairfuzz}{\textsc{FairFuzz}\xspace}
+\newcommand{\zzuf}{\textsc{zzuf}\xspace}
+\newcommand{\peach}{\textsc{Peach}\xspace}
+\newcommand{\miasm}{\textsc{miasm}\xspace}
+\newcommand{\angr}{{\textsc{angr}}\xspace}
+\newcommand{\triton}{{\textsc{Triton}}\xspace}
+\newcommand{\instrim}{{\textsc{InsTrim}}\xspace}
+\newcommand{\klee}{{\textsc{Klee}}\xspace}
+\newcommand{\qsym}{{\textsc{QSYM}}\xspace}
+\newcommand{\kafl}{\textsc{kAFL}\xspace}
+\newcommand{\pafl}{\textsc{PAFL}\xspace}
+\newcommand{\hypercube}{\textsc{Hyper-Cube}\xspace}
+\newcommand{\pin}{{\textsc{PIN}}\xspace}
+\newcommand{\dynamorio}{{\textsc{DynamoRIO}}\xspace}
+\newcommand{\dyninst}{{\textsc{Dyninst}}\xspace}
+\newcommand{\lavam}{\textsc{Lava-M}\xspace}
+\newcommand{\magma}{\textsc{Magma}\xspace}
+\newcommand{\gfts}{fuzzer-test-suite\xspace}
+\newcommand{\coreutils}{\textsc{coreutils}\xspace}
+\newcommand{\cgc}{{\textsc{CGC}}\xspace}
+\newcommand{\darpa}{{\textsc{DARPA}}\xspace}
+\newcommand{\ipc}{{\textsc{IPC}}\xspace}
+\newcommand{\decree}{{\textsc{DECREE}}\xspace}
+\newcommand{\LLVM}{{\textsc{LLVM}}\xspace}
+\newcommand{\qemu}{\textsc{QEMU}\xspace}
+\newcommand{\redqueen}{\textsc{Redqueen}\xspace}
+\newcommand{\nautilus}{\textsc{Nautilus}\xspace}
+\newcommand{\taintscope}{\textsc{Taintscope}\xspace}
+\newcommand{\clang}{{\textsc{clang}}\xspace}
+\newcommand{\kvm}{{\textsc{KVM}}\xspace}
+\newcommand{\kvmpt}{{\textsc{KVM-PT}}\xspace}
+\newcommand{\qemupt}{{\textsc{QEMU-PT}}\xspace}
+\newcommand{\vmi}{{\textsc{VMI}}\xspace}
+\newcommand{\vm}{{\textsc{VM}}\xspace}
+\newcommand{\os}{\textsc{OS}\xspace}
+\newcommand{\windows}{Windows\xspace}
+\newcommand{\osx}{mac OSX\xspace}
+\newcommand{\oss}{OSs\xspace}
+\newcommand{\binutils}{{\textsc{binutils}}\xspace}
+\newcommand{\squirrel}{\textsc{Squirrel}\xspace}
+\newcommand{\apollo}{\textsc{Apollo}\xspace}
+\newcommand{\sqlsmith}{SQLsmith\xspace}
+\newcommand{\sqlright}{SQLRight\xspace}
+\newcommand{\sqlancer}{SQLancer\xspace}
+\newcommand{\iotdb}{IoTDB\xspace}
+\newcommand{\rags}{RAGS\xspace}
+\newcommand{\ratel}{\textsc{Ratel}\xspace}
+\newcommand{\moonshine}{Moonshine\xspace}
+\newcommand{\safl}{SAFL\xspace}
+\newcommand{\lego}{\textsc{Lego}\xspace}
+\newcommand{\griffin}{\textsc{Griffin}\xspace}
+
+\newcommand{\enfuzz}{\textsc{EnFuzz}\xspace}
+\newcommand{\enfuzzq}{\textsc{EnFuzz-Q}\xspace}
+\newcommand{\cupid}{\textsc{Cupid}\xspace}
+
+\newcommand{\costbenefit}{Cost-Benefit}
+\newcommand{\benefit}{Benefit}
+
+\newcommand{\tifftops}{{\tt tiff2ps}\xspace}
+\newcommand{\jhead}{{\tt jhead}\xspace}
+\newcommand{\objectdump}{{\tt objectdump}\xspace}
+\newcommand{\ubuntu}{{\tt Ubuntu}\xspace}
+\newcommand{\wine}{{\tt wine}\xspace}
+
+\newcommand{\libtiff}{{\tt libtiff}\xspace}
+\newcommand{\imagemagik}{{\tt imagemagick}\xspace}
+% TODO: you might want to use https://www.namsu.de/Extra/pakete/Acronym.html
+\newcommand{\oob}{out of bounds\xspace}
+\newcommand{\privlevel}{privilege level\xspace}
+\newcommand{\privlevels}{privilege levels\xspace}
+\newcommand{\Cpp}{{\tt C++}\xspace}
+%\newcommand{\C}{{\tt C}\xspace}
+\newcommand{\DynamoRio}{{\textsc{DynamoRio}}\xspace}
+\newcommand{\ruby}{{\tt ruby}\xspace}
+\newcommand{\SVCov}{{\tt SVCov}\xspace}
+\newcommand{\libxml}{{\tt libxml2}\xspace}
+\newcommand{\DARPA}{{\tt DARPA}\xspace}
+\newcommand{\archintel}{x86\xspace}
+\newcommand{\intelpt}{Intel-PT\xspace}
+\newcommand{\lastbranchrecord}{Last Branch Record\xspace}
+\newcommand{\amd}{{\tt AMD}\xspace}
+\newcommand{\api}{API\xspace}
+\newcommand{\gnu}{GNU\xspace}
+\newcommand{\extfour}{ext4\xspace}
+\newcommand{\keymgmt}{keymgmt\xspace}
+\newcommand{\elfloader}{Elf loader\xspace}
+\newcommand{\ringthree}{Ring 3\xspace}
+\newcommand{\ringzero}{Ring 0\xspace}
+\newcommand{\kb}{KB\xspace}
+\newcommand{\crc}{CRC-32\xspace}
+\newcommand{\adler}{ADLER-32\xspace}
+\newcommand{\png}{PNG\xspace}
+\newcommand{\idat}{IDAT\xspace}
+\newcommand{\zlib}{\texttt{zlib}\xspace}
+\newcommand{\gzip}{gzip\xspace}
+\newcommand{\rar}{rar\xspace}
+\newcommand{\elf}{elf\xspace}
+\newcommand{\gnuar}{gnu-ar\xspace}
+\newcommand{\mpeg}{mpeg\xspace}
+\newcommand{\sqlite}{SQLite\xspace}
+\newcommand{\mysql}{MySQL\xspace}
+\newcommand{\mysqlrewriter}{\mysql{} Rewrite Plugin\xspace}
+\newcommand{\pg}{PostgreSQL\xspace}
+\newcommand{\mariadb}{MariaDB\xspace}
+\newcommand{\comdb}{Comdb2\xspace}
+\newcommand{\virtuoso}{Virtuoso\xspace}
+\newcommand{\monetdb}{MonetDB\xspace}
+\newcommand{\duckdb}{DuckDB\xspace}
+\newcommand{\ob}{OceanBase\xspace}
+\newcommand{\og}{openGauss\xspace}
+\newcommand{\gaussdb}{GaussDB\xspace}
+\newcommand{\clickhouse}{ClickHouse\xspace}
+\newcommand{\amoeba}{\textsc{Amoeba}\xspace}
+\newcommand{\tensilefuzz}{\textsc{Tensilefuzz}\xspace}
+\newcommand{\polardb}{PolarDB\xspace}
+
+\newcommand{\flac}{flac\xspace}
+\newcommand{\SHA}{SHA\xspace}
+\newcommand{\GB}{GB\xspace}
+\newcommand{\KB}{KB\xspace}
+\newcommand{\ram}{RAM\xspace}
+\newcommand{\cots}{Common-Off-The-Shelves\xspace}
+\newcommand{\inlinecode}[1]{{\tt #1}}
+\newcommand{\cmpres}[2]{\texttt{<#1 $\mapsto$ #2>}}
+\newcommand{\bug}[1]{{Bug #1}}
+\newcommand{\mpat}{{\tt pattern}\xspace}
+\newcommand{\mrepl}{{\tt repl}\xspace}
+\newcommand{\hexd}[1]{\char`\\x#1}
+\newcommand{\hexz}{\char`\\0\xspace}
+\newcommand{\cstr}[1]{\enquote{{\tt #1}}}
+\newcommand{\researchquestion}[1]{\textbf{RQ~#1.}\xspace}
+\newcommand{\mtrue}{\operatorname{true}\xspace}
+\newcommand{\mfalse}{\operatorname{false}\xspace}
+\newcommand{\true}{$\mtrue{}$\xspace}
+\newcommand{\false}{$\mfalse{}$\xspace}
+\newcommand{\objdump}{{\tt objdump}\xspace}
+\newcommand{\lodepng}{{\tt lodepng}\xspace}
+\newcommand{\crccheck}{{\tt CRC32}\xspace}
+\newcommand{\adlercheck}{{\tt Adler-32}\xspace}
+\newcommand*\elide{\textup{[\,\dots]}}
+
+\newcommand{\mcmcauthors}{mcmc et.Al.\xspace}
+\newcommand{\grammarauthors}{grammar et.Al.\xspace}
+\newcommand{\mabauthors}{mab et.Al.\xspace}
+\newtheorem{lemmaenv}{Lemma}
+\newtheorem{defenv}{Definition}
+\newtheorem{exampleenv}{Example}
+
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+\newcommand{\partmark}{\raisebox{0.05ex}{\scriptsize$\triangle$}}
+
+\newcommand{\mytilde}{\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}
+
+\newcommand{\example}[1]{\begin{exampleenv}#1\end{exampleenv}}
+
+% TODO: You might want to use http://tug.ctan.org/macros/latex/contrib/cleveref/cleveref.pdf
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newcommand{\lstref}[1]{Listing~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+%%\newcommand{\definition}[2]{\begin{defenv}[#1]#2\end{defenv}}
+%%\newcommand{\lemma}[2]{\begin{lemmaenv}[#1]#2\end{lemmaenv}}
+%%
+%%
+\newcommand{\pafig}[3]{ % image, label, caption
+\begin{figure}[h!]
+  \centering
+      \includegraphics[width=0.4\textwidth]{#1}
+  \caption{#3}
+	\label{#2}
+\end{figure}
+} 
+\newcommand{\widepafig}[3]{ % image, label, caption
+\begin{figure}[h!]
+  \centering
+      \includegraphics[width=0.5\textwidth]{#1}
+  \caption{#3}
+	\label{#2}
+\end{figure}
+} 
+\newcommand{\widepafigvspace}[5]{ % image, label, caption
+\begin{figure}[h!]
+    \vspace{#4}
+  \centering
+      \includegraphics[width=0.5\textwidth]{#1}
+  \caption{#3}
+	\label{#2}
+    \vspace{#5}
+\end{figure}
+} 
+
+\newcommand{\hexnr}[1]{\texttt{#1}}
+
+\definecolor{trolleygrey}{rgb}{0.38, 0.38, 0.38}
+
+
+\definecolor{darkgreen}{RGB}{30,180,30}
+
+\newcommand{\yes}{{\ttfamily \color{ForestGreen}\checkmark}}
+\newcommand{\no}{{\ttfamily \color{BrickRed}\ding{55}}}
+\newcommand{\notavail}{{\ttfamily \rule[.5ex]{.75em}{0.25pt}}}
+
+
+
 
 \renewcommand{\cmark}{\ensuremath{\checkmark}}
 \renewcommand{\xmark}{\ensuremath{\times}}
@@ -376,7 +700,7 @@ Although these DBMSs have been extensively tested, \tool{} still uncovers \bugcn
 These bugs have received attention from developers.
 For example, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
 We further compare \tool{} with state-of-the-art DBMS fuzzing tools, including \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}.
-Across the four DBMSs under 24 hours, \tool{} achieves 14\%--528\% higher branch coverage and discovers 16--22 more bugs than others.
+Across the four DBMSs under 24 hours, \tool{} achieves \DIFdelbegin \DIFdel{14}\DIFdelend \DIFaddbegin \DIFadd{7}\DIFaddend \%--528\% higher branch coverage and discovers \DIFdelbegin \DIFdel{16--22 }\DIFdelend \DIFaddbegin \DIFadd{5--22 }\DIFaddend more bugs than others.
 To evaluate seed transfer quality, we also compare \tool{} against representative relevant techniques, including SQLGlot, jOOQ, CrackSQL, RISE, and \sedar{}.
 \tool{} outperforms these baselines by 5\%--62\% in syntax correctness, 100\%--450\% in \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend , and 11\%--253\% in preservation of SQL functions.
 Finally, we conduct an ablation study to show the contribution of each component in \tool{}.
@@ -895,8 +1219,8 @@ All experiments were conducted on a Linux server equipped with an Intel Xeon CPU
 \textbf{Collected Test Cases.}
 Following the prior methodology~\cite{fu2024sedar}, we collected built-in test cases from mature DBMS repositories (i.e., SQLite~\cite{sqlite}, MySQL~\cite{mysql}, and PostgreSQL~\cite{pg}) for transfer. 
 % Table~\ref{tab:collected_seeds} shows the statistics on collected test cases in each DBMS.
-The dataset aggregates 447,357 SQL statements across 6,875 files, totaling 55.7 MiB of query text.
-\DIFaddbegin \DIFadd{For each target DBMS, all methods use the same set of source test cases: 5,879, 4,551, 5,850, and 6,990 test cases for }\monetdb{}\DIFadd{, }\virtuoso{}\DIFadd{, }\duckdb{}\DIFadd{, and }\clickhouse{}\DIFadd{, respectively.
+The dataset aggregates 447,357 SQL statements across 6,875 \DIFaddbegin \DIFadd{test }\DIFaddend files, totaling 55.7 MiB of query text.
+\DIFaddbegin \DIFadd{For each target DBMS, all methods use the same number of initial seeds, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for }\monetdb{}\DIFadd{, }\virtuoso{}\DIFadd{, }\duckdb{}\DIFadd{, and }\clickhouse{}\DIFadd{, respectively.
 }\DIFaddend 
 
 % \begin{table}[t]
@@ -1006,29 +1330,49 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 % - 对比对象分三类：generation/oracle fuzzer SQLancer、mutation fuzzer SQUIRREL、seed-transfer SOTA SedaR。
 % - 解释逻辑：branch coverage 提升 -> 更多 unique bugs -> structure-aware transfer 保留复杂语义，使 fuzzer 能绕过早期 rejection。
 RQ2 evaluates \tool{}'s effectiveness by comparing it to other fuzzing tools under the same setting. 
-We compared \tool{} against four state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), and \sedar{}~\cite{fu2024sedar}.
+We compared \tool{} against \DIFdelbegin \DIFdel{four }\DIFdelend \DIFaddbegin \DIFadd{six }\DIFaddend state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \DIFaddbegin \sqlright{}\DIFadd{~\mbox{%DIFAUXCMD
+\cite{sqlright} }\hskip0pt%DIFAUXCMD
+(coverage-guided logic-bug fuzzer), }\DIFaddend \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), \DIFdelbegin \DIFdel{and }\DIFdelend \sedar{}~\cite{fu2024sedar}\DIFaddbegin \DIFadd{, and SmartFuzz~\mbox{%DIFAUXCMD
+\cite{lin2026smartfuzz} }\hskip0pt%DIFAUXCMD
+(LLM-based seed generation)}\DIFaddend .
 % After fuzzing, we normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
-\DIFaddbegin \DIFadd{For }\sqlancer{}\DIFadd{, }\squirrel{}\DIFadd{, and }\griffin{}\DIFadd{, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
+\DIFaddbegin \DIFadd{For }\sqlancer{}\DIFadd{, }\sqlright{}\DIFadd{, }\squirrel{}\DIFadd{, }\griffin{}\DIFadd{, and SmartFuzz, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
 }\DIFaddend After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes using stack-trace hashing followed by manual inspection for verification.
 \begin{table}[!t]
 \centering
 \caption{Number of branches covered by different tools (24h).}
 \label{tab:coverage}
 {\scriptsize
-\setlength{\tabcolsep}{2pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccc@{}}
+\DIFdelbeginFL %DIFDELCMD < \setlength{\tabcolsep}{2pt}
+%DIFDELCMD < \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccc@{}}
+%DIFDELCMD <     \toprule
+%DIFDELCMD <     \textbf{DBMS} & \sqlancer{} & \squirrel{} & \griffin{} & \sedar{} & \textsc{Morph} \\
+%DIFDELCMD <     \midrule
+%DIFDELCMD <     MonetDB    & - & 43,747 & 61,981 & 76,142 & \textbf{81,486} \\
+%DIFDELCMD <     Virtuoso   & - & 26,302 & 28,017 & 36,583 & \textbf{40,183} \\
+%DIFDELCMD <     DuckDB     & 22,188 & 96,434 & 96,512 & 114,876 & \textbf{144,822} \\
+%DIFDELCMD <     ClickHouse & 25,618 & - & 87,388 & 141,215 & \textbf{155,639} \\
+%DIFDELCMD <     \midrule
+%DIFDELCMD <     Total      & 47,806 & 166,483 & 273,898 & 368,816 & 422,130 \\
+%DIFDELCMD <     Improvement* & 528\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & - \\
+%DIFDELCMD <     \bottomrule
+%DIFDELCMD < \end{tabular*}
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \setlength{\tabcolsep}{1pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
     \toprule
-    \textbf{DBMS} & \sqlancer{} & \squirrel{} & \griffin{} & \sedar{} & \textsc{Morph} \\
+    \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
     \midrule
-    MonetDB    & - & 43,747 & 61,981 & 76,142 & \textbf{81,486} \\
-    Virtuoso   & - & 26,302 & 28,017 & 36,583 & \textbf{40,183} \\
-    DuckDB     & 22,188 & 96,434 & 96,512 & 114,876 & \textbf{144,822} \\
-    ClickHouse & 25,618 & - & 87,388 & 141,215 & \textbf{155,639} \\
+    MonetDB    & - & 11,108 & 43,747 & 61,981 & 76,142 & 75,242 & \textbf{81,486} \\
+    Virtuoso   & - & 9,207 & 26,302 & 28,017 & 36,583 & \textbf{40,773} & 40,183 \\
+    DuckDB     & 22,188 & 25,624 & 96,434 & 96,512 & 114,876 & 130,966 & \textbf{144,822} \\
+    ClickHouse & 25,618 & 22,383 & - & 87,388 & 141,215 & 147,844 & \textbf{155,639} \\
     \midrule
-    Total      & 47,806 & 166,483 & 273,898 & 368,816 & 422,130 \\
-    Improvement* & 528\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & - \\
+    Total      & 47,806 & 68,322 & 166,483 & 273,898 & 368,816 & 394,825 & 422,130 \\
+    Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
     \bottomrule
 \end{tabular*}
+\DIFaddendFL 
 
 \par\vspace{1pt}
 \noindent\makebox[\columnwidth][l]{\scriptsize * Calculated only for commonly supported DBMSs.}
@@ -1039,14 +1383,15 @@ We compared \tool{} against four state-of-the-art DBMS testing tools in 24 hours
 \end{table}
 
 
-As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest branch coverage across all evaluated DBMSs, covering 422,130 branches in total.
-This corresponds to overall improvements of 528\%, 60\%, 54\%, and 14\% over \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, on their supported targets.
-Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
+As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest \DIFdelbegin \DIFdel{branch coverage across all evaluated DBMSs}\DIFdelend \DIFaddbegin \DIFadd{total branch coverage}\DIFaddend , covering 422,130 branches \DIFdelbegin \DIFdel{in total}\DIFdelend \DIFaddbegin \DIFadd{across the four DBMSs}\DIFaddend .
+This corresponds to overall improvements of 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend over \sqlancer{}, \DIFaddbegin \sqlright{}\DIFadd{, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and }\DIFdelend \sedar{}, \DIFaddbegin \DIFadd{and SmartFuzz, }\DIFaddend respectively, on their supported targets.
+Figure~\ref{fig:coverage_over_time} \DIFaddbegin \DIFadd{shows the mean coverage and its 95\% confidence interval over five runs, and all improvements of }\tool{} \DIFadd{over the baselines are statistically significant (Mann--Whitney U test, $p<0.05$).
+The figure }\DIFaddend further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
 
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
-\caption{Coverage growth over 24-hour fuzzing campaigns.}
+\caption{Coverage growth over 24-hour fuzzing campaigns. \DIFaddbeginFL \DIFaddFL{Displayed are the means and the 95\% confidence intervals of five runs.}\DIFaddendFL }
 \label{fig:coverage_over_time}
 \end{figure}
 
@@ -1055,41 +1400,75 @@ Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and co
 \caption{Number of bugs detected by different tools (24h).}
 \label{tab:bugs}
 {\scriptsize
-\setlength{\tabcolsep}{2pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccc@{}}
+\DIFdelbeginFL %DIFDELCMD < \setlength{\tabcolsep}{2pt}
+%DIFDELCMD < \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccc@{}}
+%DIFDELCMD <     \toprule
+%DIFDELCMD <     \textbf{DBMS} & \sqlancer{} & \squirrel{} & \griffin{} & \sedar{} & \textsc{Morph} \\
+%DIFDELCMD <     \midrule
+%DIFDELCMD <     MonetDB    & - & 0 & 0 & 3 & \textbf{14} \\
+%DIFDELCMD <     Virtuoso   & - & 0 & 0 & 2 & \textbf{3} \\
+%DIFDELCMD <     DuckDB     & 0 & 0 & 0 & 1 & \textbf{3} \\
+%DIFDELCMD <     ClickHouse & 0 & - & 0 & 0 & \textbf{2} \\
+%DIFDELCMD <     \midrule
+%DIFDELCMD <     Total      & 0 & 0 & 0 & 6 & 22 \\
+%DIFDELCMD <     Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & - \\
+%DIFDELCMD <     \bottomrule
+%DIFDELCMD < \end{tabular*}
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \setlength{\tabcolsep}{1pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
     \toprule
-    \textbf{DBMS} & \sqlancer{} & \squirrel{} & \griffin{} & \sedar{} & \textsc{Morph} \\
+    \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
     \midrule
-    MonetDB    & - & 0 & 0 & 3 & \textbf{14} \\
-    Virtuoso   & - & 0 & 0 & 2 & \textbf{3} \\
-    DuckDB     & 0 & 0 & 0 & 1 & \textbf{3} \\
-    ClickHouse & 0 & - & 0 & 0 & \textbf{2} \\
+    MonetDB    & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
+    Virtuoso   & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
+    DuckDB     & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
+    ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
     \midrule
-    Total      & 0 & 0 & 0 & 6 & 22 \\
-    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & - \\
+    Total      & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
+    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
     \bottomrule
 \end{tabular*}
-}
+\DIFaddendFL }
 \end{table}
 
 The coverage improvement also brings more detected bugs.
-As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} across the four DBMSs. 
+As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} \DIFaddbegin \DIFadd{and 5 more bugs than SmartFuzz }\DIFaddend across the four DBMSs. 
 \DIFdelbegin \DIFdel{This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
 Unlike }%DIFDELCMD < \sedar{}%%%
-\DIFdel{, which sacrifices semantic depth through destructive sanitization, }\DIFdelend \DIFaddbegin \DIFadd{These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
+\DIFdel{, which sacrifices semantic depth through destructive sanitization, }\DIFdelend \DIFaddbegin \DIFadd{Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
+We further pair existing translators with the same downstream fuzzer on DuckDB: }\DIFaddend \tool{} \DIFdelbegin \DIFdel{employs structure-aware transfer to retain the full logical complexity of source test cases.
+By preserving executable semantics during transfer}\DIFdelend \DIFaddbegin \DIFadd{covers 33.6\% and 16.7\% more branches than SQLGlot+}\griffin{} \DIFadd{and RISE+}\griffin{}\DIFadd{, respectively, and detects 3 more bugs than each.
+}
+
+\textbf{\DIFadd{Complementarity with SmartFuzz.}} \DIFadd{SmartFuzz and }\tool{} \DIFadd{construct seeds from different sources (Section~\ref{sec:related_work}).
+We further run }\griffin{} \DIFadd{with the union of their seeds, which covers 413}\DIFaddend ,\DIFaddbegin \DIFadd{021 branches and detects 35 bugs in total.
+Figure~\ref{fig:venn} shows the bugs detected by SmartFuzz, }\DIFaddend \tool{}\DIFdelbegin \DIFdel{enables fuzzers to bypass early engine rejections, exercise deeper code logic, and trigger more bugs.
+}\DIFdelend \DIFaddbegin \DIFadd{, and their combination.
+SmartFuzz and }\tool{} \DIFadd{share only 5 bugs, and each detects bugs that the other misses (12 by SmartFuzz and 17 by }\tool{}\DIFadd{).
+The combination further detects 6 bugs (4 on MonetDB and 2 on Virtuoso) that neither SmartFuzz nor }\tool{} \DIFadd{detects alone.
+However, its coverage is lower than that of }\tool{} \DIFadd{alone on MonetDB and DuckDB, where the additional seeds reduce the execution throughput, leaving fewer mutation opportunities for potentially more valuable seeds.
+}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\linewidth]{media/venn_total.pdf}
+\caption{\DIFaddFL{Bugs detected by SmartFuzz, }\tool{}\DIFaddFL{, and their combined seeds (SmartFuzz+}\tool{}\DIFaddFL{) on the four target DBMSs.}}
+\label{fig:venn}
+\end{figure}
+
+\DIFadd{These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
 To examine one source of this difference, we next compare the mutation-handling strategies under controlled conditions.
 }
 
 %DIF >  Four-DBMS mutation-handling comparison with five repetitions.
 \textbf{\DIFadd{Controlled Comparison of Mutation Handling.}}
-\DIFaddend \tool{} \DIFdelbegin \DIFdel{employs structure-aware transfer to retain the full logical complexity of source test cases.
-By preserving executable semantics during transfer, }\DIFdelend \DIFaddbegin \DIFadd{repairs incompatibilities before mutation, whereas }\sedar{} \DIFadd{uses comment-and-restore handling (Section~\ref{sec:background}).
+\tool{} \DIFadd{repairs incompatibilities before mutation, whereas }\sedar{} \DIFadd{uses comment-and-restore handling (Section~\ref{sec:background}).
 Neither strategy guarantees semantic equivalence of the mutated queries.
 For each target DBMS, we randomly sampled 300 translated seeds and applied both strategies to the same seeds.
 Each configuration was run with }\griffin{} \DIFadd{for 24 hours and repeated five times.
 The translated inputs, target database initial state, }\griffin{} \DIFadd{version and configuration, and resource allocation were held fixed; only the mutation-handling strategy differed.
-Across the four DBMSs, }\DIFaddend \tool{}\DIFdelbegin \DIFdel{enables fuzzers to bypass early engine rejections, exercise deeper code logic, and trigger more bugs.
-}\DIFdelend \DIFaddbegin \DIFadd{'s handling achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage than }\sedar{}\DIFadd{'s handling on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively (mean over five runs; Mann--Whitney U test, $p<0.05$); per-run results are included in our artifact.
+Across the four DBMSs, }\tool{}\DIFadd{'s handling achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage than }\sedar{}\DIFadd{'s handling on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively (mean over five runs; Mann--Whitney U test, $p<0.05$); per-run results are included in our artifact.
 These results show the coverage benefit of }\tool{}\DIFadd{'s handling strategy under the evaluated conditions.
 %DIF >  Rebuttal preliminary single-run results: DuckDB +27.2%, MonetDB +15.5%.
 }
@@ -1098,7 +1477,11 @@ These results show the coverage benefit of }\tool{}\DIFadd{'s handling strategy 
 
 
 \begin{answerbox}
-\textbf{Answer to RQ2:} \tool{} covers 528\%, 60\%, 54\%, and 14\% more branches than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, and discovers 22, 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively. 
+\textbf{Answer to RQ2:} \tool{} covers 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend more branches than \sqlancer{}, \DIFaddbegin \sqlright{}\DIFadd{, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and }\DIFdelend \sedar{}, \DIFaddbegin \DIFadd{and SmartFuzz, }\DIFaddend respectively, and discovers 22, 22, 22, \DIFdelbegin \DIFdel{and 16 more bugs than }%DIFDELCMD < \sqlancer{}%%%
+\DIFdel{, }%DIFDELCMD < \squirrel{}%%%
+\DIFdelend \DIFaddbegin \DIFadd{22}\DIFaddend , \DIFdelbegin %DIFDELCMD < \griffin{}%%%
+\DIFdelend \DIFaddbegin \DIFadd{16}\DIFaddend , and \DIFdelbegin %DIFDELCMD < \sedar{}%%%
+\DIFdelend \DIFaddbegin \DIFadd{5 more bugs}\DIFaddend , respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
 
@@ -1290,14 +1673,21 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 \end{figure}
 
 \textbf{Contribution of Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation. }
-As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both the \textit{Structure-Preserving Abstraction} and the \textit{Dialect-Aware AQT Instantiation} are disabled, the syntactic correctness is 51\% and the \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend of $\tool{}_{\textit{base}}$ is 27\%.
-With \textit{Structure-Preserving Abstraction}, $\tool{}_{\textit{abs}}$ improves syntactic correctness to 86\% (+35\%) by leveraging AQT to provide a more stable structural skeleton. The \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend also increases to 32\%.
-Moreover, with \textit{Dialect-Aware AQT Instantiation}, $\tool{}_{\textit{rag}}$ further enhances syntactic correctness to 87\%, and increases \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend to 49\% (+21\%) by grounding generation in retrieved dialect evidence.
-The Full framework $\tool{}_{\textit{full}}$ achieves the optimal balance, reaching \textbf{95\%} syntactic and \textbf{65\%} \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend .
+As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both \DIFdelbegin \DIFdel{the }\textit{\DIFdel{Structure-Preserving Abstraction}} %DIFAUXCMD
+\DIFdel{and the }\textit{\DIFdel{Dialect-Aware AQT Instantiation}} %DIFAUXCMD
+\DIFdelend \DIFaddbegin \DIFadd{components }\DIFaddend are disabled, \DIFdelbegin \DIFdel{the syntactic correctness is 51\% and the semantic correctness of }\DIFdelend $\tool{}_{\textit{base}}$ \DIFdelbegin \DIFdel{is 27\% .
+With }\DIFdelend \DIFaddbegin \DIFadd{achieves 43.1\% syntactic correctness and 35.2\% execution validity.
+}\DIFaddend \textit{Structure-Preserving Abstraction} \DIFdelbegin \DIFdel{, $\tool{}_{\textit{abs}}$ }\DIFdelend \DIFaddbegin \DIFadd{mainly }\DIFaddend improves syntactic correctness\DIFdelbegin \DIFdel{to 86}\DIFdelend \DIFaddbegin \DIFadd{: $\tool{}_{\textit{abs}}$ raises it to 73.6}\DIFaddend \% (+\DIFdelbegin \DIFdel{35}\DIFdelend \DIFaddbegin \DIFadd{30.5}\DIFaddend \%) by leveraging AQT to provide a more stable structural skeleton\DIFdelbegin \DIFdel{. The semantic correctness also increases to 32\%.
+Moreover, with }\DIFdelend \DIFaddbegin \DIFadd{, and raises execution validity to 55.0\%.
+}\DIFaddend \textit{Dialect-Aware AQT Instantiation} \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{mainly improves execution validity: }\DIFaddend $\tool{}_{\textit{rag}}$ \DIFdelbegin \DIFdel{further enhances syntactic correctness to 87\% , and increases semantic correctness to 49\% }\DIFdelend \DIFaddbegin \DIFadd{raises it to 65.5\% }\DIFaddend (+\DIFdelbegin \DIFdel{21}\DIFdelend \DIFaddbegin \DIFadd{30.3}\DIFaddend \%) by grounding generation in retrieved dialect evidence\DIFdelbegin \DIFdel{.
+The Full framework }\DIFdelend \DIFaddbegin \DIFadd{, and raises syntactic correctness to 63.9\%.
+Combining both components, }\DIFaddend $\tool{}_{\textit{full}}$ achieves the \DIFdelbegin \DIFdel{optimal balance, reaching }\textbf{\DIFdel{95\%}} %DIFAUXCMD
+\DIFdel{syntactic and }\textbf{\DIFdel{65\%}} %DIFAUXCMD
+\DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{highest syntactic correctness (}\textbf{\DIFadd{87.1\%}}\DIFadd{) and execution validity (}\textbf{\DIFadd{71.6\%}}\DIFadd{)}\DIFaddend .
 
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema \DIFdelbegin \DIFdel{, type, and state }\DIFdelend \DIFaddbegin \DIFadd{and type }\DIFaddend context across statements to preserve test-case-level dependencies.
 To isolate this effect, we disable context propagation \DIFaddbegin \DIFadd{($\tool{}_{\textit{w/o-ctx}}$) }\DIFaddend in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
-This reduces \DIFdelbegin \DIFdel{semantic correctness from 65.1\% to 52.4\% (-12.7\%)while only slightly reducing syntactic correctness to 93.5\% (-1.7\%)}\DIFdelend \DIFaddbegin \DIFadd{execution validity from 0.661 to 0.523 (Table~\ref{tab:ablation_depgraph})}\DIFaddend .
+This reduces \DIFdelbegin \DIFdel{semantic correctness from 65.1\% to 52.4\% (-12.7\%)while only slightly reducing syntactic correctness to 93.5\% (-1.7\%)}\DIFdelend \DIFaddbegin \DIFadd{execution validity from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph})}\DIFaddend .
 The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
@@ -1319,7 +1709,7 @@ This drop in execution validity shows that executable test-case transfer require
 
 \DIFaddbegin \textbf{\DIFadd{Contribution of the Dependency Graph.}}
 \DIFadd{To isolate the dependency graph from context propagation, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{win}}$, which uses the five most recent statements with the same object summaries, and $\tool{}_{\textit{all}}$, which provides all preceding statements and the complete context.
-As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.661 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
+As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.716 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
 Thus, the dependency graph provides a compact, dependency-relevant context.
 }
 
@@ -1331,12 +1721,12 @@ Thus, the dependency graph provides a compact, dependency-relevant context.
 \setlength{\tabcolsep}{3pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
-\textbf{\DIFaddFL{Variant}} & \textbf{\DIFaddFL{Exec.}} & \textbf{\DIFaddFL{Preds}} & \textbf{\DIFaddFL{Rel. (\%)}} & \textbf{\DIFaddFL{Tokens}} \\
+\textbf{Variant} & \textbf{Exec.} & \textbf{Preds} & \textbf{Rel. (\%)} & \textbf{Tokens} \\
 \midrule
-\DIFaddFL{$\tool{}_{\textit{full}}$    }& \textbf{\DIFaddFL{0.661}} & \DIFaddFL{0.47  }& \DIFaddFL{100.0 }& \DIFaddFL{509.6 }\\
-\DIFaddFL{$\tool{}_{\textit{win}}$     }& \DIFaddFL{0.599 }& \DIFaddFL{1.19  }& \DIFaddFL{22.6  }& \DIFaddFL{578.4 }\\
-\DIFaddFL{$\tool{}_{\textit{all}}$     }& \DIFaddFL{0.643 }& \DIFaddFL{27.95 }& \DIFaddFL{4.2   }& \DIFaddFL{1,842.3 }\\
-\DIFaddFL{$\tool{}_{\textit{w/o-ctx}}$ }& \DIFaddFL{0.523 }& \DIFaddFL{0.49  }& \DIFaddFL{100.0 }& \DIFaddFL{488.5 }\\
+$\tool{}_{\textit{full}}$    & \textbf{0.716} & 0.47  & 100.0 & 509.6 \\
+$\tool{}_{\textit{win}}$     & 0.599 & 1.19  & 22.6  & 578.4 \\
+$\tool{}_{\textit{all}}$     & 0.643 & 27.95 & 4.2   & 1,842.3 \\
+$\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
 \bottomrule
 \end{tabular*}
 \vspace{-0.8em}
@@ -1344,7 +1734,7 @@ Thus, the dependency graph provides a compact, dependency-relevant context.
 
 \DIFaddend \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
 To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
-Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
+Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign \DIFaddbegin \DIFadd{($p<0.05$)}\DIFaddend .
 % Taking \duckdb{} as an example, \tooldisfuzzer{} achieves a coverage of 118,453 branches. 
 When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
 In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and be used for fuzzers to explore more state space of target DBMSs. 
@@ -1378,8 +1768,8 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 % \end{answerbox}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\%. $\tool{}_{\textit{rag}}$ \DIFdelbegin \DIFdel{ensures semantic alignment, boosting validity }\DIFdelend \DIFaddbegin \DIFadd{improves execution validity, boosting it }\DIFaddend by 21\%. $\tool{}_{\textit{full}}$ achieves a\DIFaddbegin \DIFadd{n}\DIFaddend  improvement of 44\% in \DIFdelbegin \DIFdel{syntax }\DIFdelend \DIFaddbegin \DIFadd{syntactic correctness }\DIFaddend and 38\% in \DIFdelbegin \DIFdel{semantics.
-}\DIFdelend \DIFaddbegin \DIFadd{execution validity.
+\textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving \DIFdelbegin \DIFdel{syntax correctness by 35}\DIFdelend \DIFaddbegin \DIFadd{syntactic correctness by 30.5}\DIFaddend \%. $\tool{}_{\textit{rag}}$ \DIFdelbegin \DIFdel{ensures semantic alignment, boosting validity by 21}\DIFdelend \DIFaddbegin \DIFadd{improves execution validity by 30.3}\DIFaddend \%. $\tool{}_{\textit{full}}$ \DIFdelbegin \DIFdel{achieves a  improvement of 44\% in syntax and 38\%in semantics.
+}\DIFdelend \DIFaddbegin \DIFadd{improves syntactic correctness by 44.0\% and execution validity by 36.4\%.
 The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.
 }\DIFaddend % cumulative
 Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
@@ -1416,18 +1806,30 @@ Based on these results, we set $T=0.2$ for all experiments to ensure both reliab
 \caption{LLM comparison. \DIFaddbeginFL \DIFaddFL{Syn.: syntactic correctness; Exec.: execution validity; }\DIFaddendFL TS\DIFdelbeginFL \DIFdelFL{denotes }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{: }\DIFaddendFL Test Suite.}
 \label{tab:llm_comparison}
 \setlength{\tabcolsep}{2.5pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\DIFdelbeginFL %DIFDELCMD < \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+%DIFDELCMD < \toprule
+%DIFDELCMD < \textbf{Model} & \textbf{Syn.} & \textbf{Sem.} & \textbf{Cost/TS} & \textbf{Time/TS} \\
+%DIFDELCMD < \midrule
+%DIFDELCMD < Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
+%DIFDELCMD < GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
+%DIFDELCMD < DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
+%DIFDELCMD < Qwen3.5-27B & 0.971 & 0.852 & 0.119 & 1395.6 \\
+%DIFDELCMD < \bottomrule
+%DIFDELCMD < \multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with deep thinking mode}
+%DIFDELCMD < \end{tabular*}
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \toprule
-\textbf{Model} & \textbf{Syn.} & \textbf{\DIFdelbeginFL \DIFdelFL{Sem}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Exec}\DIFaddendFL .} & \textbf{Cost/TS \DIFaddbeginFL \DIFaddFL{(\$)}\DIFaddendFL } & \textbf{Time/TS \DIFaddbeginFL \DIFaddFL{(s)}\DIFaddendFL } \\
+\textbf{Model} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Cost/TS (\$)} & \textbf{Time/TS (s)} \\
 \midrule
 Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
 GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
 DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
-Qwen3.5-27B\DIFaddbeginFL \DIFaddFL{$^*$ }\DIFaddendFL & 0.971 & 0.852 & 0.119 & 1395.6 \\
+Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \bottomrule
 \multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with deep thinking mode}
 \end{tabular*}
-\end{table}
+\DIFaddendFL \end{table}
 
 
 % LLM 模型依赖写作逻辑：
@@ -1451,7 +1853,8 @@ We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments 
 \textbf{Extensibility and Manual Effort.}
 To extend \tool{} to another DBMS, we first automatically extract lexical and syntactic features from grammar specifications and register the corresponding mapping rules into the Hybrid KB.
 For features that cannot be mapped automatically, \tool{} uses the LLM to generate candidate rules, followed by manual review and correction.
-Table~\ref{tab:manual_effort} summarizes the extension effort across four target DBMSs.
+\DIFaddbegin \DIFadd{To validate the generated rules, we apply them to translated test cases and check the resulting translations for errors; rules that produce incorrect translations are manually inspected and corrected.
+}\DIFaddend Table~\ref{tab:manual_effort} summarizes the extension effort across four target DBMSs.
 Overall, only 4.2\% (136/3,212) of transfer rules require manual correction, and each correction typically takes 1--3 minutes for an engineer with DBMS expertise.
 
 \begin{table}[t]
@@ -1502,14 +1905,26 @@ Fuzzing is one of the most effective automated testing techniques for identifyin
 % Generation-based tools, such as SQLsmith~\cite{sqlsmith}, SQLancer~\cite{sqlancer, rigger2020testing}, and DynSQL~\cite{jiang2023dynsql}, construct SQL queries from hard-coded rules or semantic oracles, while recent clause-guided and differential methods further improve logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}. 
 Generation-based tools construct queries via predefined rules or semantic oracles. 
 SQLsmith~\cite{sqlsmith} randomly instantiates queries from a grammar. 
-SQLancer~\cite{sqlancer,rigger2020testing} applies oracles to detect logic bugs.
-DynSQL~\cite{jiang2023dynsql} leverages dynamic feedback to guide query mutation. 
+SQLancer~\cite{sqlancer,rigger2020testing} applies oracles to detect logic bugs\DIFdelbegin \DIFdel{.
+}\DIFdelend \DIFaddbegin \DIFadd{, and }\sqlright{}\DIFadd{~\mbox{%DIFAUXCMD
+\cite{sqlright} }\hskip0pt%DIFAUXCMD
+combines coverage-guided mutation with logic-bug oracles.
+sqllogictest~\mbox{%DIFAUXCMD
+\cite{sqllogictest} }\hskip0pt%DIFAUXCMD
+validates query results across database engines with a shared test format.
+}\DIFaddend DynSQL~\cite{jiang2023dynsql} leverages dynamic feedback to guide query mutation. 
 More recently, clause-guided and differential methods have further improved logic-bug detection~\cite{wei2024sqlaser, ba2023testing, song2023testing, cui2022differentially, hao2023pinolo}.
 However, predefined templates can limit complex scenarios~\cite{gao2023comprehensive}. 
 % Mutation-based fuzzers instead evolve seed pools: 
 Mutation-based fuzzers generate test cases by continuously evolving a pool of seed inputs, rather than constructing them from scratch. 
 \squirrel{}~\cite{zhong2020squirrel} uses IR-based mutations, \griffin{}~\cite{fu2022griffin} uses grammar-free metadata replacement, and LEGO~\cite{liang2023sequence} combines SQL statement sequences. 
 These fuzzers are effective once suitable seeds or generation rules are available, but they do not directly address how to obtain high-quality seeds for emerging DBMSs.
+\DIFaddbegin \DIFadd{Seed-selection and scheduling techniques, such as corpus minimization~\mbox{%DIFAUXCMD
+\cite{herrera2021seed} }\hskip0pt%DIFAUXCMD
+and power schedules~\mbox{%DIFAUXCMD
+\cite{aflfast}}\hskip0pt%DIFAUXCMD
+, choose or prioritize seeds within an existing corpus, whereas }\tool{} \DIFadd{constructs the initial corpus for target DBMSs that lack one; the two directions are orthogonal and can be combined.
+}\DIFaddend 
 
 Unlike these works, \tool{} focuses on the upstream \textit{seed acquisition} problem by transferring mature DBMS test cases into target-compatible seed sequences.
 
@@ -1519,7 +1934,8 @@ Fuzz4All~\cite{xia2024fuzz4all} uses LLMs as a general input generator, and ShQv
 \DIFaddbegin \DIFadd{SmartFuzz~\mbox{%DIFAUXCMD
 \cite{lin2026smartfuzz} }\hskip0pt%DIFAUXCMD
 uses LLMs to synthesize new seeds from features extracted from official DBMS documentation and historical bug-triggering inputs, targeting bug-prone execution states.
-In contrast, }\tool{} \DIFadd{transfers existing test cases from mature DBMSs and preserves their cross-statement structures; the two approaches draw on different seed sources and could be combined to construct initial seeds for DBMS fuzzing.
+In contrast, }\tool{} \DIFadd{transfers existing test cases from mature DBMSs, which cover a broad range of SQL features, and preserves their cross-statement structures.
+The two approaches therefore provide complementary seeds: SmartFuzz targets bug-prone features, whereas }\tool{} \DIFadd{provides broad feature coverage, and they could be combined to construct initial seeds for DBMS fuzzing.
 }\DIFaddend \sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds\DIFdelbegin \DIFdel{.
 However, these methods largely rely on direct text generation or post-generation filtering and sanitization.
 }\DIFdelend \DIFaddbegin \DIFadd{; its compatibility mechanism is described in Section~\ref{sec:background}.
