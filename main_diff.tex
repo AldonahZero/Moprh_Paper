@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
 %DIF DEL MajorRevisonBack.tex   Tue Oct 27 12:09:57 2026
-%DIF ADD main.tex               Tue Oct 27 15:42:56 2026
+%DIF ADD main.tex               Tue Oct 27 15:48:26 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -1115,14 +1115,12 @@ For translation effectiveness, we compare \tool{} against six baselines, includi
 The No translation strategy directly executes the original test cases collected from source DBMSs without modification. 
 SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
 \sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
-We \DIFdelbegin \DIFdel{reproduced }\DIFdelend \DIFaddbegin \DIFadd{used the original }\DIFaddend \sedar{} \DIFdelbegin \DIFdel{'s complete pipeline , including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy.
-}\DIFdelend \DIFaddbegin \DIFadd{binary obtained from the authors of }\sedar{}\DIFadd{~\mbox{%DIFAUXCMD
+We \DIFdelbegin \DIFdel{reproduced }\DIFdelend \DIFaddbegin \DIFadd{used the original }\DIFaddend \sedar{} \DIFdelbegin \DIFdel{'s complete pipeline , including schema capture, end-to-end LLM translation, and its comment-out sanitization strategy}\DIFdelend \DIFaddbegin \DIFadd{binary obtained from the authors of }\sedar{}\DIFadd{~\mbox{%DIFAUXCMD
 \cite{fu2024sedar}}\hskip0pt%DIFAUXCMD
 , which runs its complete pipeline (Section~\ref{sec:background}).
 Our artifact includes the }\sedar{} \DIFadd{configuration and the }\sedar{}\DIFadd{-generated seeds used in our experiments.
 Each baseline follows its original translation workflow, using the official SQL documentation of each target DBMS as dialect knowledge when required.
-All methods use the same source test cases without additional manually written translation rules.
-}\DIFaddend 
+CrackSQL and RISE translate each statement individually without schema context, and all methods use the same source test cases without additional manually written translation rules}\DIFaddend .
 
 % We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
 
