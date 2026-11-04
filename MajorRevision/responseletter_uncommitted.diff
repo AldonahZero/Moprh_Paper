@@ -1,31 +1,22 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index 16472c2..8d92f9d 100644
+index 8d92f9d..208c286 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -179,25 +179,7 @@ We have clarified the provenance of the \sedar{} binary in Section~IV (Evaluatio
- \reviewquestion{1.1} Can the authors evaluate source-to-target result or state equivalence?
+@@ -187,7 +187,7 @@ We have added a source-to-target result and state equivalence study in Section~I
+ \reply
+ The dependency graph guides context selection during instantiation and repair. Without it, \tool{} lacks explicit links for selecting dependency-relevant statements and object-state summaries for prompting. For example, in \texttt{ALTER TABLE t ADD COLUMN b INT; SELECT b FROM t;}, the edge selects the schema update for the translation and repair of the \texttt{SELECT}. Summaries provide the content, while edges guide the selection.
+ 
+-To isolate this benefit, we have added an ablation study in Section~IV (Evaluation). We compare four context-selection modes under the same LLM, knowledge base, source corpus, repair budget, and statement order: (1) \tool{}, which selects dependency predecessors through $\Delta$; (2) $\tool{}_{\textit{win}}$, which replaces dependency-based selection with the five most recent successfully translated statements while keeping the same object summaries, so that it differs from \tool{} only in whether the dependency graph is used; (3) $\tool{}_{\textit{all}}$, which provides all preceding successfully translated statements together with the complete source-side and target-side context; and (4) $\tool{}_{\textit{w/o-ctx}}$, which disables target-side context propagation. We measure execution validity at the statement level, the number of predecessor statements provided per statement, the proportion of provided predecessors that are dependency-relevant (i.e., connected to the current statement in $\Delta$), and input tokens per statement.
++To isolate this benefit, we have added an ablation study in Section~IV (Evaluation). We compare four context-selection modes under the same LLM, knowledge base, source corpus, repair budget, and statement order: (1) \tool{}, which selects predecessors through the dependency graph; (2) $\tool{}_{\textit{win}}$, which replaces dependency-based selection with the five most recent successfully translated statements while keeping the same object summaries, so that it differs from \tool{} only in whether the dependency graph is used; (3) $\tool{}_{\textit{all}}$, which provides all preceding successfully translated statements together with the complete source-side and target-side context; and (4) $\tool{}_{\textit{w/o-ctx}}$, which disables target-side context propagation. We measure execution validity at the statement level, the number of predecessor statements provided per statement, the proportion of provided predecessors that are dependency-relevant (i.e., connected to the current statement by a dependency edge), and input tokens per statement.
+ 
+ \begin{center}
+ \begin{minipage}{0.72\linewidth}
+@@ -237,7 +237,7 @@ We have corrected the related work in Section~VI (Related Work). CrackSQL is now
+ \reviewcomment{1.4} It is therefore unclear what ($G_{tc}$) contributes independently beyond recording the dependencies and preserving an order that is already present. The reported ablation removes context propagation rather than the graph itself, so it establishes the value of context but not an independent benefit from ($G_{tc}$). The paper should explain whether the graph affects retrieval, prompting, repair, or any other step not apparent from the algorithms.
  
  \reply
--We have added a source-to-target result and state equivalence study in Section~IV (Evaluation). We randomly sampled 100 MySQL test cases and evaluated SQLGlot, RISE, \sedar{}, and \tool{} on the same cases for transfer to DuckDB. We compared query results and the resulting database states, including schemas and table contents. Translation or execution failures count as non-equivalent, and both rates use all 100 cases as the denominator. \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}. This study provides supplementary evidence for the sampled source-target pair, without claiming general semantic equivalence. We have also renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV (Evaluation) to distinguish runtime executability from result or state equivalence.
--
--\begin{center}
--\begin{minipage}{0.55\linewidth}
--\centering\scriptsize\renewcommand{\arraystretch}{1.0}
--\textbf{Source-to-target equivalence on 100 MySQL-to-DuckDB test cases.}
--\par\smallskip
--\begin{tabular}{lrr}
--\toprule
--Method & Result Eq. (\%) & State Eq. (\%) \\
--\midrule
--SQLGlot & 14.0 & 56.0 \\
--RISE & 34.0 & 65.0 \\
--\sedar{} & 38.0 & 69.0 \\
--\tool{} & \textbf{52.0} & \textbf{74.0} \\
--\bottomrule
--\end{tabular}
--\end{minipage}
--\end{center}
-+We have added a source-to-target result and state equivalence study in Section~IV (Evaluation). On 100 randomly sampled MySQL test cases transferred to DuckDB, \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}. Details can be found in \metareviewref{1}. We have also renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV (Evaluation) to distinguish runtime executability from result or state equivalence.
+-We have revised Algorithm~2 and its description in Section~III (Approach). We have removed the stable topological sort, since the original statement order already satisfies all forward read-after-write dependencies, and we have made the use of the dependency graph explicit: \textsc{SelectContext} uses $\Delta$ to select dependency-relevant predecessors, whose source and translated statements are provided in the prompts for instantiation and repair. We have also added an ablation study in Section~IV (Evaluation) that isolates the dependency graph from context propagation. Details can be found in \questionref{1.2}.
++We have revised Algorithm~2 and its description in Section~III (Approach). We have removed the stable topological sort, since the original statement order already satisfies all forward read-after-write dependencies, and we have made the use of the dependency graph explicit: a new context-selection step (\textsc{SelectContext}) uses the dependency edges to select dependency-relevant predecessors, whose source and translated statements are provided in the prompts for instantiation and repair. We have also added an ablation study in Section~IV (Evaluation) that isolates the dependency graph from context propagation. Details can be found in \questionref{1.2}.
  
- % Source: Reviewer A, Question 2.
- \reviewquestion{1.2} What independent benefit does the dependency graph provide beyond context propagation?
+ % Source: Reviewer A, Detailed 2 (paragraph 4).
+ \reviewcomment{1.5} The paper should also define the content and construction of the ``object-state summaries'' in ($D$) and clarify which forms of state are represented. The current formal definition explicitly supports forward RAW dependencies and cumulative schema/type context. Broader descriptions such as preserving all schema, data, and state dependencies should be narrowed unless additional dependency forms are implemented.
