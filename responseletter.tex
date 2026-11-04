@@ -114,7 +114,7 @@ We have revised Sections~I (Introduction), II (Background and Motivation), III (
 \reply
 We have clarified how \tool{} differs from SmartFuzz in Section~VI (Related Work), and we have extended the comparison in Section~IV (Evaluation). In terms of goal, SmartFuzz generates new DBMS-specific seeds, whereas \tool{} transfers existing test cases across DBMSs. In terms of methodology, SmartFuzz leverages official DBMS documentation and historical bug-triggering inputs, whereas \tool{} uses cross-statement dependencies and cumulative schema and type context for translation and repair.
 
-To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. As shown in Table~III, Table~IV, and Figure~7 below, \tool{} covers 7\% more branches and detects 5 more bugs than SmartFuzz.
+To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. As shown in Table~III, Table~IV, and Figure~7 below, \tool{} covers 7\% more branches and detects 5 more bugs than SmartFuzz. On Virtuoso, whose dialect differs most from the source DBMSs (the lowest execution validity of \tool{} in Table~V), SmartFuzz achieves slightly higher coverage, likely because it generates seeds directly from the official documentation of the target DBMS.
 
 \begin{center}
 \begin{minipage}{0.92\linewidth}
