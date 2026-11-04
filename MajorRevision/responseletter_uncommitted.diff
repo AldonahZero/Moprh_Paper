@@ -1,13 +1,13 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index 313f078..2fb1c0c 100644
+index 2fb1c0c..16472c2 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -114,7 +114,7 @@ We have revised Sections~I (Introduction), II (Background and Motivation), III (
- \reply
- We have clarified how \tool{} differs from SmartFuzz in Section~VI (Related Work), and we have extended the comparison in Section~IV (Evaluation). In terms of goal, SmartFuzz generates new DBMS-specific seeds, whereas \tool{} transfers existing test cases across DBMSs. In terms of methodology, SmartFuzz leverages official DBMS documentation and historical bug-triggering inputs, whereas \tool{} uses cross-statement dependencies and cumulative schema and type context for translation and repair.
+@@ -166,7 +166,7 @@ Increment & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\upar
+ \end{minipage}
+ \end{center}
  
--To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. As shown in Table~III, Table~IV, and Figure~7 below, \tool{} covers 7\% more branches and detects 5 more bugs than SmartFuzz.
-+To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. As shown in Table~III, Table~IV, and Figure~7 below, \tool{} covers 7\% more branches and detects 5 more bugs than SmartFuzz. On Virtuoso, whose dialect differs most from the source DBMSs (the lowest execution validity of \tool{} in Table~V), SmartFuzz achieves slightly higher coverage, likely because it generates seeds directly from the official documentation of the target DBMS.
+-To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers 413,021 branches in total (73,315, 48,030, 132,077, and 159,599 branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects 35 bugs in total, i.e., 13 and 18 more bugs than \tool{} alone and SmartFuzz alone, respectively. The combination detects more bugs than either seed source alone on all four DBMSs, and achieves higher coverage on Virtuoso and ClickHouse. On MonetDB and DuckDB, its coverage is lower than that of \tool{} alone, and it executes 38.5\% and 22.4\% fewer test cases than SmartFuzz alone within 24 hours, respectively. The additional seeds reduce the execution throughput, leaving fewer mutation opportunities for potentially more valuable seeds.
++To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds. The combination covers 413,021 branches in total, 4.6\% more than SmartFuzz alone and 2.2\% fewer than \tool{} alone, and detects 35 bugs, i.e., 13 and 18 more bugs than \tool{} alone and SmartFuzz alone, respectively. On Virtuoso, where SmartFuzz outperforms \tool{}, the combination covers 48,030 branches, 19.5\% and 17.8\% more than \tool{} alone and SmartFuzz alone, respectively.
  
- \begin{center}
- \begin{minipage}{0.92\linewidth}
+ \metareviewcomment{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
+ 
