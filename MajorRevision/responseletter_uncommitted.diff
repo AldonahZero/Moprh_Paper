@@ -1,21 +1,22 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index f9dc759..8b4676d 100644
+index 8b4676d..a2092d7 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -147,15 +147,7 @@ Increment & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\upar
- \end{minipage}
- \end{center}
- 
--To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers 413,021 branches in total (73,315, 48,030, 132,077, and 159,599 branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects 35 bugs in total. The combination detects more bugs than either seed source alone on all four DBMSs, and achieves higher coverage on Virtuoso and ClickHouse. On MonetDB and DuckDB, its coverage is lower than that of \tool{} alone, and it executes 38.5\% and 22.4\% fewer test cases than SmartFuzz alone within 24 hours, respectively. The additional seeds reduce the execution throughput, leaving fewer mutation opportunities for potentially more valuable seeds.
--
--The Venn diagram below shows the bugs detected by SmartFuzz, \tool{}, and their combination. SmartFuzz and \tool{} share 5 bugs (4 on MonetDB and 1 on DuckDB). SmartFuzz detects 12 bugs that \tool{} misses (7, 3, 1, and 1 on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively), and \tool{} detects 17 bugs that SmartFuzz misses (10, 3, 2, and 2, respectively). The combination detects 29 of the 34 bugs detected by SmartFuzz or \tool{} alone, missing 5 bugs on MonetDB, and additionally detects 6 bugs (4 on MonetDB and 2 on Virtuoso) that neither SmartFuzz nor \tool{} detects alone.
--
--\begin{center}
--\includegraphics[width=0.3\linewidth]{media/venn_total.pdf}
--
--{\footnotesize Bugs detected by SmartFuzz, \tool{}, and their combined seeds (SmartFuzz+\tool{}) on the four target DBMSs.}
--\end{center}
-+To examine their complementarity, we further run \griffin{} with the union of the SmartFuzz and \tool{} seeds, which covers 413,021 branches in total (73,315, 48,030, 132,077, and 159,599 branches on MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively) and detects 35 bugs in total, i.e., 13 and 18 more bugs than \tool{} alone and SmartFuzz alone, respectively. The combination detects more bugs than either seed source alone on all four DBMSs, and achieves higher coverage on Virtuoso and ClickHouse. On MonetDB and DuckDB, its coverage is lower than that of \tool{} alone, and it executes 38.5\% and 22.4\% fewer test cases than SmartFuzz alone within 24 hours, respectively. The additional seeds reduce the execution throughput, leaving fewer mutation opportunities for potentially more valuable seeds.
- 
+@@ -152,7 +152,7 @@ To examine their complementarity, we further run \griffin{} with the union of th
  \metareviewcomment{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
+ 
+ \reply
+-We have clarified the provenance of the \sedar{} binary in Section~IV (Evaluation), stating that the \sedar{} binary used in our experiments was obtained from the authors of \sedar{}. This binary runs the complete \sedar{} pipeline, including schema capture, end-to-end LLM translation, and mutability refinement. To support reproducibility, we have included the \sedar{} experimental configuration and all \sedar{}-generated seeds used in our experiments in our artifact.
++We have clarified the provenance of the \sedar{} binary in Section~IV (Evaluation), stating that the \sedar{} binary used in our experiments was obtained from the authors of \sedar{}. This binary runs the complete \sedar{} pipeline, including schema capture, end-to-end LLM translation, and mutability refinement. To support reproducibility, we have included the \sedar{} binary, its experimental configuration, and all \sedar{}-generated seeds used in our experiments in our artifact.
+ 
+ \section*{Replies to Reviewer A}
+ 
+@@ -421,7 +421,7 @@ Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
+ \reviewcomment{2.9} Bug evidence is insufficient. The bug links are inaccessible, and the triggering test cases are not publicly available. The artifact includes complete and executable source code.
+ 
+ \reply
+-We have added the triggering test cases of all detected bugs to our anonymous artifact for bug verification and reproduction. The links to the bug reports will be released after acceptance to preserve double-blind review.
++We have added the triggering test cases of all detected bugs to our \href{https://anonymous.4open.science/r/MorphArtifact-8E44/}{anonymous artifact} for bug verification and reproduction. The links to the bug reports will be released after acceptance to preserve double-blind review.
+ 
+ \section*{Replies to Reviewer C}
  

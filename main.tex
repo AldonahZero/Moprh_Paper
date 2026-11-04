@@ -963,7 +963,7 @@ The No translation strategy directly executes the original test cases collected 
 SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
 \sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
 We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline (Section~\ref{sec:background}).
-Our artifact includes the \sedar{} configuration and the \sedar{}-generated seeds used in our experiments.
+Our artifact includes the \sedar{} binary, its configuration, and the \sedar{}-generated seeds used in our experiments.
 Each baseline follows its original translation workflow, using the official SQL documentation of each target DBMS as dialect knowledge when required.
 CrackSQL and RISE translate each statement individually without schema context, and all methods use the same source test cases without additional manually written translation rules.
 

@@ -152,7 +152,7 @@ To examine their complementarity, we further run \griffin{} with the union of th
 \metareviewcomment{4} Clarify the provenance of the SEDAR binary used in the experiments, particularly given conflicting reports about its public availability. Provide sufficient information about the artifact and configuration to support reproducibility.
 
 \reply
-We have clarified the provenance of the \sedar{} binary in Section~IV (Evaluation), stating that the \sedar{} binary used in our experiments was obtained from the authors of \sedar{}. This binary runs the complete \sedar{} pipeline, including schema capture, end-to-end LLM translation, and mutability refinement. To support reproducibility, we have included the \sedar{} experimental configuration and all \sedar{}-generated seeds used in our experiments in our artifact.
+We have clarified the provenance of the \sedar{} binary in Section~IV (Evaluation), stating that the \sedar{} binary used in our experiments was obtained from the authors of \sedar{}. This binary runs the complete \sedar{} pipeline, including schema capture, end-to-end LLM translation, and mutability refinement. To support reproducibility, we have included the \sedar{} binary, its experimental configuration, and all \sedar{}-generated seeds used in our experiments in our artifact.
 
 \section*{Replies to Reviewer A}
 
@@ -421,7 +421,7 @@ Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \reviewcomment{2.9} Bug evidence is insufficient. The bug links are inaccessible, and the triggering test cases are not publicly available. The artifact includes complete and executable source code.
 
 \reply
-We have added the triggering test cases of all detected bugs to our anonymous artifact for bug verification and reproduction. The links to the bug reports will be released after acceptance to preserve double-blind review.
+We have added the triggering test cases of all detected bugs to our \href{https://anonymous.4open.science/r/MorphArtifact-8E44/}{anonymous artifact} for bug verification and reproduction. The links to the bug reports will be released after acceptance to preserve double-blind review.
 
 \section*{Replies to Reviewer C}
 

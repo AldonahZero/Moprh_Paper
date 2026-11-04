@@ -1,25 +1,13 @@
 diff --git a/main.tex b/main.tex
-index 799d58e..04ee54c 100644
+index 04ee54c..a9aa2b0 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -924,19 +924,9 @@ To control for seed quantity, we also randomly sample 100, 200, and 300 seeds ge
- Under the same seed count, \tool{} achieves 17.2\%--92.4\% higher coverage than \sedar{} across the four DBMSs, all exceeding the 14\% gain with the full seed corpora, which indicates that the improvement does not stem from a larger seed corpus.
- 
- \textbf{Complementarity with SmartFuzz.} SmartFuzz and \tool{} construct seeds from different sources (Section~\ref{sec:related_work}).
--We further run \griffin{} with the union of their seeds, which covers 413,021 branches and detects 35 bugs in total.
--Figure~\ref{fig:venn} shows the bugs detected by SmartFuzz, \tool{}, and their combination.
--SmartFuzz and \tool{} share only 5 bugs, and each detects bugs that the other misses (12 by SmartFuzz and 17 by \tool{}).
--The combination further detects 6 bugs (4 on MonetDB and 2 on Virtuoso) that neither SmartFuzz nor \tool{} detects alone.
-+We further run \griffin{} with the union of their seeds, which covers 413,021 branches and detects 35 bugs in total, i.e., 13 and 18 more bugs than \tool{} and SmartFuzz alone, respectively.
- However, its coverage is lower than that of \tool{} alone on MonetDB and DuckDB, where the additional seeds reduce the execution throughput, leaving fewer mutation opportunities for potentially more valuable seeds.
- 
--\begin{figure}[t]
--\centering
--\includegraphics[width=0.6\linewidth]{media/venn_total.pdf}
--\caption{Bugs detected by SmartFuzz, \tool{}, and their combined seeds (SmartFuzz+\tool{}) on the four target DBMSs.}
--\label{fig:venn}
--\end{figure}
--
- These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
- To examine one source of this difference, we next compare the mutation-handling strategies under controlled conditions.
+@@ -963,7 +963,7 @@ The No translation strategy directly executes the original test cases collected
+ SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
+ \sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
+ We used the original \sedar{} binary obtained from the authors of \sedar{}~\cite{fu2024sedar}, which runs its complete pipeline (Section~\ref{sec:background}).
+-Our artifact includes the \sedar{} configuration and the \sedar{}-generated seeds used in our experiments.
++Our artifact includes the \sedar{} binary, its configuration, and the \sedar{}-generated seeds used in our experiments.
+ Each baseline follows its original translation workflow, using the official SQL documentation of each target DBMS as dialect knowledge when required.
+ CrackSQL and RISE translate each statement individually without schema context, and all methods use the same source test cases without additional manually written translation rules.
  
