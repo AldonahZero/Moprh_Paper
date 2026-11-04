@@ -1,13 +1,22 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index 427a482..a8f17d5 100644
+index a8f17d5..21f8b7f 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -274,7 +274,7 @@ We have clarified in Section~IV that our experiments use the \sedar{} binary obt
- \reviewcomment{1.12} The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
+@@ -79,7 +79,7 @@ We have added a controlled comparison in Section~IV to evaluate the two mutation
+ Moderate the novelty claims and better distinguish MORPH from existing SQL translation approaches, particularly SEDAR, RISE, QTRAN, and CrackSQL. Explain more concretely what AQT and its associated mechanisms contribute beyond existing techniques, especially in the context of DBMS fuzzing.
  
  \reply
--We have reported the variability and statistical significance of the coverage results in Section~IV. The coverage in Table~III is averaged over five independent runs, and Figure~7 now states that it displays the means and the 95\% confidence intervals of the five runs. We have also applied the Mann--Whitney U test to the final coverage of the five runs, and all improvements of \tool{} over the baselines are statistically significant ($p<0.05$). We have also clarified that the reported bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification. The improvements in Table~VIII (Table~VII in the original submission) are statistically significant ($p<0.05$).
-+We have reported the variability of the coverage results in Section~IV. The coverage in Table~III is averaged over five independent runs, and Figure~7 now states that it displays the means and the 95\% confidence intervals of the five runs. We have also clarified that the reported bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification. The improvements in Table~VIII (Table~VII in the original submission) are statistically significant ($p<0.05$).
+-We have revised Sections~I, II, III, and VI so that \tool{} is no longer positioned as the first whole-test-case transfer framework or the first approach that adapts transferred seeds to downstream fuzzers. We have revised the related work in Section~VI to state that \tool{} adopts related techniques, including structural decomposition, localized translation, and dialect-aware retrieval, but targets fuzzing seed transfer, and to distinguish \tool{} from \sedar{}, CrackSQL, RISE, and QTRAN in terms of goals, challenges, methods, and results.
++We have revised Sections~I, II, III, and VI to clarify how \tool{} relates to existing whole-test-case transfer and fuzzer-oriented seed adaptation approaches, in particular \sedar{}. We have revised the related work in Section~VI to state that \tool{} adopts related techniques, including structural decomposition, localized translation, and dialect-aware retrieval, but targets fuzzing seed transfer, and to distinguish \tool{} from \sedar{}, CrackSQL, RISE, and QTRAN in terms of goals, challenges, methods, and results.
  
- % Source: Reviewer A, Detailed 4 (paragraph 5).
- \reviewcomment{1.13} The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
+ \textbf{Different goals.} CrackSQL and RISE target query migration: they translate one self-contained query or procedural artifact at a time and aim to produce an equivalent target query. QTRAN targets oracle transfer: it translates a query and regenerates its target-side mutant so that the metamorphic relation is preserved for logic-bug detection. \sedar{} and \tool{} share the goal of transferring existing test cases into fuzzing seeds. For this goal, a transferred seed must execute on the target DBMS, retain testing-relevant SQL structures, and remain parsable and mutable by the downstream fuzzer.
+ 
+@@ -226,7 +226,7 @@ We have added the configuration of the translation baselines in Section~IV, and
+ \reviewcomment{1.4} MORPH should therefore not be positioned as the first whole-test-case transfer framework or the first system to adapt transferred seeds to downstream fuzzers.
+ 
+ \reply
+-We have revised Sections~I, II, III, and VI so that \tool{} is no longer positioned as the first whole-test-case transfer framework or the first approach that adapts transferred seeds to downstream fuzzers. We have also clarified the methodological differences between \tool{} and \sedar{}. Details can be found in \metareviewref{1} and \metareviewref{2}.
++We have revised Sections~I, II, III, and VI to clarify how \tool{} relates to existing whole-test-case transfer and fuzzer-oriented seed adaptation approaches, in particular \sedar{}, and the methodological differences between them. Details can be found in \metareviewref{1} and \metareviewref{2}.
+ 
+ % Source: Reviewer A, Detailed 1 (paragraph 3).
+ \reviewcomment{1.5} These works show that structural decomposition, localized translation, and dialect-aware retrieval are not individually new. However, none of them models an independently executed stateful fuzzing test sequence, maintains target-side context across its statements, or integrates the result with coverage-guided seed mutation in the manner proposed by MORPH.
