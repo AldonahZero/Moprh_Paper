@@ -370,7 +370,13 @@ RISE + \griffin{} & 124,147 & 0 \\
 \reviewcomment{2.2} \textbf{Incomplete discussion of closely related work.} SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
 
 \reply
-We have added a discussion of SmartFuzz in Section~VI (Related Work), which clarifies that SmartFuzz synthesizes new seeds from DBMS documentation and historical bug-triggering inputs, whereas \tool{} transfers existing test cases from mature DBMSs. We have also included SmartFuzz as a baseline in RQ2 and examined the complementarity of the two seed sources. Details can be found in \metareviewref{3}.
+We have clarified the differences in goal and methodology between SmartFuzz and \tool{} in Section~VI (Related Work).
+
+\textbf{Goal:} SmartFuzz focuses on generating new DBMS-specific seeds, whereas \tool{} focuses on transferring existing test cases across DBMSs.
+
+\textbf{Methodology:} SmartFuzz leverages DBMS documentation and historical bug-triggering inputs, while \tool{} uses cross-statement dependencies and cumulative schema/type context for translation and repair.
+
+We have also extended the comparison in Section~IV (Evaluation). Across the four target DBMSs, \tool{} covers 7\% more branches in total and detects 5 more bugs than SmartFuzz. Details can be found in \metareviewref{3}.
 
 % Source: Reviewer B, Detailed 3.
 \reviewcomment{2.3} \textbf{Potentially inaccurate characterization of SEDAR.} The paper characterizes SEDAR's comment-and-restore mechanism as ``destructive sanitization'' that ``sacrifices semantic depth.'' However, SEDAR's mechanism is designed to temporarily hide target-specific constructs from downstream fuzzers' strict parsers during mutation and restore them afterward. This is a pragmatic compatibility strategy, not a destructive removal of query logic.
