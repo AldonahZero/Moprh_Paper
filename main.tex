@@ -1094,6 +1094,10 @@ For the \textit{translation phase}, we evaluated four main variants on all sourc
 (2) $\tool{}_{\textit{abs}}$: equipped solely with \textit{Structure-Preserving Abstraction};
 (3) $\tool{}_{\textit{rag}}$: equipped solely with \textit{Dialect-Aware AQT Instantiation};
 (4) $\tool{}_{\textit{full}}$: the complete framework integrating both components.
+To further isolate cross-statement context, we compare $\tool{}_{\textit{full}}$ with three context variants:
+(5) $\tool{}_{\textit{w/o-ctx}}$: disables target-side context propagation while keeping statement-level instantiation and local dialect mappings unchanged;
+(6) $\tool{}_{\textit{win}}$: replaces dependency-based context selection with the five most recent statements and the same object summaries;
+(7) $\tool{}_{\textit{all}}$: provides all preceding statements and the complete context.
 
 For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanitizer} operates independently during runtime fuzzing and does not affect translation quality, we further introduce \tooldisfuzzer{} as a controlled variant where the runtime feedback loop is disabled and invalid seeds are directly discarded, and compare it against $\tool{}_{\textit{full}}$ where the sanitizer actively repairs parsing errors to maximize seed acceptance.
 
@@ -1112,7 +1116,7 @@ As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both components
 Combining both components, $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (\textbf{87.1\%}) and execution validity (\textbf{71.6\%}).
 
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
-To isolate this effect, we disable context propagation ($\tool{}_{\textit{w/o-ctx}}$) in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
+To isolate this effect, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{w/o-ctx}}$.
 This reduces execution validity from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
 The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
@@ -1126,7 +1130,7 @@ This drop in execution validity shows that executable test-case transfer require
 
 
 \textbf{Contribution of the Dependency Graph.}
-To isolate the dependency graph from context propagation, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{win}}$, which uses the five most recent statements with the same object summaries, and $\tool{}_{\textit{all}}$, which provides all preceding statements and the complete context.
+To isolate the dependency graph from context propagation, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$.
 As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.716 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
 Thus, the dependency graph provides a compact, dependency-relevant context.
 
