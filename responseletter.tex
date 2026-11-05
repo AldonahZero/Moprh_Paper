@@ -56,6 +56,7 @@
 \newcommand{\metareviewref}[1]{\hyperref[metareview:#1]{\uline{the reply to \textbf{Metareview Comment~\ref*{metareview:#1}}}}}
 \newcommand{\commentref}[1]{\hyperref[comment:#1]{\uline{the reply to \textbf{Comment~\ref*{comment:#1}}}}}
 \newcommand{\questionref}[1]{\hyperref[question:#1]{\uline{the reply to \textbf{Question~\ref*{question:#1}}}}}
+\newcommand{\cellchg}[2]{{\color{red}\sout{#1}}\,{\color{blue}\uwave{#2}}}
 \newcommand{\reply}{\par\nobreak\noindent\textbf{Reply:}\ }
 
 \begin{document}
@@ -400,7 +401,7 @@ Conversely, CrackSQL is marked as supporting DML, but this is not sufficiently v
 The authors should: (a) clearly define what \cmark{}, \partmark{}, and \xmark{} mean for each cell with specific criteria, (b) provide evidence for each classification (e.g., cite documentation or experimental verification), and (c) revise the table entries accordingly to avoid overclaiming.
 
 \reply
-We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, CrackSQL's DML support, and \sedar{}'s source-side handling of multi-statement dependencies. We have clarified the criteria for the three symbols in Table~I in Section~II (Background and Motivation) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}, while CrackSQL's \textit{DML} entry is marked as \cmark{}.
+We have clarified the criteria for the three symbols in Table~I in Section~II (Background and Motivation) and revised the entries to reflect SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, and \sedar{}'s source-side handling of multi-statement dependencies. As marked below, SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}, while CrackSQL's \textit{DML} entry remains \cmark{}.
 
 \begin{center}
 \begin{minipage}{0.78\linewidth}
@@ -412,12 +413,12 @@ We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata t
     \textbf{Tool} & \textbf{DDL} & \textbf{DML} & \textbf{DQL} & \textbf{Test Case} & \textbf{Cross-stmt.} \\
     & & & & \textbf{Migration} & \textbf{Deps.} \\
     \midrule
-    SQLGlot & \cmark & \cmark & \cmark & \partmark & \xmark \\
-    jOOQ & \cmark & \cmark & \cmark & \xmark & \partmark \\
+    SQLGlot & \cmark & \cmark & \cmark & \cellchg{\xmark}{\partmark} & \xmark \\
+    jOOQ & \cmark & \cmark & \cmark & \xmark & \cellchg{\xmark}{\partmark} \\
     RISE & \partmark & \partmark & \cmark & \xmark & \xmark \\
     CrackSQL & \partmark & \cmark & \cmark & \xmark & \xmark \\
     QTRAN & \partmark & \partmark & \cmark & \xmark & \xmark \\
-    \sedar{} & \partmark & \partmark & \cmark & \cmark & \partmark \\
+    \sedar{} & \partmark & \partmark & \cmark & \cmark & \cellchg{\xmark}{\partmark} \\
     \tool{} & \cmark & \cmark & \cmark & \cmark & \cmark \\
     \bottomrule
 \end{tabular}
