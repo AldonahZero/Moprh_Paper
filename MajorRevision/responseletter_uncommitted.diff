@@ -1,32 +1,54 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index 5dbf8d6..3ef232b 100644
+index 3ef232b..4889402 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -487,7 +487,7 @@ We have documented the configuration of the RQ2 baselines in Section~IV (Evaluat
- \reviewcomment{3.3} Numeric inconsistency: the text claims RISE transfer improved semantic correctness ``from 0.314 to 0.776,'' but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.
- 
+@@ -477,18 +477,6 @@ We have added the triggering test cases of all detected bugs to our anonymous \h
  \reply
--We have revised the text in Section~IV (Evaluation) to state that, in the SQLite-to-DuckDB setting, \tool{} improves execution validity from 0.314 (RISE) to 0.748, consistent with Table~V. We have also checked the other numbers reported in Section~IV (Evaluation) against Table~V.
-+We have revised the text in Section~IV (Evaluation) to state that, in the SQLite-to-DuckDB setting, \tool{} improves execution validity from 0.314 (RISE) to \cellchg{0.776}{0.748}, consistent with Table~V (highlighted below). We have also checked the other numbers reported in Section~IV (Evaluation) against Table~V.
+ We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~V. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study. Details can be found in \questionref{1.1}.
  
+-% Source: Reviewer C, Weakness (unnumbered).
+-\reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
+-
+-\reply
+-We have documented the configuration of the RQ2 baselines in Section~IV (Evaluation). For \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, and we have included them in our artifact. The zero-bug results reflect that previously reported bugs were fixed in the newer DBMS versions, with no new bugs found. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as noted in the footnote of Table~III.
+-
+-% Source: Reviewer C, Weakness (unnumbered).
+-\reviewcomment{3.3} Numeric inconsistency: the text claims RISE transfer improved semantic correctness ``from 0.314 to 0.776,'' but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.
+-
+-\reply
+-We have revised the text in Section~IV (Evaluation) to state that, in the SQLite-to-DuckDB setting, \tool{} improves execution validity from 0.314 (RISE) to \cellchg{0.776}{0.748}, consistent with Table~V (highlighted below). We have also checked the other numbers reported in Section~IV (Evaluation) against Table~V.
+-
  \begin{center}
  \begin{minipage}{0.85\linewidth}
-@@ -498,15 +498,15 @@ We have revised the text in Section~IV (Evaluation) to state that, in the SQLite
- \begin{tabular}{l|cc|cc|cc|cc}
- \toprule
- & \multicolumn{2}{c|}{\textbf{MonetDB}} & \multicolumn{2}{c|}{\textbf{Virtuoso}} & \multicolumn{2}{c|}{\textbf{DuckDB}} & \multicolumn{2}{c}{\textbf{ClickHouse}} \\
--\textbf{Method} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Syn.} & \textbf{Exec.} \\
-+\textbf{Method} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} \\
- \midrule
- No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
+ \centering\scriptsize\renewcommand{\arraystretch}{1.0}
+@@ -504,9 +492,9 @@ No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \
  SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
  jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
  CrackSQL & - & - & - & - & 0.740 & 0.211 & 0.717 & 0.264 \\
--RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
-+RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & \colorbox{yellow!40}{0.314} & 0.764 & 0.278 \\
+-RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & \colorbox{yellow!40}{0.314} & 0.764 & 0.278 \\
++RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
  \sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
--\tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\
-+\tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \colorbox{yellow!40}{\textbf{0.748}} & \textbf{0.895} & \textbf{0.694} \\
+-\tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \colorbox{yellow!40}{\textbf{0.748}} & \textbf{0.895} & \textbf{0.694} \\
++\tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\
  \midrule
  vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \\
  \bottomrule
+@@ -516,6 +504,18 @@ vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \
+ \end{minipage}
+ \end{center}
+ 
++% Source: Reviewer C, Weakness (unnumbered).
++\reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
++
++\reply
++We have documented the configuration of the RQ2 baselines in Section~IV (Evaluation). For \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, and we have included them in our artifact. The zero-bug results reflect that previously reported bugs were fixed in the newer DBMS versions, with no new bugs found. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as noted in the footnote of Table~III.
++
++% Source: Reviewer C, Weakness (unnumbered).
++\reviewcomment{3.3} Numeric inconsistency: the text claims RISE transfer improved semantic correctness ``from 0.314 to 0.776,'' but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.
++
++\reply
++We have revised the text in Section~IV (Evaluation) to state that, in the SQLite-to-DuckDB setting, \tool{} improves execution validity from 0.314 (RISE) to 0.748, consistent with Table~V. We have also checked the other numbers reported in Section~IV (Evaluation) against Table~V.
++
+ % Source: Reviewer C, Weakness (unnumbered).
+ \reviewcomment{3.4} Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
+ 
