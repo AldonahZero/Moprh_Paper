@@ -1,93 +1,13 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index 4889402..73ca3ff 100644
+index 79c4d02..0a6928a 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -253,7 +253,7 @@ We have defined the object-state summaries in Section~III (Approach). Each summa
- \reviewcomment{1.6} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
+@@ -520,7 +520,7 @@ We have revised the text in Section~IV (Evaluation) to state that, in the SQLite
+ \reviewcomment{3.4} Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
  
  \reply
--We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV (Evaluation). We have also revised the description of instantiation in Section~III (Approach), revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III (Approach) also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study as supplementary evidence. Details can be found in \questionref{1.1}.
-+We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV (Evaluation). We have also revised the description of instantiation in Section~III (Approach), revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III (Approach) also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. Details can be found in \metareviewref{1}.
+-We have added SQLRight as a baseline in RQ2. Since SQLRight officially supports only SQLite, PostgreSQL, and MySQL, we have adapted it to the four target DBMSs while keeping its AFL-based queue scheduling, AST-based mutator, and oracle framework, and we have included the adaptation code in our artifact. The results can be found in \metareviewref{3}.
++We have added SQLRight as a baseline in RQ2. Since SQLRight officially supports only SQLite, PostgreSQL, and MySQL, we have adapted it to the four target DBMSs while keeping its AFL-based queue scheduling, AST-based mutator, and oracle framework, and we have included the adaptation code in our \href{https://anonymous.4open.science/r/MorphArtifact-8E44/}{artifact}. The results can be found in \metareviewref{3}.
  
- % Source: Reviewer A, Detailed 4 (paragraph 2).
- \reviewcomment{1.7} The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
-@@ -339,7 +339,7 @@ ClickHouse & 35,967 & \textbf{67,798} & 41,478 & \textbf{79,806} & 55,852 & \tex
- \reviewquestion{2.2} Regarding the characterization of SEDAR's comment-and-restore mechanism\textemdash{}if both MORPH and SEDAR ultimately feed compatible seeds to GRIFFIN, what is the exact difference in their post-mutation handling? Do seeds repaired by MORPH produce semantically equivalent mutated queries, whereas SEDAR's approach loses that equivalence? If not, what is the claimed advantage?
+ We have also extended the related work in Section~VI (Related Work) with SQLRight, sqllogictest, and seed-selection techniques. SQLRight performs coverage-guided DBMS fuzzing for logic bugs, whereas \tool{} constructs initial seeds for DBMS fuzzers. sqllogictest validates query results across database engines with a shared test format, whereas \tool{} transfers test cases into seeds for coverage-guided fuzzing. Seed-selection and scheduling techniques, such as corpus minimization and power schedules (e.g., AFLFast), choose or prioritize seeds within an existing corpus, whereas \tool{} constructs the initial corpus for target DBMSs that lack one; the two directions are therefore orthogonal and can be combined.
  
- \reply
--We have clarified in Section~IV (Evaluation) that \tool{} performs pre-migration repair to make seeds parser-compatible, whereas \sedar{} defers some compatibility handling until after mutation. Neither strategy guarantees semantic equivalence after mutation. On 100 sampled MySQL-to-DuckDB test cases, \tool{} achieves higher result and state equivalence than \sedar{} (52.0\%/74.0\% vs. 38.0\%/69.0\%). Details can be found in \questionref{1.1}. We have also sampled the same 300 translated seeds and applied the respective mutation handling of \tool{} and \sedar{} with \griffin{} for 24 hours. \tool{} finds 27.2\%, 15.5\%, 4.0\%, and 9.4\% more branches than \sedar{} on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
-+We have clarified in Section~IV (Evaluation) that \tool{} performs pre-migration repair to make seeds parser-compatible, whereas \sedar{} defers some compatibility handling until after mutation. Neither strategy guarantees semantic equivalence after mutation. On 100 sampled MySQL-to-DuckDB test cases, \tool{} achieves higher result and state equivalence than \sedar{} (52.0\%/74.0\% vs. 38.0\%/69.0\%). Details can be found in \metareviewref{1}. We have also sampled the same 300 translated seeds and applied the respective mutation handling of \tool{} and \sedar{} with \griffin{} for 24 hours. \tool{} finds 27.2\%, 15.5\%, 4.0\%, and 9.4\% more branches than \sedar{} on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
- 
- % Source: Reviewer B, Detailed 1.
- 
-@@ -475,34 +475,34 @@ We have added the triggering test cases of all detected bugs to our anonymous \h
- \reviewcomment{3.1} The ``semantic correctness'' metric means only ``executes without runtime errors,'' not result equivalence; a seed that runs but computes something different still counts. Using ``+130-450\%'' as a headline overstates what was measured.
- 
- \reply
--We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~V. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study. Details can be found in \questionref{1.1}.
--
--\begin{center}
--\begin{minipage}{0.85\linewidth}
--\centering\scriptsize\renewcommand{\arraystretch}{1.0}
--\textbf{TABLE V: Syntactic correctness and execution validity of transferred seeds.}
--\par\smallskip
--\setlength{\tabcolsep}{3pt}
--\begin{tabular}{l|cc|cc|cc|cc}
--\toprule
--& \multicolumn{2}{c|}{\textbf{MonetDB}} & \multicolumn{2}{c|}{\textbf{Virtuoso}} & \multicolumn{2}{c|}{\textbf{DuckDB}} & \multicolumn{2}{c}{\textbf{ClickHouse}} \\
--\textbf{Method} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} \\
--\midrule
--No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
--SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
--jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
--CrackSQL & - & - & - & - & 0.740 & 0.211 & 0.717 & 0.264 \\
--RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
--\sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
--\tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\
--\midrule
--vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \\
--\bottomrule
--\end{tabular}
--\par\smallskip
--{\scriptsize\raggedright Syn./Exec.: syntactic correctness/execution validity; ``-'': unsupported dialects.\par}
--\end{minipage}
--\end{center}
-+We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~V. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. Details can be found in \metareviewref{1}.
-+
-+% \begin{center}
-+% \begin{minipage}{0.85\linewidth}
-+% \centering\scriptsize\renewcommand{\arraystretch}{1.0}
-+% \textbf{TABLE V: Syntactic correctness and execution validity of transferred seeds.}
-+% \par\smallskip
-+% \setlength{\tabcolsep}{3pt}
-+% \begin{tabular}{l|cc|cc|cc|cc}
-+% \toprule
-+% & \multicolumn{2}{c|}{\textbf{MonetDB}} & \multicolumn{2}{c|}{\textbf{Virtuoso}} & \multicolumn{2}{c|}{\textbf{DuckDB}} & \multicolumn{2}{c}{\textbf{ClickHouse}} \\
-+% \textbf{Method} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} \\
-+% \midrule
-+% No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
-+% SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
-+% jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
-+% CrackSQL & - & - & - & - & 0.740 & 0.211 & 0.717 & 0.264 \\
-+% RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
-+% \sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
-+% \tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\
-+% \midrule
-+% vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \\
-+% \bottomrule
-+% \end{tabular}
-+% \par\smallskip
-+% {\scriptsize\raggedright Syn./Exec.: syntactic correctness/execution validity; ``-'': unsupported dialects.\par}
-+% \end{minipage}
-+% \end{center}
- 
- % Source: Reviewer C, Weakness (unnumbered).
- \reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
-@@ -540,6 +540,6 @@ The full campaign in RQ1 runs \tool{} for seven days on each target DBMS, wherea
- \reviewcomment{3.7} I would recommed tightening the validity claims: add a small differential check on transferred seeds (do they return equivalent results on a shared dialect subset?) to back the ``semantic correctness'' framing, and lean on coverage/bug counts rather than feature-richness as the primary evidence. For RQ2, publish baseline command lines and seed corpora in the artifact; the all-zero bug rows need more transparency, and SQLRight belongs in the comparison.
- 
- \reply
--We have revised the paper following these suggestions. (1) \textit{Differential check:} we have renamed ``Semantic Correctness'' to ``Execution Validity'' and added a sampled source-to-target result and state equivalence study (\questionref{1.1}). (2) \textit{Primary evidence:} our main claims rely on branch coverage and bug counts in RQ1 and RQ2, and the feature richness in RQ3 is presented as supplementary evidence of the testing value of transferred seeds. (3) \textit{Baseline transparency:} we have documented the configurations, seed corpora, and command lines of the RQ2 baselines, included them in our artifact, and explained the zero-bug results (\commentref{3.2}). (4) \textit{SQLRight:} we have added SQLRight to the RQ2 comparison (\commentref{3.4}).
-+We have revised the paper following these suggestions. (1) \textit{Differential check:} we have renamed ``Semantic Correctness'' to ``Execution Validity'' and added a sampled source-to-target result and state equivalence study (52.0\%/74.0\% for \tool{} vs. 38.0\%/69.0\% for \sedar{}; \metareviewref{1}). (2) \textit{Primary evidence:} our main claims rely on branch coverage and bug counts in RQ1 and RQ2, and the feature richness in RQ3 is presented as supplementary evidence of the testing value of transferred seeds. (3) \textit{Baseline transparency:} we have documented the configurations, seed corpora, and command lines of the RQ2 baselines, included them in our artifact, and explained the zero-bug results (\commentref{3.2}). (4) \textit{SQLRight:} we have added SQLRight to the RQ2 comparison (\commentref{3.4}).
- 
- \end{document}
