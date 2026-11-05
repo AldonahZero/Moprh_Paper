@@ -389,7 +389,15 @@ We have revised the characterization of \sedar{} in Sections~I (Introduction), I
 We have added a controlled comparison in Section~IV (Evaluation) to evaluate the two mutation-handling strategies. For each of the four target DBMSs, we applied both strategies to the same 300 translated seeds and ran \griffin{} for 24 hours in five independent repetitions. Compared with \sedar{}'s strategy, \tool{}'s strategy achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
 
 % Source: Reviewer B, Detailed 4.
-\reviewcomment{2.4} \textbf{Questionable classification in Table I.} 
+\reviewcomment{2.4} \textbf{Questionable classification in Table I.} The classification of SQLGlot and jOOQ as entirely lacking ``Test Case Migration'' and ``Cross-stmt Deps.'' support is overly absolute. In practice:
+
+SQLGlot can parse and transpile multi-statement SQL scripts.
+
+JOOQ's SQL Interpreter can maintain schema metadata across DDL and subsequent DML statements.
+
+Conversely, CrackSQL is marked as supporting DML, but this is not sufficiently validated by the paper or external references.
+
+The authors should: (a) clearly define what \cmark{}, \partmark{}, and \xmark{} mean for each cell with specific criteria, (b) provide evidence for each classification (e.g., cite documentation or experimental verification), and (c) revise the table entries accordingly to avoid overclaiming.
 
 \reply
 We acknowledge SQLGlot's multi-statement transpilation, jOOQ's schema metadata tracking, CrackSQL's DML support, and \sedar{}'s source-side handling of multi-statement dependencies. We have clarified the criteria for the three symbols in Table~I in Section~II (Background and Motivation) and revised the entries accordingly. SQLGlot's \textit{Test Case Migration}, jOOQ's \textit{Cross-stmt.\ Deps.}, and \sedar{}'s \textit{Cross-stmt.\ Deps.} entries are now marked as \partmark{}, while CrackSQL's \textit{DML} entry is marked as \cmark{}.
