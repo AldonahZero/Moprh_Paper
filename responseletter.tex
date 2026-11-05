@@ -340,12 +340,31 @@ ClickHouse & 35,967 & \textbf{67,798} & 41,478 & \textbf{79,806} & 55,852 & \tex
 We have clarified in Section~IV (Evaluation) that \tool{} performs pre-migration repair to make seeds parser-compatible, whereas \sedar{} defers some compatibility handling until after mutation. Neither strategy guarantees semantic equivalence after mutation. On 100 sampled MySQL-to-DuckDB test cases, \tool{} achieves higher result and state equivalence than \sedar{} (52.0\%/74.0\% vs. 38.0\%/69.0\%). Details can be found in \questionref{1.1}. We have also sampled the same 300 translated seeds and applied the respective mutation handling of \tool{} and \sedar{} with \griffin{} for 24 hours. \tool{} finds 27.2\%, 15.5\%, 4.0\%, and 9.4\% more branches than \sedar{} on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
 
 % Source: Reviewer B, Detailed 1.
+\Needspace{9\baselineskip}
 \reviewcomment{2.1} \textbf{Contribution of AQT and compositional baselines.} The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). More importantly, the evaluation lacks compositional baselines such as ``existing SQL translator + SEDAR/GRIFFIN'' or ``AST-based translation + GRIFFIN''.
 
 \reply
-We have clarified what the AQT contributes beyond existing SQL representations and translation systems in Sections~II (Background and Motivation), III (Approach), and VI (Related Work). Details can be found in \metareviewref{2}.
+We have clarified in Sections~II (Background and Motivation), III (Approach), and VI (Related Work) that AQT's novelty lies in \textit{jointly modeling cross-statement dependencies and cumulative schema/type context for coordinated translation/repair}. Unlike statement-level representations (e.g., SQLGlot's AST), which primarily represent individual SQL statements, AQT models the evolving state of an entire test sequence; unlike query-level translation systems (e.g., CrackSQL/RISE/QTRAN), AQT uses preceding statements to guide the translation/repair of subsequent statements.
 
-We have also added compositional baselines on DuckDB in Section~IV (Evaluation), which pair different translators with the same downstream fuzzer (\griffin{}). All configurations transfer the same source test cases and run for 24 hours in five independent runs. \tool{} covers 33.6\%, 16.7\%, and 26.1\% more branches than SQLGlot+\griffin{}, RISE+\griffin{}, and \sedar{}+\griffin{}, respectively, and detects 3, 3, and 2 more bugs. On all four target DBMSs, \tool{} also outperforms \sedar{}+\griffin{}, i.e., the \sedar{} configuration in RQ2 (Table~III and Table~IV).
+We have further paired different translators with the same downstream fuzzer (i.e., \griffin{}) for 24 hours on DuckDB in Section~IV (Evaluation). \tool{} finds 33.6\%, 16.7\%, and 26.1\% more branches and 3, 3, and 2 more bugs than SQLGlot+\griffin{}, RISE+\griffin{}, and \sedar{}+\griffin{}, respectively, demonstrating the effectiveness of \tool{}'s translation approach.
+
+\begin{center}
+\begin{minipage}{0.6\linewidth}
+\centering\scriptsize\renewcommand{\arraystretch}{1.0}
+\textbf{Compositional baselines on DuckDB (24h).}
+\par\smallskip
+\begin{tabular}{lrr}
+\toprule
+Method & Branch Coverage & Unique Bugs \\
+\midrule
+SQLGlot + \griffin{} & 108,385 & 0 \\
+RISE + \griffin{} & 124,147 & 0 \\
+\sedar{} + \griffin{} & 114,876 & 1 \\
+\tool{} + \griffin{} & 144,822 & 3 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
 
 % Source: Reviewer B, Detailed 2.
 \reviewcomment{2.2} \textbf{Incomplete discussion of closely related work.} SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
