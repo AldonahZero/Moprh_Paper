@@ -57,6 +57,7 @@
 \newcommand{\commentref}[1]{\hyperref[comment:#1]{\uline{the reply to \textbf{Comment~\ref*{comment:#1}}}}}
 \newcommand{\questionref}[1]{\hyperref[question:#1]{\uline{the reply to \textbf{Question~\ref*{question:#1}}}}}
 \newcommand{\cellchg}[2]{{\color{red}\sout{#1}}\,{\color{blue}\uwave{#2}}}
+\newcommand{\celladd}[1]{{\color{blue}\uwave{#1}}}
 \newcommand{\reply}{\par\nobreak\noindent\textbf{Reply:}\ }
 
 \begin{document}
@@ -449,12 +450,12 @@ We have clarified the translation overhead of \tool{} in Section~V (Discussion).
 \par\smallskip
 \begin{tabular}{lrrrr}
 \toprule
-Model & Syn. & Exec. & Cost/TS (\$) & Time/TS (s) \\
+Model & Syn. & \cellchg{Sem.}{Exec.} & Cost/TS \celladd{(\$)} & Time/TS \celladd{(s)} \\
 \midrule
 Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
 GPT-3.5-Turbo & 0.890 & 0.533 & 0.015 & 208.66 \\
 DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
-Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
+Qwen3.5-27B\celladd{$^*$} & 0.971 & 0.852 & 0.119 & 1395.6 \\
 \bottomrule
 \end{tabular}
 \par\smallskip
