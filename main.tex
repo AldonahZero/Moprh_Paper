@@ -408,10 +408,10 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
   \label{fig:workflow}
 \end{figure*}
 
-\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a test case transferred by \sedar{} from \pg{} to \duckdb{}, which contains dialect-specific features such as the \texttt{TO\_DATE} function and its format string.
+\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a test case transferred by \sedar{} from \pg{} to \duckdb{}, which contains dialect-specific features such as \texttt{TO\_DATE} and its format string.
 In this example, the LLM retains \texttt{TO\_DATE} in the translated predicate.
 To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment and replaces the predicate with \texttt{TRUE} during mutation, then restores the fragment before execution.
-Since the restored fragment still contains the translation error, the mutated test case fails on \duckdb{}.
+Since the restored fragment still contains \texttt{TO\_DATE}, the mutated test case fails on \duckdb{}.
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
