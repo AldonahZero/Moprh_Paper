@@ -545,7 +545,7 @@ $\mathcal{H} \leftarrow \textsc{SHA256}(\bigoplus_i \textsc{Skeleton}(\mathcal{U
     \label{fig:aqt_trans}
 \end{figure}
 
-For example, Figure~\ref{fig:aqt_trans} shows one statement from a source SQL test case containing a nested subquery, where the outer query filters records using an interval computation, e.g., ``\texttt{SELECT ... WHERE u.created\_at} \textgreater \texttt{(SELECT AGE(...) FROM ...)}''.
+For example, Figure~\ref{fig:aqt_trans} shows one statement from a source SQL test case containing a nested subquery, where the subquery filters records using an interval computation, e.g., ``\texttt{SELECT ... WHERE u.created\_at} \textgreater \texttt{(SELECT MIN(ts) FROM logs WHERE EXTRACT(YEAR FROM AGE(ts))::INT >= 1)}''.
 The statement is first parsed into an AST, and structural boundaries are identified during recursive traversal. 
 The \texttt{SUBQUERY} root node is recognized as a boundary, decomposing the query into an outer block (ID 1) and an inner subquery (ID 2).
 The abstraction engine then applies rules $\mathcal{R}$ to normalize dialect-specific constructs, mapping \texttt{AGE(...)}, \texttt{::INT}, and \texttt{MIN(.)} into $<$TimeDiff$>$, $<$TypeCast$>$, and $<$AggMin$>$.
@@ -610,7 +610,7 @@ a method that coordinates three specialized skills under the target-dialect cons
 
 % SQL Translator：负责 token->方言实例化，靠 Vector Index 的函数签名落地（TimeDiff->date_diff 例子）。
 % \textit{SQL Translator:} This skill is responsible for token-to-dialect instantiation. It generates the target SQL fragment by integrating the input segment with function signatures retrieved from the \textit{Vector Index}. For example, when encountering $<$\texttt{TimeDiff}$>$, it maps the abstraction to the corresponding \duckdb{} \texttt{date\_diff} signature to produce a dialect-compliant expression.
-\textit{SQL Translator:} This skill instantiates a token into a dialect-compliant fragment by integrating the input segment with function signatures from the \textit{Vector Index}. For example, it maps $<$\texttt{TimeDiff}$>$ to \duckdb{}'s \texttt{date\_diff} signature.
+\textit{SQL Translator:} This skill instantiates a token into a dialect-compliant fragment by integrating the input segment with function signatures from the \textit{Vector Index}. For example, it maps $<$\texttt{TimeDiff}$>$ to \duckdb{}'s \texttt{date\_sub} signature.
 
 % Rule Generator：检索置信度低时触发，只产 candidate local rule；经 target parser 验证/修复成功后才 cache（回应 Comment2）。
 % \textit{Rule Generator:} This skill is activated when retrieval confidence for a given feature falls below a predefined threshold. It uses the LLM's zero-shot reasoning, AST context, and few-shot examples to synthesize a candidate local rule, not a committed KB entry. The candidate is applied by the SQL Translator and, if needed, repaired by the Error Fixer; it is cached in the Hybrid KB only after target-parser validation succeeds.
@@ -638,7 +638,7 @@ The three skills are grounded in a Hybrid KB with two complementary stores: the 
 % Take Figure~\ref{fig:agent_translation} as an example, the left panel shows the statement-level graph $\mathcal{G}^i$, where the root segment $id_1$ depends on the nested segment $id_2$; therefore, the planner first performs a topological sort and obtains the execution order $Order=[id_2 \rightarrow id_1]$.
 % In the center panel, \tool{} first instantiates $id_2$ by concretizing its abstract tokens, including mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)} form, and validates this subquery fragment with parser feedback until it succeeds.
 % It then substitutes this validated $id_2$ fragment into $id_1$ and instantiates the outer predicate by mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}. The right panel shows the resulting \textit{Compatible Seed}, preserving the nested time-window logic.
-As shown in Figure~\ref{fig:agent_translation}, since \texttt{ID1} depends on the nested segment \texttt{ID2} (\textit{Order}=$[\mathtt{ID2} \rightarrow \mathtt{ID1}]$), \tool{} first instantiates subquery \texttt{ID2} by mapping \texttt{<AggMin>} to \texttt{MIN(..)} and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)}, and validates it via parser feedback. It then substitutes the validated fragment into the outer predicate of \texttt{ID1}, mapping $<$\texttt{TimeDiff}$>$ to DuckDB's \texttt{date\_diff}, yielding a \textit{Compatible Seed} that preserves the nested time-window logic.
+As shown in Figure~\ref{fig:agent_translation}, since \texttt{ID1} depends on the nested segment \texttt{ID2} (\textit{Order}=$[\mathtt{ID2} \rightarrow \mathtt{ID1}]$), \tool{} first instantiates subquery \texttt{ID2} by mapping \texttt{<AggMin>} to \texttt{MIN(..)}, $<$\texttt{TimeDiff}$>$ to \duckdb{}'s \texttt{date\_sub}, and \texttt{<TypeCast>} to a dialect-valid \texttt{CAST(.. AS ..)}, and validates it via parser feedback. It then substitutes the validated fragment into the outer predicate of \texttt{ID1}, yielding a \textit{Compatible Seed} that preserves the nested time-window logic.
 
 \begin{figure}[htbp]
     \centering
