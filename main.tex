@@ -1141,7 +1141,7 @@ Thus, the dependency graph provides a compact, dependency-relevant context.
 \begin{table}[!t]
 \centering
 \footnotesize
-\caption{Dependency-graph ablation across all source-target pairs. Preds: predecessors per statement; Rel.: dependency-relevant predecessors; Tokens: input tokens per statement.}
+\caption{Dependency-graph ablation across all source-target pairs.}
 \label{tab:ablation_depgraph}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
@@ -1154,6 +1154,9 @@ $\tool{}_{\textit{all}}$     & 0.643 & 27.95 & 4.2   & 1,842.3 \\
 $\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
 \bottomrule
 \end{tabular*}
+\par\smallskip
+\parbox{\columnwidth}{\scriptsize\raggedright
+Preds: predecessors per statement; Rel.: dependency-relevant predecessors; \mbox{Tokens: input tokens per statement.}}
 \end{table}
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
