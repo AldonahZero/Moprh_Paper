@@ -1,13 +1,122 @@
 diff --git a/responseletter.tex b/responseletter.tex
-index 0a6928a..b915382 100644
+index b915382..d4d4944 100644
 --- a/responseletter.tex
 +++ b/responseletter.tex
-@@ -520,7 +520,7 @@ We have revised the text in Section~IV (Evaluation) to state that, in the SQLite
- \reviewcomment{3.4} Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
+@@ -116,8 +116,10 @@ We have revised Sections~I (Introduction), II (Background and Motivation), III (
+ \reply
+ We have clarified how \tool{} differs from SmartFuzz in Section~VI (Related Work), and we have extended the comparison in Section~IV (Evaluation). In terms of goal, SmartFuzz generates new DBMS-specific seeds, whereas \tool{} transfers existing test cases across DBMSs. In terms of methodology, SmartFuzz leverages official DBMS documentation and historical bug-triggering inputs, whereas \tool{} uses cross-statement dependencies and cumulative schema and type context for translation and repair.
+ 
+-To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. As shown in Table~III, Table~IV, and Figure~7 below, \tool{} covers 7\% more branches and detects 5 more bugs than SmartFuzz. On Virtuoso, whose dialect differs most from the source DBMSs (the lowest execution validity of \tool{} in Table~V), SmartFuzz achieves slightly higher coverage, likely because it generates seeds directly from the official documentation of the target DBMS.
++To compare them under the same setting, we use the seeds released by SmartFuzz and run them with \griffin{} on all four target DBMSs, with the same DBMS versions, resource allocation, campaign duration, and coverage measurement as the other tools in RQ2. As shown in Figure~7 and Table~III below, \tool{} covers 7\% more branches and detects 5 more bugs than SmartFuzz. On Virtuoso, whose dialect differs most from the source DBMSs (the lowest execution validity of \tool{} in Table~IV), SmartFuzz achieves slightly higher coverage, likely because it generates seeds directly from the official documentation of the target DBMS.
+ 
++% TABLE III (coverage) commented out: duplicates Figure 7.
++\iffalse
+ \begin{center}
+ \begin{minipage}{0.92\linewidth}
+ \centering\scriptsize\renewcommand{\arraystretch}{1.0}\setlength{\tabcolsep}{3pt}
+@@ -139,6 +141,7 @@ Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparro
+ \par\smallskip{\scriptsize\raggedright * Calculated only for commonly supported DBMSs.\par}
+ \end{minipage}
+ \end{center}
++\fi
+ 
+ \begin{center}
+ \includegraphics[width=0.6\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
+@@ -149,7 +152,7 @@ Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparro
+ \begin{center}
+ \begin{minipage}{0.92\linewidth}
+ \centering\scriptsize\renewcommand{\arraystretch}{1.0}\setlength{\tabcolsep}{3pt}
+-\textbf{TABLE IV: Number of bugs detected by different tools (24h).}
++\textbf{TABLE III: Number of bugs detected by different tools (24h).}
+ \par\smallskip
+ \begin{tabular}{lccccccc}
+ \toprule
+@@ -194,7 +197,7 @@ To isolate this benefit, we have added an ablation study in Section~IV (Evaluati
+ \begin{center}
+ \begin{minipage}{0.72\linewidth}
+ \centering\scriptsize\renewcommand{\arraystretch}{1.0}
+-\textbf{TABLE VII: Contribution of the dependency graph to context selection across all source-target pairs.}
++\textbf{TABLE VI: Contribution of the dependency graph to context selection across all source-target pairs.}
+ \par\smallskip
+ \begin{tabular}{lcccc}
+ \toprule
+@@ -271,7 +274,7 @@ We have clarified in Section~IV (Evaluation) that our experiments use the \sedar
+ \reviewcomment{1.9} The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
  
  \reply
--We have added SQLRight as a baseline in RQ2. Since SQLRight officially supports only SQLite, PostgreSQL, and MySQL, we have adapted it to the four target DBMSs while keeping its AFL-based queue scheduling, AST-based mutator, and oracle framework, and we have included the adaptation code in our \href{https://anonymous.4open.science/r/MorphArtifact-8E44/}{artifact}. The results can be found in \metareviewref{3}.
-+We have added SQLRight as a baseline in RQ2. Since SQLRight officially supports only SQLite, PostgreSQL, and MySQL, we have adapted it to the four target DBMSs while keeping its AFL-based queue scheduling, AST-based mutator, and oracle framework, and we have included the adaptation code in our \href{https://anonymous.4open.science/r/MorphArtifact-8E44/}{artifact}. Across the four target DBMSs, \tool{} covers 518\% more branches than SQLRight and detects 22 more bugs. Details can be found in \metareviewref{3}.
+-We have reported the variability of the coverage results in Section~IV (Evaluation). The coverage in Table~III is averaged over five independent runs. For \tool{}, the variance is $5.4\times10^{6}$, the standard deviation is 2,324, and the 95\% confidence interval is $\pm2,900$. Figure~7 below displays the means and the 95\% confidence intervals of the five runs. We have also clarified that the reported bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification. The 8\%--39\% coverage gains from enabling the feedback-driven sanitizer in Table~VIII (Table~VII in the original submission) are statistically significant ($p<0.05$).
++We have reported the variability of the coverage results in Section~IV (Evaluation). The coverage results in Section~IV (Evaluation) are averaged over five independent runs. For \tool{}, the variance is $5.4\times10^{6}$, the standard deviation is 2,324, and the 95\% confidence interval is $\pm2,900$. Figure~7 below displays the means and the 95\% confidence intervals of the five runs. We have also clarified that the reported bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification. The 8\%--39\% coverage gains from enabling the feedback-driven sanitizer in Table~VII are statistically significant ($p<0.05$).
  
- We have also extended the related work in Section~VI (Related Work) with SQLRight, sqllogictest, and seed-selection techniques. SQLRight performs coverage-guided DBMS fuzzing for logic bugs, whereas \tool{} constructs initial seeds for DBMS fuzzers. sqllogictest validates query results across database engines with a shared test format, whereas \tool{} transfers test cases into seeds for coverage-guided fuzzing. Seed-selection and scheduling techniques, such as corpus minimization and power schedules (e.g., AFLFast), choose or prioritize seeds within an existing corpus, whereas \tool{} constructs the initial corpus for target DBMSs that lack one; the two directions are therefore orthogonal and can be combined.
+ \begin{center}
+ \includegraphics[width=0.6\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
+@@ -283,13 +286,13 @@ We have reported the variability of the coverage results in Section~IV (Evaluati
+ \reviewcomment{1.10} The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
  
+ \reply
+-We have reported in Section~IV (Evaluation) that the full campaign in RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 compares fuzzing tools in five independent 24-hour runs and reports the union of unique bugs across these runs. We have also added the units to the column headers of Table~IX (Table~VIII in the original submission), i.e., Cost/TS (\$) and Time/TS (s), and we have reported in Section~V (Discussion) that processing all test files with Gemini 2.5-Flash-Lite costs \$96 in total.
++We have reported in Section~IV (Evaluation) that the full campaign in RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 compares fuzzing tools in five independent 24-hour runs and reports the union of unique bugs across these runs. We have also added the units to the column headers of Table~VIII, i.e., Cost/TS (\$) and Time/TS (s), and we have reported in Section~V (Discussion) that processing all test files with Gemini 2.5-Flash-Lite costs \$96 in total.
+ 
+ % Source: Reviewer A, Detailed 4 (paragraph 6).
+ \reviewcomment{1.11} Finally, the component ablation is performed only for PostgreSQL-to-DuckDB transfer. Extending at least the most important ablation, particularly context propagation, to additional source-target pairs would strengthen the generality of the findings.
+ 
+ \reply
+-We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQL}-to-DuckDB transfer to all source-target pairs used in RQ3, and have updated the corresponding figure and tables in Section~IV (Evaluation). Across these pairs, $\tool{}_{\textit{abs}}$ improves syntactic correctness from 43.1\% to 73.6\%, $\tool{}_{\textit{rag}}$ improves execution validity from 35.2\% to 65.5\%, and $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (87.1\%) and execution validity (71.6\%) (Figure~8). In particular, across these pairs, disabling target-side context propagation reduces execution validity from 0.716 to 0.523 (Table~VII). The same table also reports the dependency-graph ablation. Details can be found in \questionref{1.2}.
++We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQL}-to-DuckDB transfer to all source-target pairs used in RQ3, and have updated the corresponding figure and tables in Section~IV (Evaluation). Across these pairs, $\tool{}_{\textit{abs}}$ improves syntactic correctness from 43.1\% to 73.6\%, $\tool{}_{\textit{rag}}$ improves execution validity from 35.2\% to 65.5\%, and $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (87.1\%) and execution validity (71.6\%) (Figure~8). In particular, across these pairs, disabling target-side context propagation reduces execution validity from 0.716 to 0.523 (Table~VI). The same table also reports the dependency-graph ablation. Details can be found in \questionref{1.2}.
+ 
+ \begin{center}
+ \includegraphics[width=0.5\linewidth]{media/ablation_combined_analysis.pdf}
+@@ -303,7 +306,7 @@ We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQ
+ For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
+ 
+ \reply
+-We have documented these details in the revised paper. (1) \textit{Baseline adaptations:} Section~IV (Evaluation) describes the dialect knowledge used by each baseline and how statement-level translators are applied to complete test cases (\commentref{1.7}). (2) \textit{Source-target test allocation:} the experimental setup reports that all methods transfer the same collected test files and use the same number of initial seeds for each target DBMS, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. (3) \textit{Repeated-run aggregation:} coverage is averaged over five independent runs, Figure~7 displays the means and the 95\% confidence intervals, and bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification (\commentref{1.9}). (4) \textit{Full campaign duration:} RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 consists of five independent 24-hour runs (\commentref{1.10}). (5) \textit{Validation of generated rules:} Section~V (Discussion) now describes that the generated rules are applied to translated test cases and checked for errors, and that rules producing incorrect translations are manually inspected and corrected, which accounts for the 136 corrected rules in Table~X.
++We have documented these details in the revised paper. (1) \textit{Baseline adaptations:} Section~IV (Evaluation) describes the dialect knowledge used by each baseline and how statement-level translators are applied to complete test cases (\commentref{1.7}). (2) \textit{Source-target test allocation:} the experimental setup reports that all methods transfer the same collected test files and use the same number of initial seeds for each target DBMS, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. (3) \textit{Repeated-run aggregation:} coverage is averaged over five independent runs, Figure~7 displays the means and the 95\% confidence intervals, and bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification (\commentref{1.9}). (4) \textit{Full campaign duration:} RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 consists of five independent 24-hour runs (\commentref{1.10}). (5) \textit{Validation of generated rules:} Section~V (Discussion) now describes that the generated rules are applied to translated test cases and checked for errors, and that rules producing incorrect translations are manually inspected and corrected, which accounts for the 136 corrected rules in Table~IX.
+ 
+ \section*{Replies to Reviewer B}
+ 
+@@ -441,12 +444,12 @@ We have conducted an experiment where seed counts are equalized in Section~IV (E
+     The authors should: (a) clearly define the units for cost and time, (b) report the average number of statements per test suite, (c) report per-seed translation time and cost, and (d) compare these overhead metrics against SEDAR and other baselines to demonstrate the practical feasibility of MORPH in real-world deployment.
+ 
+ \reply
+-We have clarified the translation overhead of \tool{} in Section~V (Discussion). (a) We have added the units to the column headers of Table~IX (Table~VIII in the original submission), i.e., Cost/TS (\$) and Time/TS (s); details can be found in \commentref{1.10}. (b) We have reported that each test suite contains 65.1 statements on average. (c) Across the four target DBMSs, \tool{} takes 219 seconds and \$0.004 per seed on average, and processing all test files costs \$96 in total. (d) Under the same setting, \sedar{} takes 146 seconds and \$0.006 per seed, with a total cost of \$144. Thus, \tool{} costs less than \sedar{} but takes longer per seed, since it performs additional instantiation and repair iterations. Because seed transfer is a one-time offline step and the resulting seeds can be reused across fuzzing campaigns, this overhead is acceptable in practice.
++We have clarified the translation overhead of \tool{} in Section~V (Discussion). (a) We have added the units to the column headers of Table~VIII, i.e., Cost/TS (\$) and Time/TS (s); details can be found in \commentref{1.10}. (b) We have reported that each test suite contains 65.1 statements on average. (c) Across the four target DBMSs, \tool{} takes 219 seconds and \$0.004 per seed on average, and processing all test files costs \$96 in total. (d) Under the same setting, \sedar{} takes 146 seconds and \$0.006 per seed, with a total cost of \$144. Thus, \tool{} costs less than \sedar{} but takes longer per seed, since it performs additional instantiation and repair iterations. Because seed transfer is a one-time offline step and the resulting seeds can be reused across fuzzing campaigns, this overhead is acceptable in practice.
+ 
+ \begin{center}
+ \begin{minipage}{0.72\linewidth}
+ \centering\scriptsize\renewcommand{\arraystretch}{1.0}
+-\textbf{TABLE IX: LLM comparison. Syn.: syntactic correctness; Exec.: execution validity; TS: Test Suite.}
++\textbf{TABLE VIII: LLM comparison. Syn.: syntactic correctness; Exec.: execution validity; TS: Test Suite.}
+ \par\smallskip
+ \begin{tabular}{lrrrr}
+ \toprule
+@@ -475,12 +478,12 @@ We have added the triggering test cases of all detected bugs to our anonymous \h
+ \reviewcomment{3.1} The ``semantic correctness'' metric means only ``executes without runtime errors,'' not result equivalence; a seed that runs but computes something different still counts. Using ``+130-450\%'' as a headline overstates what was measured.
+ 
+ \reply
+-We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~V. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. Details can be found in \metareviewref{1}.
++We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~IV. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. Details can be found in \metareviewref{1}.
+ 
+ \begin{center}
+ \begin{minipage}{0.85\linewidth}
+ \centering\scriptsize\renewcommand{\arraystretch}{1.0}
+-\textbf{TABLE V: Syntactic correctness and execution validity of transferred seeds.}
++\textbf{TABLE IV: Syntactic correctness and execution validity of transferred seeds.}
+ \par\smallskip
+ \setlength{\tabcolsep}{3pt}
+ \begin{tabular}{l|cc|cc|cc|cc}
+@@ -508,13 +511,13 @@ vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \
+ \reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
+ 
+ \reply
+-We have documented the configuration of the RQ2 baselines in Section~IV (Evaluation). For \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, and we have included them in our artifact. The zero-bug results reflect that previously reported bugs were fixed in the newer DBMS versions, with no new bugs found. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as noted in the footnote of Table~III.
++We have documented the configuration of the RQ2 baselines in Section~IV (Evaluation). For \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{}, we use the default configurations, seed corpora, and command lines from their official repositories, and we have included them in our artifact. The zero-bug results reflect that previously reported bugs were fixed in the newer DBMS versions, with no new bugs found. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as stated in Section~IV (Evaluation).
+ 
+ % Source: Reviewer C, Weakness (unnumbered).
+ \reviewcomment{3.3} Numeric inconsistency: the text claims RISE transfer improved semantic correctness ``from 0.314 to 0.776,'' but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.
+ 
+ \reply
+-We have revised the text in Section~IV (Evaluation) to state that, in the SQLite-to-DuckDB setting, \tool{} improves execution validity from 0.314 (RISE) to 0.748, consistent with Table~V. We have also checked the other numbers reported in Section~IV (Evaluation) against Table~V.
++We have revised the text in Section~IV (Evaluation) to state that, in the SQLite-to-DuckDB setting, \tool{} improves execution validity from 0.314 (RISE) to 0.748, consistent with Table~IV. We have also checked the other numbers reported in Section~IV (Evaluation) against Table~IV.
+ 
+ % Source: Reviewer C, Weakness (unnumbered).
+ \reviewcomment{3.4} Missing related work: SQLRight (USENIX Sec 2022) absent from RQ2; sqllogictest is never discussed; classic seed-selection literature ignored.
