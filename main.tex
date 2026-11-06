@@ -387,7 +387,7 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{media/motivating_rc1.pdf}
-  \caption{Motivating example observed when running \sedar{} on a \pg{} seed (Left): the incompatible fragment is commented out during mutation and restored before execution, leaving the translation error unrepaired. \tool{} abstracts the dialect-specific logic via AQT and instantiates it in the target dialect (Right).}
+  \caption{Motivating example of running \sedar{} on a \pg{} seed (Left): the incompatible fragment is commented out during mutation and restored before execution, leaving the translation error unrepaired. \tool{} abstracts dialect-specific logic via AQT and instantiates it in the target dialect (Right).}
   \label{fig:motivation}
 \end{figure}
 
@@ -986,7 +986,7 @@ When the translated outputs are used as initial seeds for fuzzing, \tool{} furth
 % Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
 
 Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher execution validity across the tested DBMSs.
-As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low execution-validity scores stem from limited support for explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the absence of translated target-side context across statements in \sedar{}, which can break type or reference consistency when target-side schema changes are not propagated to subsequent statements.
+As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low execution-validity scores stem from limited support for explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the absence of translated target-side context across statements in \sedar{}, which can break type or reference consistency when target-side schema changes are not propagated.
 These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability.
 % and executability.
 
