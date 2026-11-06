@@ -1138,7 +1138,7 @@ To isolate the dependency graph from context propagation, we compare $\tool{}_{\
 As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.716 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
 Thus, the dependency graph provides a compact, dependency-relevant context.
 
-\begin{table}[!ht]
+\begin{table}[!t]
 \centering
 \footnotesize
 \caption{Dependency-graph ablation across all source-target pairs. Preds: predecessors per statement; Rel.: dependency-relevant predecessors; Tokens: input tokens per statement.}
@@ -1163,25 +1163,6 @@ Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more bran
 When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
 In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and be used for fuzzers to explore more state space of target DBMSs.
 
-\begin{table}[!b]
-\centering
-\footnotesize
-\caption{Sanitizer ablation on branch coverage (24h).}
-\label{tab:ablation_sanitizer}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
-\toprule
-\textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
-\midrule
-MonetDB    & 67,620 & \textbf{81,486}  & \textbf{+21\%} \\
-Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
-DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
-ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
-\bottomrule
-\end{tabular*}
-\vspace{-0.8em}
-\end{table}
-
 
 % To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
 % Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
@@ -1199,6 +1180,25 @@ The dependency graph achieves the highest execution validity with 72.3\% fewer i
 % cumulative
 Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
 \end{answerbox}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Sanitizer ablation on branch coverage (24h).}
+\label{tab:ablation_sanitizer}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+\textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
+\midrule
+MonetDB    & 67,620 & \textbf{81,486}  & \textbf{+21\%} \\
+Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
+DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
+ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
+\bottomrule
+\end{tabular*}
+\vspace{-0.8em}
+\end{table}
 
 \section{Discussion}
 \label{sec:discussion}
@@ -1225,7 +1225,7 @@ Based on these results, we set $T=0.2$ for all experiments to ensure both reliab
 % This indicates that lower temperature settings help the model produce more deterministic outputs while still maintaining semantic correctness. 
 % Based on this analysis, we adopt T=0.2 for all experiments to balance reliability and flexibility, ensuring that the translated queries remain both valid and reproducible across runs.
 
-\begin{table}[!t]
+\begin{table}[!b]
 \centering
 \small
 \caption{LLM comparison. Syn.: syntactic correctness; Exec.: execution validity; TS: Test Suite.}
