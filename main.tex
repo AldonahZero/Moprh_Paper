@@ -351,7 +351,7 @@ However, while mature DBMSs such as PostgreSQL provide rich test suites, many em
 \textbf{Cross-Dialect Seed Transfer.} To address seed scarcity for emerging DBMS testing, cross-DBMS SQL transfer has emerged as an active research direction~\cite{zhou2020database}, but this is challenging due to SQL dialect differences.
 As shown in Table~\ref{tab:translation-capability}, existing tools provide limited support for preserving cross-statement dependencies during test-case-level transfer for fuzzing.
 Specifically, existing SQL translation techniques~\cite{sqlglot, jooq} primarily focus on statement-level translation. In contrast, fuzzing seeds are multi-statement test cases that include complex interactions among DDL, DML, and DQL statements.
-\sedar{}~\cite{fu2024sedar} transfers complete test cases, but it does not maintain translated target-side context across statements. \tool{} instead explicitly represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and uses parser and execution feedback to repair transferred seeds before downstream mutation.
+\sedar{}~\cite{fu2024sedar} transfers complete test cases, but it does not maintain translated target-side context across statements. \tool{} instead represents test structures and forward read-after-write dependencies in an AQT, coordinates instantiation with evolving target-side schema and type context, and repairs seeds with parser and execution feedback before mutation.
 
 
 
@@ -380,7 +380,7 @@ Specifically, existing SQL translation techniques~\cite{sqlglot, jooq} primarily
 \textbf{Motivating Example.}
 % In the following, we illustrate with a concrete example the limitations of \sedar{} in cross-dialect seed transfer.
 % We illustrate this gap using \sedar{}, the closest existing fuzzing-oriented seed-transfer system.
-We next present a motivating example to illustrate the limitations of LLM-based fuzzing-oriented seed transfer methods such as \sedar{}.
+We next use an example to illustrate the limitations of LLM-based fuzzing-oriented seed transfer methods such as \sedar{}.
 LLM-based cross-dialect transfer methods help in the generation of initial fuzzer seeds but may introduce \textit{syntax or semantic errors} due to hallucinations.
 Moreover, many fuzzers cover only a subset of SQL grammar.
 
@@ -1154,23 +1154,8 @@ $\tool{}_{\textit{all}}$     & 0.643 & 27.95 & 4.2   & 1,842.3 \\
 $\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
 \bottomrule
 \end{tabular*}
-\vspace{-0.8em}
-\end{table}
-
-\textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
-To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
-Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign ($p<0.05$).
-% Taking \duckdb{} as an example, \tooldisfuzzer{} achieves a coverage of 118,453 branches. 
-When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
-In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and be used for fuzzers to explore more state space of target DBMSs. 
-
-
-% To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
-% Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
-% Without adaptive repair, \tooldisfuzzer{} suffers high parser-stage rejection. $\tool{}_{\textit{full}}$ repairs such errors, recovers invalid seeds, and expands fuzzing depth. 
-
-\begin{table}[!t]
-\centering
+\vspace{0.8em}
+% Table VII is placed in the same float as Table VI to avoid extra float spacing.
 \footnotesize
 \caption{Sanitizer ablation on branch coverage (24h).}
 \label{tab:ablation_sanitizer}
@@ -1187,6 +1172,20 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 \end{tabular*}
 \vspace{-0.8em}
 \end{table}
+
+\textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
+To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
+Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign ($p<0.05$).
+% Taking \duckdb{} as an example, \tooldisfuzzer{} achieves a coverage of 118,453 branches. 
+When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
+In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and be used for fuzzers to explore more state space of target DBMSs. 
+
+
+% To evaluate the component, we compare $\tool{}_{\textit{full}}$ with \tooldisfuzzer{}, which disables runtime feedback and discards seeds that fail parsing.
+% Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more branches across four DBMSs than \tooldisfuzzer{} over a 24-hour campaign. 
+% Without adaptive repair, \tooldisfuzzer{} suffers high parser-stage rejection. $\tool{}_{\textit{full}}$ repairs such errors, recovers invalid seeds, and expands fuzzing depth. 
+
+
 
 % \begin{answerbox}
 % \textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, cross-statement context propagation raises semantic correctness from 52.4\% to 65.1\%, and the sanitizer further increases branch coverage by up to 39\%.
