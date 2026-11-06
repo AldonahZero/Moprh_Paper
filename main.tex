@@ -307,7 +307,7 @@ Compared to the state-of-the-art method \sedar{}, \tool{} improves the overall e
 % - Basic Idea  AQT：把 logical intent 从 dialect-specific syntax 中抽离，再实例化到目标 DBMS。
 \textbf{SQL Dialects.} 
 \textit{Database Management Systems (DBMSs)} underpin modern data-driven applications and expose high-level declarative query languages for data interaction. Although SQL is standardized, real-world DBMSs implement diverse \textit{SQL dialects} with substantial syntactic and semantic variations.
-For example, PostgreSQL uses \texttt{AGE(timestamp)} for date arithmetic, whereas DuckDB requires \texttt{date\_diff()}. Similarly, type casting syntax varies between \texttt{::INTERVAL} in PostgreSQL and \texttt{CAST(... AS INTERVAL)} in standard SQL. 
+For example, PostgreSQL parses date strings with \texttt{TO\_DATE} and the format \texttt{\textquotesingle{}YYYY-MM-DD\textquotesingle{}}, whereas DuckDB does not provide \texttt{TO\_DATE} and instead uses \texttt{STRPTIME} with the format \texttt{\textquotesingle{}\%Y-\%m-\%d\textquotesingle{}}. 
 These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
 
 
@@ -386,7 +386,7 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth]{media/motivating_rc1.pdf}
+  \includegraphics[width=\linewidth]{media/motivating_rc1_v2.pdf}
   \caption{Motivating example of running \sedar{} on a \pg{} seed (Left): the incompatible fragment is commented out during mutation and restored before execution, leaving the translation error unrepaired. \tool{} abstracts dialect-specific logic via AQT and instantiates it in the target dialect (Right).}
   \label{fig:motivation}
 \end{figure}
@@ -408,17 +408,17 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
   \label{fig:workflow}
 \end{figure*}
 
-\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a test case transferred by \sedar{} from \pg{} to \duckdb{}, which contains dialect-specific features such as the \texttt{AGE} function and the \texttt{::INTERVAL} type cast.
-In this example, the LLM retains \texttt{AGE} in the translated predicate.
+\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a test case transferred by \sedar{} from \pg{} to \duckdb{}, which contains dialect-specific features such as the \texttt{TO\_DATE} function and its format string.
+In this example, the LLM retains \texttt{TO\_DATE} in the translated predicate.
 To satisfy the fuzzer's parser, \sedar{} temporarily comments out this fragment and replaces the predicate with \texttt{TRUE} during mutation, then restores the fragment before execution.
 Since the restored fragment still contains the translation error, the mutated test case fails on \duckdb{}.
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
-As shown in Figure~\ref{fig:motivation}, \tool{} abstracts the dialect-specific \texttt{AGE} operation into an AQT node labeled $<$\texttt{TimeDiff}$>$.
+As shown in Figure~\ref{fig:motivation}, \tool{} abstracts the dialect-specific \texttt{TO\_DATE} operation into an AQT node labeled $<$\texttt{StrToDate}$>$.
 For multi-statement test cases, it propagates target-side schema and type context in statement order and uses this context together with target-dialect information to instantiate AQT nodes.
 Parser and execution feedback guide the repair of remaining incompatibilities before mutation.
-In this example, \tool{} instantiates $<$\texttt{TimeDiff}$>$ with \texttt{date\_diff}, producing an executable seed that retains the temporal predicate.
+In this example, \tool{} instantiates $<$\texttt{StrToDate}$>$ with \texttt{STRPTIME} and converts the format string, producing an executable seed that retains the date predicate.
 \section{Approach}
 \label{sec:approach}
 % Approach 写作逻辑：

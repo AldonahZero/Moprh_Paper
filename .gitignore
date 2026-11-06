@@ -33,3 +33,4 @@ out/
 Thumbs.db
 .vscode/
 output/pdf/
+tmp/*.ttf
