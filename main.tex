@@ -693,7 +693,7 @@ For example, it removes excess brackets around \texttt{date\_diff} in Figure~\re
 % \textbf{Tiered Fallback Strategy.}
 % When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order. First, it checks the sanitization dictionary and applies an existing mapping when the unsupported construct has a known target-compatible form. Second, if no exact mapping exists, it uses RAG to retrieve candidate replacements from dialect evidence and validates the rewritten fragment with the fuzzer parser. Third, if no suitable replacement can be found, \tool{} executes the original source-side construct in the source DBMS and substitutes the returned value as a constant, preserving the surrounding query structure whenever possible. Finally, only if these structure-preserving attempts fail, \tool{} comments out the minimal offending construct. This ordering makes destructive commenting a last resort rather than the default sanitization strategy.
 When an error signal is received (e.g., ``Syntax error near SELECT''), \tool{} applies four fallbacks in order: existing sanitization mappings, RAG-retrieved replacements, source-side execution followed by constant substitution, and finally minimal commenting.
-Thus, only if the preceding three fallback stages fail does \tool{} comment out the minimal offending fragment.
+Only if the first three stages fail does \tool{} comment out the minimal offending fragment.
 Constant substitution and minimal commenting may change the behavior of transferred seeds.
 % \smallskip
 % \noindent
