@@ -1178,10 +1178,9 @@ In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full
 % \end{answerbox}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntactic correctness by 30.5\%. $\tool{}_{\textit{rag}}$ improves execution validity by 30.3\%. $\tool{}_{\textit{full}}$ improves syntactic correctness by 44.0\% and execution validity by 36.4\%.
+\textbf{Answer to RQ4:} All components contribute to \tool{}. Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation improve syntactic correctness by 30.5\% and execution validity by 30.3\%, respectively, and together by 44.0\% and 36.4\%.
 The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.
-% cumulative
-Furthermore, the \textit{Feedback-Driven Sanitizer} is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
+The \textit{Feedback-Driven Sanitizer} increases branch coverage by up to 39\%.
 \end{answerbox}
 
 \begin{table}[H]
