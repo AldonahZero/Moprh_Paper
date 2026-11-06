@@ -1086,6 +1086,27 @@ The results demonstrate that the transfer methods in \tool{} produce seeds that 
 % By eliminating semantic hallucinations and employing constructive instantiation, \tool{} ensures generated seeds are both executable and rich in testing logic.
 \end{answerbox}
 
+\begin{table}[!t]
+\centering
+\footnotesize
+\caption{Dependency-graph ablation across all source-target pairs.}
+\label{tab:ablation_depgraph}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+\textbf{Variant} & \textbf{Exec.} & \textbf{Preds} & \textbf{Rel. (\%)} & \textbf{Tokens} \\
+\midrule
+$\tool{}_{\textit{full}}$    & \textbf{0.716} & 0.47  & 100.0 & 509.6 \\
+$\tool{}_{\textit{win}}$     & 0.599 & 1.19  & 22.6  & 578.4 \\
+$\tool{}_{\textit{all}}$     & 0.643 & 27.95 & 4.2   & 1,842.3 \\
+$\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\parbox{\columnwidth}{\scriptsize\raggedright
+Preds: predecessors per statement; Rel.: dependency-relevant predecessors; \mbox{Tokens: input tokens per statement.}}
+\end{table}
+
 \subsection{RQ4: Contribution of Individual Components}
 % RQ4 写作逻辑：
 % - 目标：用 ablation 解释每个组件为什么必要，回应 reviewer 对 LLM/规则工程叠加的疑问
@@ -1138,26 +1159,8 @@ To isolate the dependency graph from context propagation, we compare $\tool{}_{\
 As shown in Table~\ref{tab:ablation_depgraph}, $\tool{}_{\textit{full}}$ achieves the highest execution validity (0.716 vs. 0.599 and 0.643) with 11.9\% and 72.3\% fewer input tokens per statement, whereas only 22.6\% and 4.2\% of the predecessors provided by $\tool{}_{\textit{win}}$ and $\tool{}_{\textit{all}}$ are dependency-relevant.
 Thus, the dependency graph provides a compact, dependency-relevant context.
 
-\begin{table}[!t]
-\centering
-\footnotesize
-\caption{Dependency-graph ablation across all source-target pairs.}
-\label{tab:ablation_depgraph}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc@{}}
-\toprule
-\textbf{Variant} & \textbf{Exec.} & \textbf{Preds} & \textbf{Rel. (\%)} & \textbf{Tokens} \\
-\midrule
-$\tool{}_{\textit{full}}$    & \textbf{0.716} & 0.47  & 100.0 & 509.6 \\
-$\tool{}_{\textit{win}}$     & 0.599 & 1.19  & 22.6  & 578.4 \\
-$\tool{}_{\textit{all}}$     & 0.643 & 27.95 & 4.2   & 1,842.3 \\
-$\tool{}_{\textit{w/o-ctx}}$ & 0.523 & 0.49  & 100.0 & 488.5 \\
-\bottomrule
-\end{tabular*}
-\par\smallskip
-\parbox{\columnwidth}{\scriptsize\raggedright
-Preds: predecessors per statement; Rel.: dependency-relevant predecessors; \mbox{Tokens: input tokens per statement.}}
-\end{table}
+
+
 
 \textbf{Contribution of Feedback-Driven Adaptive Sanitizer.}
 To evaluate the contribution of the component, we compared the full framework ($\tool{}_{\textit{full}}$) against a variant named \tooldisfuzzer{}, where the runtime feedback loop is disabled. In the static variant, generated seeds are fed directly to the fuzzer without adaptive repair; if they fail parsing, they are simply discarded.
@@ -1183,7 +1186,7 @@ The dependency graph achieves the highest execution validity with 72.3\% fewer i
 The \textit{Feedback-Driven Sanitizer} increases branch coverage by up to 39\%.
 \end{answerbox}
 
-\begin{table}[H]
+\begin{table}[!t]
 \centering
 \footnotesize
 \caption{Sanitizer ablation on branch coverage (24h).}
@@ -1199,8 +1202,9 @@ DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
 ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 \bottomrule
 \end{tabular*}
-\vspace{-0.8em}
 \end{table}
+
+
 
 \section{Discussion}
 \label{sec:discussion}
