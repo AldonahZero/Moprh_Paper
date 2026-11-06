@@ -1,25 +1,14 @@
 diff --git a/main.tex b/main.tex
-index f7532e5..540e575 100644
+index 540e575..3b82ce4 100644
 --- a/main.tex
 +++ b/main.tex
-@@ -854,6 +854,8 @@ We compared \tool{} against six state-of-the-art DBMS testing tools in 24 hours:
+@@ -852,7 +852,8 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{}
+ RQ2 evaluates \tool{}'s effectiveness by comparing it to other fuzzing tools under the same setting. 
+ We compared \tool{} against six state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \sqlright{}~\cite{sqlright} (coverage-guided logic-bug fuzzer), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), \sedar{}~\cite{fu2024sedar}, and SmartFuzz~\cite{lin2026smartfuzz} (LLM-based seed generation).
  % After fuzzing, we normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
- For \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
+-For \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
++For \sqlancer{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
++We adapt \sqlright{} to the four target DBMSs, and the adaptation code is also included in our artifact.
  After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes using stack-trace hashing followed by manual inspection for verification.
-+% Table III (coverage) is commented out: it duplicates Figure~\ref{fig:coverage_over_time}.
-+\iffalse
- \begin{table}[!t]
- \centering
- \caption{Number of branches covered by different tools (24h).}
-@@ -881,9 +883,10 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
- % \par\vspace{0.3em}
- 
- \end{table}
-+\fi
- 
- 
--As illustrated in Table~\ref{tab:coverage}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
-+As illustrated in Figure~\ref{fig:coverage_over_time}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
- This corresponds to overall improvements of 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
- Figure~\ref{fig:coverage_over_time} further shows earlier coverage growth and continued branch gains after 12 hours, while several baselines plateau sooner.
- 
+ % Table III (coverage) is commented out: it duplicates Figure~\ref{fig:coverage_over_time}.
+ \iffalse
