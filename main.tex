@@ -1248,6 +1248,7 @@ Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 % LLM 模型依赖写作逻辑：
 % - 先承认更强模型可能提高 semantic correctness。
 % - 再用 cost/time 和 GPT-3.5 结果说明主要增益来自 AQT-guided method，减弱单一模型解释。
+\looseness=-1
 \textbf{Impact of the Underlying LLM.}
 % Table~\ref{tab:llm_comparison} supports Gemini 2.5-Flash-Lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
 % We justify the selection of Gemini 2.5-Flash-Lite for \tool{} by showing the experiments on \monetdb{} with different LLMs: while Qwen3.5-27B achieves slightly higher semantic correctness (0.852), it incurs a 36$\times$ higher monetary cost and 9.5$\times$ longer migration time per test suite. Gemini presents the optimal balance of high validity (0.776 semantic rate), lowest cost, and fastest throughput, making it highly practical for large-scale seed generation tasks.
