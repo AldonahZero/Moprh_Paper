@@ -1115,14 +1115,14 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 
 \textbf{Contribution of Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation. }
 As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both components are disabled, $\tool{}_{\textit{base}}$ achieves 43.1\% syntactic correctness and 35.2\% execution validity.
-\textit{Structure-Preserving Abstraction} mainly improves syntactic correctness: $\tool{}_{\textit{abs}}$ raises it to 73.6\% (+30.5\%) by leveraging AQT to provide a more stable structural skeleton, and raises execution validity to 55.0\%.
+\textit{Structure-Preserving Abstraction} mainly improves syntactic correctness: $\tool{}_{\textit{abs}}$ raises it to 73.6\% (+30.5\%) by providing a stable AQT skeleton, and raises execution validity to 55.0\%.
 \textit{Dialect-Aware AQT Instantiation} mainly improves execution validity: $\tool{}_{\textit{rag}}$ raises it to 65.5\% (+30.3\%) by grounding generation in retrieved dialect evidence, and raises syntactic correctness to 63.9\%.
-Combining both components, $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (\textbf{87.1\%}) and execution validity (\textbf{71.6\%}).
+With both components, $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (\textbf{87.1\%}) and execution validity (\textbf{71.6\%}).
 
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
 To isolate this effect, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{w/o-ctx}}$.
 This reduces execution validity from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
-The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level executability.
+Thus, context propagation mainly improves test-case-level executability.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
 \begin{comment}
@@ -1251,7 +1251,7 @@ Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
 % Table~\ref{tab:llm_comparison} supports Gemini 2.5-Flash-Lite: Qwen3.5-27B is more semantically correct but costs 36$\times$ more and takes 9.5$\times$ longer. With GPT-3.5-Turbo, \tool{} still outperforms \sedar{} (0.890/0.533 vs. 0.781/0.388), showing that gains mainly come from the method.
 % We justify the selection of Gemini 2.5-Flash-Lite for \tool{} by showing the experiments on \monetdb{} with different LLMs: while Qwen3.5-27B achieves slightly higher semantic correctness (0.852), it incurs a 36$\times$ higher monetary cost and 9.5$\times$ longer migration time per test suite. Gemini presents the optimal balance of high validity (0.776 semantic rate), lowest cost, and fastest throughput, making it highly practical for large-scale seed generation tasks.
 % Meanwhile, this result also indirectly validates that the performance gains of \tool{} mainly stem from algorithmic design rather than using different LLMs: under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still achieves 0.89 syntactic correctness and 0.533 semantic correctness, outperforming \sedar{} (i.e., 0.781 and 0.388), indicating that the improvements are primarily driven by the proposed method rather than model capacity.
-We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher execution validity (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation. Processing all test files (65.1 statements per test suite on average) with Gemini 2.5-Flash-Lite costs \$96 in total, i.e., \$0.004 and 219 seconds per seed, compared with \$0.006 and 146 seconds per seed and a total cost of \$144 for \sedar{}.
+We justify the selection of Gemini 2.5-Flash-Lite for \tool{} using experiments on \monetdb{} with different LLMs. Although Qwen3.5-27B achieves slightly higher execution validity (0.852), it incurs 39.7$\times$ higher cost and 9.5$\times$ longer migration time. Gemini provides a better balance of accuracy (0.776), cost, and throughput, making it suitable for large-scale seed generation. Processing all test files (65.1 statements per test suite on average) with Gemini 2.5-Flash-Lite costs \$96 in total across the four target DBMSs, i.e., \$0.004 and 219 seconds per seed, compared with \$0.006 and 146 seconds per seed and a total cost of \$144 for \sedar{}.
 Under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still outperforms it in syntactic correctness (0.89 vs. 0.781) and execution validity (0.533 vs. 0.388), indicating that the gains mainly come from the proposed method rather than model capacity.
 
 % Extensibility 写作逻辑 / Reviewer B、C 修改逻辑：
