@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL MajorRevisonBack.tex   Fri Nov  6 21:07:01 2026
-%DIF ADD main.tex               Fri Nov  6 21:07:01 2026
+%DIF DEL old_aligned.tex   Sat Nov  7 12:46:05 2026
+%DIF ADD main.tex          Sat Nov  7 12:46:05 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -1705,18 +1705,19 @@ In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full
 
 
 
-%DIF >  \begin{answerbox}
-%DIF >  \textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, cross-statement context propagation raises semantic correctness from 52.4\% to 65.1\%, and the sanitizer further increases branch coverage by up to 39\%.
-%DIF >  \end{answerbox}
-\DIFaddbegin 
+% \begin{answerbox}
+% \textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, cross-statement context propagation raises semantic correctness from 52.4\% to 65.1\%, and the sanitizer further increases branch coverage by up to 39\%.
+% \end{answerbox}
 
 \begin{answerbox}
-\textbf{\DIFadd{Answer to RQ4:}} \DIFadd{All components contribute to \tool{}. Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation improve syntactic correctness by 30.5\% and execution validity by 30.3\%, respectively, and together by 44.0\% and 36.4\%.
-The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.
-The }\textit{\DIFadd{Feedback-Driven Sanitizer}} \DIFadd{increases branch coverage by up to 39\%.
-}\end{answerbox}
+\textbf{Answer to RQ4:} All components \DIFdelbegin \DIFdel{are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\% }\DIFdelend \DIFaddbegin \DIFadd{contribute to \tool{}. Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation improve syntactic correctness by 30.5\% and execution validity by 30.3\%, respectively, and together by 44.0\% and 36.4\%}\DIFaddend .
+\DIFdelbegin \DIFdel{$\tool{}_{\textit{rag}}$ ensures semantic alignment, boosting validity by 21\%. $\tool{}_{\textit{full}}$ achieves a  improvement of 44\% in syntax and 38\%in semantics.
+%DIF <  cumulative
+Furthermore, the }\DIFdelend \DIFaddbegin \DIFadd{The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.
+The }\DIFaddend \textit{Feedback-Driven Sanitizer} \DIFdelbegin \DIFdel{is indispensable for execution depth, boosting }\DIFdelend \DIFaddbegin \DIFadd{increases }\DIFaddend branch coverage by up to 39\%\DIFdelbegin \DIFdel{(on ClickHouse) compared to static generation}\DIFdelend .
+\end{answerbox}
 
-\DIFaddend \begin{table}[!t]
+\begin{table}[!t]
 \centering
 \footnotesize
 \caption{Sanitizer ablation on branch coverage (24h).}
@@ -1738,23 +1739,7 @@ ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
 
 
 
-%DIF <  \begin{answerbox}
-%DIF <  \textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, cross-statement context propagation raises semantic correctness from 52.4\% to 65.1\%, and the sanitizer further increases branch coverage by up to 39\%.
-%DIF <  \end{answerbox}
-\DIFdelbegin %DIFDELCMD < 
-
-%DIFDELCMD < \begin{answerbox}
-%DIFDELCMD < %%%
-\textbf{\DIFdel{Answer to RQ4:}} %DIFAUXCMD
-\DIFdel{All components are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\%. $\tool{}_{\textit{rag}}$ ensures semantic alignment, boosting validity by 21\%. $\tool{}_{\textit{full}}$ achieves a  improvement of 44\% in syntax and 38\% in semantics. 
-%DIF <  cumulative
-Furthermore, the }\textit{\DIFdel{Feedback-Driven Sanitizer}} %DIFAUXCMD
-\DIFdel{is indispensable for execution depth, boosting branch coverage by up to 39\% (on ClickHouse) compared to static generation.
-}%DIFDELCMD < \end{answerbox}
-%DIFDELCMD < 
-
-%DIFDELCMD < %%%
-\DIFdelend \section{Discussion}
+\section{Discussion}
 \label{sec:discussion}
 
 % Discussion 写作逻辑：
