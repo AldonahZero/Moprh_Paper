@@ -1120,7 +1120,7 @@ For the \textit{translation phase}, we evaluated four main variants on all sourc
 (3) $\tool{}_{\textit{rag}}$: equipped solely with \textit{Dialect-Aware AQT Instantiation};
 (4) $\tool{}_{\textit{full}}$: the complete framework integrating both components.
 To further isolate cross-statement context, we compare $\tool{}_{\textit{full}}$ with three context variants:
-(5) $\tool{}_{\textit{w/o-ctx}}$: disables target-side context propagation while keeping statement-level instantiation and local dialect mappings unchanged;
+(5) $\tool{}_{\textit{w/o-ctx}}$: selects the same predecessors but provides only their source-side statements, without translated statements or target-side object-state summaries;
 (6) $\tool{}_{\textit{win}}$: replaces dependency-based context selection with the five most recent statements and the same object summaries;
 (7) $\tool{}_{\textit{all}}$: provides all preceding statements and the complete context.
 
@@ -1142,7 +1142,7 @@ With both components, $\tool{}_{\textit{full}}$ achieves the highest syntactic c
 
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
 To isolate this effect, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{w/o-ctx}}$.
-This reduces execution validity from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
+With nearly the same predecessors, execution validity drops from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
 Thus, context propagation mainly improves test-case-level executability.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
