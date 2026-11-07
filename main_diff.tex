@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL old_aligned.tex   Sat Nov  7 16:42:08 2026
-%DIF ADD main.tex          Sat Nov  7 16:42:07 2026
+%DIF DEL old_aligned.tex   Sat Nov  7 21:38:15 2026
+%DIF ADD main.tex          Sat Nov  7 21:38:15 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -1653,8 +1653,8 @@ As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both \DIFdelbeg
 With }\DIFdelend \DIFaddbegin \DIFadd{achieves 43.1\% syntactic correctness and 35.2\% execution validity.
 }\DIFaddend \textit{Structure-Preserving Abstraction} \DIFdelbegin \DIFdel{, $\tool{}_{\textit{abs}}$ }\DIFdelend \DIFaddbegin \DIFadd{mainly }\DIFaddend improves syntactic correctness\DIFdelbegin \DIFdel{to 86}\DIFdelend \DIFaddbegin \DIFadd{: $\tool{}_{\textit{abs}}$ raises it to 73.6}\DIFaddend \% (+\DIFdelbegin \DIFdel{35}\DIFdelend \DIFaddbegin \DIFadd{30.5}\DIFaddend \%) by \DIFdelbegin \DIFdel{leveraging AQT to provide a more stable structural skeleton. The semantic correctness also increases to 32\%.
 Moreover, with }\DIFdelend \DIFaddbegin \DIFadd{providing a stable AQT skeleton, and raises execution validity to 55.0\%.
-}\DIFaddend \textit{Dialect-Aware AQT Instantiation} \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{mainly improves execution validity: }\DIFaddend $\tool{}_{\textit{rag}}$ \DIFdelbegin \DIFdel{further enhances syntactic correctness to 87\% , and increases semantic correctness to 49\% }\DIFdelend \DIFaddbegin \DIFadd{raises it to 65.5\% }\DIFaddend (+\DIFdelbegin \DIFdel{21}\DIFdelend \DIFaddbegin \DIFadd{30.3}\DIFaddend \%) by grounding generation in retrieved dialect evidence\DIFdelbegin \DIFdel{.
-The Full framework }\DIFdelend \DIFaddbegin \DIFadd{, and raises syntactic correctness to 63.9\%.
+}\DIFaddend \textit{Dialect-Aware AQT Instantiation} \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{mainly improves execution validity: }\DIFaddend $\tool{}_{\textit{rag}}$ \DIFdelbegin \DIFdel{further enhances syntactic correctness to 87\% , and increases semantic correctness to 49\% }\DIFdelend \DIFaddbegin \DIFadd{raises it to 61.9\% }\DIFaddend (+\DIFdelbegin \DIFdel{21}\DIFdelend \DIFaddbegin \DIFadd{26.7}\DIFaddend \%) by grounding generation in retrieved dialect evidence\DIFdelbegin \DIFdel{.
+The Full framework }\DIFdelend \DIFaddbegin \DIFadd{, and raises syntactic correctness to 65.5\%.
 With both components, }\DIFaddend $\tool{}_{\textit{full}}$ achieves the \DIFdelbegin \DIFdel{optimal balance, reaching }\textbf{\DIFdel{95\%}} %DIFAUXCMD
 \DIFdel{syntactic and }\textbf{\DIFdel{65\%}} %DIFAUXCMD
 \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{highest syntactic correctness (}\textbf{\DIFadd{87.1\%}}\DIFadd{) and execution validity (}\textbf{\DIFadd{71.6\%}}\DIFadd{)}\DIFaddend .
@@ -1711,7 +1711,7 @@ In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full
 % \end{answerbox}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components \DIFdelbegin \DIFdel{are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\% }\DIFdelend \DIFaddbegin \DIFadd{contribute to \tool{}. Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation improve syntactic correctness by 30.5\% and execution validity by 30.3\%, respectively, and together by 44.0\% and 36.4\%}\DIFaddend .
+\textbf{Answer to RQ4:} All components \DIFdelbegin \DIFdel{are critical for \tool{}. $\tool{}_{\textit{abs}}$ stabilizes the structural skeleton, improving syntax correctness by 35\% }\DIFdelend \DIFaddbegin \DIFadd{contribute to \tool{}. Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation improve syntactic correctness by 30.5\% and execution validity by 26.7\%, respectively, and together by 44.0\% and 36.4\%}\DIFaddend .
 \DIFdelbegin \DIFdel{$\tool{}_{\textit{rag}}$ ensures semantic alignment, boosting validity by 21\%. $\tool{}_{\textit{full}}$ achieves a  improvement of 44\% in syntax and 38\%in semantics.
 %DIF <  cumulative
 Furthermore, the }\DIFdelend \DIFaddbegin \DIFadd{The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.

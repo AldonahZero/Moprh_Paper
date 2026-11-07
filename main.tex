@@ -1137,7 +1137,7 @@ For the \textit{fuzzing phase}, since the \textit{Feedback-Driven Adaptive Sanit
 \textbf{Contribution of Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation. }
 As shown in Figure~\ref{fig:ablation_analysis} (a) and (b), when both components are disabled, $\tool{}_{\textit{base}}$ achieves 43.1\% syntactic correctness and 35.2\% execution validity.
 \textit{Structure-Preserving Abstraction} mainly improves syntactic correctness: $\tool{}_{\textit{abs}}$ raises it to 73.6\% (+30.5\%) by providing a stable AQT skeleton, and raises execution validity to 55.0\%.
-\textit{Dialect-Aware AQT Instantiation} mainly improves execution validity: $\tool{}_{\textit{rag}}$ raises it to 65.5\% (+30.3\%) by grounding generation in retrieved dialect evidence, and raises syntactic correctness to 63.9\%.
+\textit{Dialect-Aware AQT Instantiation} mainly improves execution validity: $\tool{}_{\textit{rag}}$ raises it to 61.9\% (+26.7\%) by grounding generation in retrieved dialect evidence, and raises syntactic correctness to 65.5\%.
 With both components, $\tool{}_{\textit{full}}$ achieves the highest syntactic correctness (\textbf{87.1\%}) and execution validity (\textbf{71.6\%}).
 
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
@@ -1181,7 +1181,7 @@ In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full
 % \end{answerbox}
 
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components contribute to \tool{}. Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation improve syntactic correctness by 30.5\% and execution validity by 30.3\%, respectively, and together by 44.0\% and 36.4\%.
+\textbf{Answer to RQ4:} All components contribute to \tool{}. Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation improve syntactic correctness by 30.5\% and execution validity by 26.7\%, respectively, and together by 44.0\% and 36.4\%.
 The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.
 The \textit{Feedback-Driven Sanitizer} increases branch coverage by up to 39\%.
 \end{answerbox}
