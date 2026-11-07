@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL old_aligned.tex   Sat Nov  7 12:46:05 2026
-%DIF ADD main.tex          Sat Nov  7 12:46:05 2026
+%DIF DEL old_aligned.tex   Sat Nov  7 16:42:08 2026
+%DIF ADD main.tex          Sat Nov  7 16:42:07 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -1467,12 +1467,12 @@ As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods b
 Directly executing source seeds yields low \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend , dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
 Existing translators improve syntactic acceptance but still leave \DIFdelbegin \DIFdel{a semantic }\DIFdelend \DIFaddbegin \DIFadd{an execution-validity }\DIFaddend gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend .
 
-Existing SQL translation tools primarily operate at the statement level and are designed for query migration rather than fuzzing seed transfer. For example, RISE's statement-level design is particularly limited in seed transfer scenarios. In the SQLite-to-DuckDB setting, our test-case-level transfer improves \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend from 0.314 to \DIFdelbegin \DIFdel{0.776}\DIFdelend \DIFaddbegin \DIFadd{0.748}\DIFaddend .
+Existing SQL translation tools \DIFdelbegin \DIFdel{primarily operate at the statement level and }\DIFdelend are designed for query migration rather than fuzzing seed transfer. For example, RISE \DIFdelbegin \DIFdel{'s statement-level design is particularly limited in seed transfer scenarios}\DIFdelend \DIFaddbegin \DIFadd{processes one self-contained query at a time and does not maintain context across the statements of a test case}\DIFaddend . In the SQLite-to-DuckDB setting, our test-case-level transfer improves \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend from 0.314 to \DIFdelbegin \DIFdel{0.776}\DIFdelend \DIFaddbegin \DIFadd{0.748}\DIFaddend .
 When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves \DIFdelbegin \DIFdel{34}\DIFdelend \DIFaddbegin \DIFadd{16.7}\DIFaddend \% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
 % Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
 
 Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend across the tested DBMSs.
-As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low \DIFdelbegin \DIFdel{semantic }\DIFdelend \DIFaddbegin \DIFadd{execution-validity }\DIFaddend scores stem from \DIFdelbegin \DIFdel{the lack of }\DIFdelend \DIFaddbegin \DIFadd{limited support for }\DIFaddend explicit cross-statement dependency preservation in statement-level translators such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the \DIFdelbegin \DIFdel{lack of explicit schema-state propagation }\DIFdelend \DIFaddbegin \DIFadd{absence of translated target-side context across statements }\DIFaddend in \sedar{}, which can break type or reference consistency when \DIFdelbegin \DIFdel{DDL-created schema state is not propagatedto subsequent statements}\DIFdelend \DIFaddbegin \DIFadd{target-side schema changes are not propagated}\DIFaddend .
+As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low \DIFdelbegin \DIFdel{semantic }\DIFdelend \DIFaddbegin \DIFadd{execution-validity }\DIFaddend scores stem from \DIFdelbegin \DIFdel{the lack of }\DIFdelend \DIFaddbegin \DIFadd{limited support for }\DIFaddend explicit cross-statement dependency preservation in \DIFdelbegin \DIFdel{statement-level translators }\DIFdelend \DIFaddbegin \DIFadd{translators that process one statement or query at a time, }\DIFaddend such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the \DIFdelbegin \DIFdel{lack of explicit schema-state propagation }\DIFdelend \DIFaddbegin \DIFadd{absence of translated target-side context across statements }\DIFaddend in \sedar{}, which can break type or reference consistency when \DIFdelbegin \DIFdel{DDL-created schema state is not propagatedto subsequent statements}\DIFdelend \DIFaddbegin \DIFadd{target-side schema changes are not propagated}\DIFaddend .
 These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability.
 % and executability.
 
@@ -1630,7 +1630,7 @@ For the \textit{translation phase}, we evaluated four main variants \DIFdelbegin
 (3) $\tool{}_{\textit{rag}}$: equipped solely with \textit{Dialect-Aware AQT Instantiation};
 (4) $\tool{}_{\textit{full}}$: the complete framework integrating both components.
 \DIFaddbegin \DIFadd{To further isolate cross-statement context, we compare $\tool{}_{\textit{full}}$ with three context variants:
-(5) $\tool{}_{\textit{w/o-ctx}}$: disables target-side context propagation while keeping statement-level instantiation and local dialect mappings unchanged;
+(5) $\tool{}_{\textit{w/o-ctx}}$: selects the same predecessors but provides only their source-side statements, without translated statements or target-side object-state summaries;
 (6) $\tool{}_{\textit{win}}$: replaces dependency-based context selection with the five most recent statements and the same object summaries;
 (7) $\tool{}_{\textit{all}}$: provides all preceding statements and the complete context.
 }\DIFaddend 
@@ -1660,9 +1660,10 @@ With both components, }\DIFaddend $\tool{}_{\textit{full}}$ achieves the \DIFdel
 \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{highest syntactic correctness (}\textbf{\DIFadd{87.1\%}}\DIFadd{) and execution validity (}\textbf{\DIFadd{71.6\%}}\DIFadd{)}\DIFaddend .
 
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema \DIFdelbegin \DIFdel{, type, and state }\DIFdelend \DIFaddbegin \DIFadd{and type }\DIFaddend context across statements to preserve test-case-level dependencies.
-To isolate this effect, we \DIFdelbegin \DIFdel{disable context propagation in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged}\DIFdelend \DIFaddbegin \DIFadd{compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{w/o-ctx}}$}\DIFaddend .
-This reduces \DIFdelbegin \DIFdel{semantic correctness from 65.1\% to 52.4\% (-12.7\%)while only slightly reducing syntactic correctness to 93.5\% (-1.7\%).
-The result shows that context propagation is a necessary part of Instantiation, mainly improving }\DIFdelend \DIFaddbegin \DIFadd{execution validity from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
+To isolate this effect, we \DIFdelbegin \DIFdel{disable context propagation in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
+This reduces semantic correctness from 65.1\% to 52.4\% (-12.7\%)while only slightly reducing syntactic correctness to 93.5\% (-1.7\%).
+The result shows that context propagation is a necessary part of Instantiation, mainly improving }\DIFdelend \DIFaddbegin \DIFadd{compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{w/o-ctx}}$.
+With nearly the same predecessors, execution validity drops from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
 Thus, context propagation mainly improves }\DIFaddend test-case-level executability.
 Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
 
