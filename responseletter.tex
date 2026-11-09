@@ -330,7 +330,9 @@ We have clarified in Section~IV (Evaluation) that our experiments use the \sedar
 \reviewcomment{1.9} The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
 
 \reply
-We have reported the variability of the coverage results in Section~IV (Evaluation). The coverage results in Section~IV (Evaluation) are averaged over five independent runs. For \tool{}, the variance is $5.4\times10^{6}$, the standard deviation is 2,324, and the 95\% confidence interval is $\pm2,900$. Figure~7 below displays the means and the 95\% confidence intervals of the five runs. We have also clarified that the reported bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification. The 8\%--39\% coverage gains from enabling the feedback-driven sanitizer in Table~VII are statistically significant ($p<0.05$).
+We have reported the statistics of the coverage results in Section~IV (Evaluation). (1) \textit{Statistical tests}: the 8\%--39\% coverage gains from enabling the feedback-driven sanitizer (Table~VII) and the 4.0\%--27.2\% coverage gains of \tool{}'s mutation handling over that of \sedar{} are statistically significant (Mann--Whitney U test, $p<0.05$). (2) \textit{Variability}: all coverage results are averaged over five independent runs; for \tool{}, the variance is $5.4\times10^{6}$, the standard deviation is 2,324, and the 95\% confidence interval is $\pm2,900$. (3) \textit{Bug counts}: the reported bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
+
+We have also revised Figure~7 to display the means and the 95\% confidence intervals of the five runs, shown below, and stated in Section~IV (Evaluation) how the coverage results and bug counts are aggregated.
 
 \begin{center}
 \includegraphics[width=0.6\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
