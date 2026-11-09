@@ -1143,8 +1143,8 @@ With both components, $\tool{}_{\textit{full}}$ achieves the highest syntactic c
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema and type context across statements to preserve test-case-level dependencies.
 To isolate this effect, we compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{w/o-ctx}}$.
 With nearly the same predecessors, execution validity drops from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
-Thus, context propagation mainly improves test-case-level executability.
-Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
+Thus, context propagation mainly improves test-case executability.
+Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between quality and efficiency.
 
 \begin{comment}
 \textbf{Contribution of Cross-Statement Context Propagation.}
