@@ -73,29 +73,13 @@ Below is our detailed response to the metareview and each reviewer.
 \metareviewcomment{1} Correct the description of SEDAR's comment-before-mutation and restore-after-mutation mechanism. Clearly explain the actual methodological differences between MORPH and SEDAR, avoiding misleading characterizations of the latter.
 
 \reply
-We have revised the description of \sedar{} in Sections~I (Introduction), II (Background and Motivation), and VI (Related Work) to accurately reflect its mutation-handling mechanism. Specifically, \sedar{} temporarily comments out fragments incompatible with the downstream fuzzer's parser during mutation and restores them before executing the mutated SQL on the target DBMS. This mechanism does not permanently remove the original query logic. We have also revised the motivating example in Section~II (Background and Motivation) to distinguish the intermediate representation used during mutation from the SQL executed by the target DBMS.
+We have revised the description of \sedar{} in Sections~I (Introduction), II (Background and Motivation), and VI (Related Work), and we have clarified the methodological differences between \tool{} and \sedar{} in Sections~II (Background and Motivation) and~VI (Related Work).
 
-We have clarified the methodological differences between \tool{} and \sedar{} in Sections~II (Background and Motivation) and~VI (Related Work). \sedar{} translates statements individually using their referenced source-side sub-schemas, while \tool{} uses the AQT to propagate evolving target-side schema and type context across statements. In addition, \tool{} uses parser and execution feedback to repair incompatibilities before mutation, whereas \sedar{}'s comment-and-restore mechanism primarily addresses compatibility with the downstream fuzzer during mutation.
+\textbf{Description of \sedar{}.} \sedar{} uses an LLM to translate each statement with the source-side sub-schema referenced by that statement. To keep the transferred seeds parsable by the downstream fuzzer, its mutability refinement temporarily comments out fragments that the fuzzer's parser cannot handle during mutation and restores them before the mutated SQL is executed on the target DBMS. This mechanism does not permanently remove the original query logic, and we have removed our earlier characterization of it as destructive sanitization. We have also revised the motivating example in Section~II (Background and Motivation) to distinguish the intermediate representation used during mutation from the SQL executed by the target DBMS. For seed transfer, this design leaves two limitations. First, a commented-out fragment is hidden from the fuzzer during mutation and therefore is not mutated, and if the fragment contains a translation error, the restored test case still fails on the target DBMS. Second, since each statement is translated with source-side sub-schemas only, the target-side schema and types produced by the translation of preceding statements are not available when later statements are translated.
 
-We have also evaluated whether the transferred seeds preserve the behavior of the source test cases. On 100 randomly sampled MySQL-to-DuckDB test cases, \tool{} achieves the highest result and state equivalence (52.0\% and 74.0\%), compared with 38.0\% and 69.0\% for \sedar{}, as shown in the table below.
+\textbf{Differences in \tool{}.} \tool{} addresses both limitations before mutation. First, it repairs incompatible fragments using parser and execution feedback, applying existing sanitization mappings, retrieved replacements, and source-side execution followed by constant substitution, and it comments out only the minimal offending fragment when all of these fail. As a result, fragments that \sedar{} hides during mutation are translated into target-compatible SQL and remain available for mutation. Second, the AQT records forward read-after-write dependencies and the cumulative schema context of the source test case, and \tool{} updates the target-side schema and type context after each translated statement, so that later statements are instantiated against the translated target-side state.
 
-\begin{center}
-\begin{minipage}{0.55\linewidth}
-\centering\scriptsize\renewcommand{\arraystretch}{1.0}
-\textbf{Source-to-target equivalence on 100 MySQL-to-DuckDB test cases.}
-\par\smallskip
-\begin{tabular}{lrr}
-\toprule
-Method & Result Eq. (\%) & State Eq. (\%) \\
-\midrule
-SQLGlot & 14.0 & 56.0 \\
-RISE & 34.0 & 65.0 \\
-\sedar{} & 38.0 & 69.0 \\
-\tool{} & \textbf{52.0} & \textbf{74.0} \\
-\bottomrule
-\end{tabular}
-\end{minipage}
-\end{center}
+\textbf{Experimental results.} The evaluation in Section~IV (Evaluation) shows the effect of these differences. Compared with \sedar{}, \tool{} achieves 5\%--19\% higher syntactic correctness and 100\%--272\% higher execution validity across the four target DBMSs (Table~IV), and retains 22\%--113\% more functions, up to 62\% more data types, and 23\%--146\% more keywords in the transferred seeds (Table~V). In 24-hour fuzzing campaigns, \tool{} covers 14\% more branches and detects 16 more bugs than \sedar{}.
 
 \metareviewcomment{2}
 Moderate the novelty claims and better distinguish MORPH from existing SQL translation approaches, particularly SEDAR, RISE, QTRAN, and CrackSQL. Explain more concretely what AQT and its associated mechanisms contribute beyond existing techniques, especially in the context of DBMS fuzzing.
@@ -184,7 +168,25 @@ We have clarified the provenance of the \sedar{} binary in Section~IV (Evaluatio
 \reviewquestion{1.1} Can the authors evaluate source-to-target result or state equivalence?
 
 \reply
-We have added a source-to-target result and state equivalence study in Section~IV (Evaluation). On 100 randomly sampled MySQL test cases transferred to DuckDB, \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}. Details can be found in \metareviewref{1}. We have also renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV (Evaluation) to distinguish runtime executability from result or state equivalence.
+We have added a source-to-target result and state equivalence study in Section~IV (Evaluation). On 100 randomly sampled MySQL test cases transferred to DuckDB, \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}. We have also renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV (Evaluation) to distinguish runtime executability from result or state equivalence.
+
+\begin{center}
+\begin{minipage}{0.55\linewidth}
+\centering\scriptsize\renewcommand{\arraystretch}{1.0}
+\textbf{Source-to-target equivalence on 100 MySQL-to-DuckDB test cases.}
+\par\smallskip
+\begin{tabular}{lrr}
+\toprule
+Method & Result Eq. (\%) & State Eq. (\%) \\
+\midrule
+SQLGlot & 14.0 & 56.0 \\
+RISE & 34.0 & 65.0 \\
+\sedar{} & 38.0 & 69.0 \\
+\tool{} & \textbf{52.0} & \textbf{74.0} \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
 
 % Source: Reviewer A, Question 2.
 \reviewquestion{1.2} What independent benefit does the dependency graph provide beyond context propagation?
@@ -259,7 +261,7 @@ We have defined the object-state summaries in Section~III (Approach). Each summa
 \reviewcomment{1.6} I suggest renaming this metric to ``Execution Validity'' or ``Runtime Validity'' and narrowing statements concerning equivalent syntax, semantic-intent preservation, and high-fidelity transfer. A sampled source-to-target behavioral comparison would provide useful supplementary evidence.
 
 \reply
-We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV (Evaluation). We have also revised the description of instantiation in Section~III (Approach), revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III (Approach) also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. Details can be found in \metareviewref{1}.
+We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper and clarified its definition in Section~IV (Evaluation). We have also revised the description of instantiation in Section~III (Approach), revising ``to guarantee that the generated queries remain semantically consistent with the target dialect'' to ``to keep the generated queries valid in the target dialect''. Section~III (Approach) also states that constant substitution and minimal commenting may change the behavior of transferred seeds. In addition, we have added a sampled source-to-target result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. Details can be found in \questionref{1.1}.
 
 % Source: Reviewer A, Detailed 4 (paragraph 2).
 \reviewcomment{1.7} The paper should explain how each baseline was extended to these target dialects, including the dialect documents, knowledge bases, translation rules, LLMs, prompts, and manual effort used. It should also explain how a statement- or artifact-level translator was applied to a complete test sequence and what schema context, if any, was provided.
@@ -345,7 +347,7 @@ ClickHouse & 35,967 & \textbf{67,798} & 41,478 & \textbf{79,806} & 55,852 & \tex
 \reviewquestion{2.2} Regarding the characterization of SEDAR's comment-and-restore mechanism\textemdash{}if both MORPH and SEDAR ultimately feed compatible seeds to GRIFFIN, what is the exact difference in their post-mutation handling? Do seeds repaired by MORPH produce semantically equivalent mutated queries, whereas SEDAR's approach loses that equivalence? If not, what is the claimed advantage?
 
 \reply
-We have clarified in Section~IV (Evaluation) that \tool{} performs pre-migration repair to make seeds parser-compatible, whereas \sedar{} defers some compatibility handling until after mutation. Neither strategy guarantees semantic equivalence after mutation. On 100 sampled MySQL-to-DuckDB test cases, \tool{} achieves higher result and state equivalence than \sedar{} (52.0\%/74.0\% vs. 38.0\%/69.0\%). Details can be found in \metareviewref{1}. We have also sampled the same 300 translated seeds and applied the respective mutation handling of \tool{} and \sedar{} with \griffin{} for 24 hours. \tool{} finds 27.2\%, 15.5\%, 4.0\%, and 9.4\% more branches than \sedar{} on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
+We have clarified in Section~IV (Evaluation) that \tool{} performs pre-migration repair to make seeds parser-compatible, whereas \sedar{} defers some compatibility handling until after mutation. Neither strategy guarantees semantic equivalence after mutation. On 100 sampled MySQL-to-DuckDB test cases, \tool{} achieves higher result and state equivalence than \sedar{} (52.0\%/74.0\% vs. 38.0\%/69.0\%). Details can be found in \questionref{1.1}. We have also sampled the same 300 translated seeds and applied the respective mutation handling of \tool{} and \sedar{} with \griffin{} for 24 hours. \tool{} finds 27.2\%, 15.5\%, 4.0\%, and 9.4\% more branches than \sedar{} on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
 
 % Source: Reviewer B, Detailed 1.
 
@@ -481,7 +483,7 @@ We have added the triggering test cases of all detected bugs to our anonymous \h
 \reviewcomment{3.1} The ``semantic correctness'' metric means only ``executes without runtime errors,'' not result equivalence; a seed that runs but computes something different still counts. Using ``+130-450\%'' as a headline overstates what was measured.
 
 \reply
-We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~IV. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. Details can be found in \metareviewref{1}.
+We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~IV. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. Details can be found in \questionref{1.1}.
 
 \begin{center}
 \begin{minipage}{0.85\linewidth}
@@ -546,6 +548,6 @@ The full campaign in RQ1 runs \tool{} for seven days on each target DBMS, wherea
 \reviewcomment{3.7} I would recommed tightening the validity claims: add a small differential check on transferred seeds (do they return equivalent results on a shared dialect subset?) to back the ``semantic correctness'' framing, and lean on coverage/bug counts rather than feature-richness as the primary evidence. For RQ2, publish baseline command lines and seed corpora in the artifact; the all-zero bug rows need more transparency, and SQLRight belongs in the comparison.
 
 \reply
-We have revised the paper following these suggestions. (1) \textit{Differential check:} we have renamed ``Semantic Correctness'' to ``Execution Validity'' and added a sampled source-to-target result and state equivalence study (52.0\%/74.0\% for \tool{} vs. 38.0\%/69.0\% for \sedar{}; \metareviewref{1}). (2) \textit{Primary evidence:} our main claims rely on branch coverage and bug counts in RQ1 and RQ2, and the feature richness in RQ3 is presented as supplementary evidence of the testing value of transferred seeds. (3) \textit{Baseline transparency:} we have documented the configurations, seed corpora, and command lines of the RQ2 baselines, included them in our artifact, and explained the zero-bug results (\commentref{3.2}). (4) \textit{SQLRight:} we have added SQLRight to the RQ2 comparison (\commentref{3.4}).
+We have revised the paper following these suggestions. (1) \textit{Differential check:} we have renamed ``Semantic Correctness'' to ``Execution Validity'' and added a sampled source-to-target result and state equivalence study (52.0\%/74.0\% for \tool{} vs. 38.0\%/69.0\% for \sedar{}; \questionref{1.1}). (2) \textit{Primary evidence:} our main claims rely on branch coverage and bug counts in RQ1 and RQ2, and the feature richness in RQ3 is presented as supplementary evidence of the testing value of transferred seeds. (3) \textit{Baseline transparency:} we have documented the configurations, seed corpora, and command lines of the RQ2 baselines, included them in our artifact, and explained the zero-bug results (\commentref{3.2}). (4) \textit{SQLRight:} we have added SQLRight to the RQ2 comparison (\commentref{3.4}).
 
 \end{document}
