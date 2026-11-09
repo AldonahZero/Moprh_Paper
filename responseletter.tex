@@ -26,6 +26,7 @@
 \usepackage{needspace}
 \usepackage{titlesec}
 \usepackage[normalem]{ulem}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
 \usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
 \titleformat{\section}{\normalfont\fontsize{16}{19}\selectfont\bfseries}{}{0pt}{}
 \hypersetup{pdftitle={MORPH: Response Letter -- ICSE 2027 Paper 1111},pdfauthor={}}
@@ -271,7 +272,35 @@ We have revised the description of CrackSQL in Section~VI (Related Work): CrackS
 \reviewcomment{1.4} It is therefore unclear what ($G_{tc}$) contributes independently beyond recording the dependencies and preserving an order that is already present. The reported ablation removes context propagation rather than the graph itself, so it establishes the value of context but not an independent benefit from ($G_{tc}$). The paper should explain whether the graph affects retrieval, prompting, repair, or any other step not apparent from the algorithms.
 
 \reply
-We have revised Algorithm~2 and its description in Section~III (Approach). We have removed the stable topological sort, since the original statement order already satisfies all forward read-after-write dependencies, and we have made the use of the dependency graph explicit: a new context-selection step (\textsc{SelectContext}) uses the dependency edges to select dependency-relevant predecessors, whose source and translated statements are provided in the prompts for instantiation and repair. We have also added an ablation study in Section~IV (Evaluation) that isolates the dependency graph from context propagation. With context propagation retained, dependency-based context selection achieves higher execution validity than a recency-based window and full context (0.716 vs. 0.599 and 0.643), while using 11.9\% and 72.3\% fewer input tokens per statement, respectively. Details can be found in \questionref{1.2}.
+We have revised Section~III (Approach) to make the role of the dependency graph explicit: it selects the dependency-relevant context used in the instantiation and repair of each statement. We have revised Algorithm~2 accordingly and added an ablation study in Section~IV (Evaluation) that isolates this role from context propagation.
+
+\textbf{Role of the dependency graph.} For each statement, the new \textsc{SelectContext} step follows the dependency edges to select the preceding statements that write the objects it reads, and provides their source and translated statements in the prompts for instantiation and repair. This gives the LLM the schema changes that the statement depends on, even when they occur far back, without unrelated statements. Accordingly, compared with a recency-based window of five statements and the full context, the graph selects only dependency-relevant predecessors (100\% vs.\ 22.6\% and 4.2\%), captures the 15.4\% of statements whose dependencies lie beyond the window, uses 11.9\% and 72.3\% fewer input tokens per statement, and achieves the highest execution validity (0.716 vs.\ 0.599 and 0.643). Details can be found in \questionref{1.2}.
+
+\textbf{Revision of Algorithm~2.} Forward read-after-write dependencies always point from earlier to later statements, so the original statement order already satisfies all of them. We have therefore removed the stable topological sort, and the outer loop now processes statements in their original order. The revised Algorithm~2 is shown below, with removed parts in red and added parts in blue.
+
+\begin{center}
+\begin{minipage}{0.92\linewidth}
+\scriptsize
+\begin{algorithm}[H]
+\SetAlCapFnt{\scriptsize}\SetAlCapNameFnt{\scriptsize}\SetNlSty{}{\scriptsize}{}
+\renewcommand{\thealgocf}{2}\caption{AQT Instantiation}
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\Input{AQT $\mathcal{T} = \langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle$; target dialect $D_t$; Hybrid KB $HKB$; threshold $\delta$}
+\Output{Compatible seed sequence $\mathcal{Q}_{target}$}
+{\color{red}\sout{$StmtOrder \leftarrow$ \textsc{StableTopologicalSort}($\mathcal{G}_{tc}$, $\langle 1,\ldots,|\mathbf{U}| \rangle$)}}\;
+$\mathcal{Q}_{target} \leftarrow [\,]$; $C_s \leftarrow \mathcal{D}$; $C_t \leftarrow \emptyset$\;
+\For{\cellchg{$i$ \textbf{in} $StmtOrder$}{$i \leftarrow 1$ \textbf{to} $|\mathbf{U}|$}}{
+    \celladd{$C_t^{(i)} \leftarrow$ \textsc{SelectContext}($C_t$, $\mathcal{Q}_{target}$, $\Delta$, $i$)} \tcp*{Dependency-relevant context}
+    $Q_i \leftarrow \textsc{InstantiateStmt}(\mathcal{U}_i, D_t, HKB, \delta, C_s,$ \cellchg{$C_t$}{$C_t^{(i)}$}$)$\;
+    $\mathcal{Q}_{target}.\textsc{Append}(Q_i)$\;
+    $C_t \leftarrow \textsc{UpdateContext}(C_t, Q_i)$ \tcp*{Propagate context}
+}
+$\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$\;
+\Return $\mathcal{Q}_{target}$\;
+\end{algorithm}
+\end{minipage}
+\end{center}
 
 % Source: Reviewer A, Detailed 2 (paragraph 4).
 \reviewcomment{1.5} The paper should also define the content and construction of the ``object-state summaries'' in ($D$) and clarify which forms of state are represented. The current formal definition explicitly supports forward RAW dependencies and cumulative schema/type context. Broader descriptions such as preserving all schema, data, and state dependencies should be narrowed unless additional dependency forms are implemented.
