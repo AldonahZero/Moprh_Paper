@@ -73,13 +73,46 @@ Below is our detailed response to the metareview and each reviewer.
 \metareviewcomment{1} Correct the description of SEDAR's comment-before-mutation and restore-after-mutation mechanism. Clearly explain the actual methodological differences between MORPH and SEDAR, avoiding misleading characterizations of the latter.
 
 \reply
-We have revised the description of \sedar{} in Sections~I (Introduction), II (Background and Motivation), and VI (Related Work), and we have clarified the methodological differences between \tool{} and \sedar{} in Sections~II (Background and Motivation) and~VI (Related Work).
+We have revised the description of \sedar{} and the motivating example in Sections~I (Introduction), II (Background and Motivation), and VI (Related Work), and we have clarified the methodological differences between \tool{} and \sedar{} in Sections~II (Background and Motivation) and~VI (Related Work).
 
-\textbf{Description of \sedar{}.} \sedar{} uses an LLM to translate each statement with the source-side sub-schema referenced by that statement. To keep the transferred seeds parsable by the downstream fuzzer, its mutability refinement temporarily comments out fragments that the fuzzer's parser cannot handle during mutation and restores them before the mutated SQL is executed on the target DBMS. This mechanism does not permanently remove the original query logic, and we have removed our earlier characterization of it as destructive sanitization. We have also revised the motivating example in Section~II (Background and Motivation) to distinguish the intermediate representation used during mutation from the SQL executed by the target DBMS. For seed transfer, this design leaves two limitations. First, a commented-out fragment is hidden from the fuzzer during mutation and therefore is not mutated, and if the fragment contains a translation error, the restored test case still fails on the target DBMS. Second, since each statement is translated with source-side sub-schemas only, the target-side schema and types produced by the translation of preceding statements are not available when later statements are translated.
+\textbf{Description of \sedar{}.} \sedar{} translates each statement with the source-side sub-schema referenced by that statement. During mutation, it temporarily comments out fragments that the downstream fuzzer cannot parse and restores them before execution. However, the commented-out fragments are not mutated, and a fragment with a translation error still fails on the target DBMS after restoration. In addition, later statements are translated without the target-side schema and types produced by the translation of preceding statements.
 
-\textbf{Differences in \tool{}.} \tool{} addresses both limitations before mutation. First, it repairs incompatible fragments using parser and execution feedback, applying existing sanitization mappings, retrieved replacements, and source-side execution followed by constant substitution, and it comments out only the minimal offending fragment when all of these fail. As a result, fragments that \sedar{} hides during mutation are translated into target-compatible SQL and remain available for mutation. Second, the AQT records forward read-after-write dependencies and the cumulative schema context of the source test case, and \tool{} updates the target-side schema and type context after each translated statement, so that later statements are instantiated against the translated target-side state.
+\textbf{Differences in \tool{}.} \tool{} addresses both limitations before mutation. First, it repairs incompatible fragments using parser and execution feedback. As a result, fragments that \sedar{} hides during mutation are translated into target-compatible SQL and remain available for mutation. Second, the AQT records forward read-after-write dependencies and the cumulative schema context of the source test case, and \tool{} updates the target-side schema and type context after each translated statement, so that later statements are instantiated against the translated target-side state.
 
-\textbf{Experimental results.} The evaluation in Section~IV (Evaluation) shows the effect of these differences. Compared with \sedar{}, \tool{} achieves 5\%--19\% higher syntactic correctness and 100\%--272\% higher execution validity across the four target DBMSs (Table~IV), and retains 22\%--113\% more functions, up to 62\% more data types, and 23\%--146\% more keywords in the transferred seeds (Table~V). In 24-hour fuzzing campaigns, \tool{} covers 14\% more branches and detects 16 more bugs than \sedar{}.
+\textbf{Experimental results.} The evaluation in Section~IV (Evaluation) shows the effect of these differences. Compared with \sedar{}, \tool{} achieves 5\%--19\% higher syntactic correctness and 100\%--272\% higher execution validity across the four target DBMSs (Table~IV below), and retains 22\%--113\% more functions, up to 62\% more data types, and 23\%--146\% more keywords in the transferred seeds (Table~V). In 24-hour fuzzing campaigns, \tool{} covers 14\% more branches (Figure~7 below) and detects 16 more bugs than \sedar{}.
+
+\begin{center}
+\begin{minipage}{0.85\linewidth}
+\centering\scriptsize\renewcommand{\arraystretch}{1.0}
+\textbf{TABLE IV: Syntactic correctness and execution validity of transferred seeds.}
+\par\smallskip
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l|cc|cc|cc|cc}
+\toprule
+& \multicolumn{2}{c|}{\textbf{MonetDB}} & \multicolumn{2}{c|}{\textbf{Virtuoso}} & \multicolumn{2}{c|}{\textbf{DuckDB}} & \multicolumn{2}{c}{\textbf{ClickHouse}} \\
+\textbf{Method} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} & \textbf{Syn.} & \cellchg{\textbf{Sem.}}{\textbf{Exec.}} \\
+\midrule
+No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
+SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
+jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
+CrackSQL & - & - & - & - & 0.740 & 0.211 & 0.717 & 0.264 \\
+RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
+\sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
+\tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\
+\midrule
+vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\scriptsize\raggedright Syn./Exec.: syntactic correctness/execution validity; ``-'': unsupported dialects.\par}
+\end{minipage}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
+
+{\footnotesize Figure 7: Coverage growth over 24-hour fuzzing campaigns. Displayed are the means and the 95\% confidence intervals of five runs.}
+\end{center}
 
 \metareviewcomment{2}
 Moderate the novelty claims and better distinguish MORPH from existing SQL translation approaches, particularly SEDAR, RISE, QTRAN, and CrackSQL. Explain more concretely what AQT and its associated mechanisms contribute beyond existing techniques, especially in the context of DBMS fuzzing.
