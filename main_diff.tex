@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL old_aligned.tex   Sat Nov  7 21:38:15 2026
-%DIF ADD main.tex          Sat Nov  7 21:38:15 2026
+%DIF DEL old_aligned.tex   Mon Nov  9 21:30:22 2026
+%DIF ADD main.tex          Mon Nov  9 21:30:22 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -1035,22 +1035,15 @@ We formulate dialect translation as a two-level instantiation problem in which t
 \SetKwProg{Fn}{Function}{:}{}
 \Input{AQT $\mathcal{T} = \langle \mathbf{U}, \Delta, \mathcal{D}, \mathcal{G}_{tc}, \mathcal{H} \rangle$; target dialect $D_t$; Hybrid KB $HKB$; threshold $\delta$}
 \Output{Compatible seed sequence $\mathcal{Q}_{target}$}
-\DIFdelbegin \DIFdel{$StmtOrder \leftarrow \textsc{StableTopologicalSort}(\mathcal{G}_{tc}, \langle 1,\ldots,|\mathbf{U}| \rangle)$ }%DIFDELCMD < \label{line:alg2:tc_sort} \tcp*{Respect deps; keep original order}
-%DIFDELCMD < %%%
-\DIFdelend $\mathcal{Q}_{target} \leftarrow [\,]$; $C_s \leftarrow \mathcal{D}$; $C_t \leftarrow \emptyset$\;
-\DIFdelbegin %DIFDELCMD < \ForEach{$i$ \textbf{in} $StmtOrder$}{
-%DIFDELCMD <     $Q_i \leftarrow \textsc{InstantiateStmt}(\mathcal{U}_i, D_t, HKB, \delta, C_s, C_t)$ \label{line:alg2:stmt_inst}\;
-%DIFDELCMD <     $\mathcal{Q}_{target}.\textsc{Append}(Q_i)$\;
-%DIFDELCMD <     $C_t \leftarrow \textsc{UpdateContext}(C_t, Q_i)$ \label{line:alg2:schema_prop} \tcp*{Propagate context}
-%DIFDELCMD < }
-%DIFDELCMD < %%%
-\DIFdelend \DIFaddbegin \For{$i \leftarrow 1$ \KwTo $|\mathbf{U}|$}{
-    $C_t^{(i)} \leftarrow \textsc{SelectContext}(C_t, \mathcal{Q}_{target}, \Delta, i)$ \label{line:alg2:ctx_sel} \tcp*{Dependency-relevant context}
-    $Q_i \leftarrow \textsc{InstantiateStmt}(\mathcal{U}_i, D_t, HKB, \delta, C_s, C_t^{(i)})$ \label{line:alg2:stmt_inst}\;
+\DIFdel{$StmtOrder \leftarrow$ \textsc{StableTopologicalSort}($\mathcal{G}_{tc}$, $\langle 1,\ldots,|\mathbf{U}| \rangle$)}\;
+$\mathcal{Q}_{target} \leftarrow [\,]$; $C_s \leftarrow \mathcal{D}$; $C_t \leftarrow \emptyset$\;
+\For{\DIFdel{$i$ \textbf{in} $StmtOrder$} \DIFadd{$i \leftarrow 1$ \textbf{to} $|\mathbf{U}|$}}{
+    \DIFadd{$C_t^{(i)} \leftarrow$ \textsc{SelectContext}($C_t$, $\mathcal{Q}_{target}$, $\Delta$, $i$)} \label{line:alg2:ctx_sel} \tcp*{\DIFadd{Dependency-relevant context}}
+    $Q_i \leftarrow \textsc{InstantiateStmt}(\mathcal{U}_i, D_t, HKB, \delta, C_s,$ \DIFdel{$C_t$}\DIFadd{$C_t^{(i)}$}$)$ \label{line:alg2:stmt_inst}\;
     $\mathcal{Q}_{target}.\textsc{Append}(Q_i)$\;
     $C_t \leftarrow \textsc{UpdateContext}(C_t, Q_i)$ \label{line:alg2:schema_prop} \tcp*{Propagate context}
 }
-\DIFaddend $\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Cache key outside recursion}
+$\textsc{IndexArtifact}((\mathcal{H}, D_t), \mathcal{Q}_{target})$ \tcp*{Cache key outside recursion}
 \Return $\mathcal{Q}_{target}$\;
 \end{algorithm}
 % Two-Level Instantiation 段：逐行解读 Algorithm 2。
@@ -1662,10 +1655,10 @@ With both components, }\DIFaddend $\tool{}_{\textit{full}}$ achieves the \DIFdel
 Beyond dialect grounding, \textit{Dialect-Aware AQT Instantiation} also propagates schema \DIFdelbegin \DIFdel{, type, and state }\DIFdelend \DIFaddbegin \DIFadd{and type }\DIFaddend context across statements to preserve test-case-level dependencies.
 To isolate this effect, we \DIFdelbegin \DIFdel{disable context propagation in the complete transfer pipeline while keeping statement-level instantiation and local dialect mappings unchanged.
 This reduces semantic correctness from 65.1\% to 52.4\% (-12.7\%)while only slightly reducing syntactic correctness to 93.5\% (-1.7\%).
-The result shows that context propagation is a necessary part of Instantiation, mainly improving }\DIFdelend \DIFaddbegin \DIFadd{compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{w/o-ctx}}$.
+The result shows that context propagation is a necessary part of Instantiation, mainly improving test-case-level }\DIFdelend \DIFaddbegin \DIFadd{compare $\tool{}_{\textit{full}}$ with $\tool{}_{\textit{w/o-ctx}}$.
 With nearly the same predecessors, execution validity drops from 0.716 to 0.523 (Table~\ref{tab:ablation_depgraph}).
-Thus, context propagation mainly improves }\DIFaddend test-case-level executability.
-Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between generation quality and efficiency.
+Thus, context propagation mainly improves test-case }\DIFaddend executability.
+Figure~\ref{fig:ablation_analysis}(c) and (d) show that $\tool{}_{\textit{full}}$ incurs more repair iterations and token overhead, but delivers the best trade-off between \DIFdelbegin \DIFdel{generation }\DIFdelend quality and efficiency.
 
 \DIFdelbegin %DIFDELCMD < \begin{comment}%DIFDELCMD < 
 %DIFDELCMD < \textbf{Contribution of Cross-Statement Context Propagation.}
@@ -1969,9 +1962,9 @@ Compared with the state-of-the-art approach \sedar{}, \tool{} covers 14\% more b
 % Compared with the state-of-the-art seed transfer approach \sedar{}, \tool{} covers 26\% more branches, finds 16 more bugs in 24 hours, and improves the semantic correctness of transferred seeds by 100\%--272\%.
 % More importantly, \tool{} uncovers \bugcnt{} previously unknown DBMS bugs, including \bugconfirmcnt{} confirmed by developers and \bugfixcnt{} already fixed.
 
-\section{Data Availability} Artifacts and data are available \DIFdelbegin \DIFdel{on anonymous Zenodo~\mbox{%DIFAUXCMD
+\section{Data Availability} \DIFdelbegin \DIFdel{Artifacts and data are available on anonymous Zenodo~\mbox{%DIFAUXCMD
 \cite{morph-artifact}}\hskip0pt%DIFAUXCMD
-}\DIFdelend \DIFaddbegin \DIFadd{in our anonymous repository~\mbox{%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{All artifacts and data used are publicly available in our anonymous repository~\mbox{%DIFAUXCMD
 \cite{morph-artifact-anon}}\hskip0pt%DIFAUXCMD
 }\DIFaddend .
 % \section{Data Availability}
