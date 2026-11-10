@@ -545,7 +545,7 @@ We have clarified the translation overhead of \tool{} in Section~V (Discussion).
 \begin{center}
 \begin{minipage}{0.72\linewidth}
 \centering\scriptsize\renewcommand{\arraystretch}{1.0}
-\textbf{TABLE VIII: LLM comparison. Syn.: syntactic correctness; Exec.: execution validity; TS: Test Suite.}
+\textbf{TABLE VIII: LLM comparison. \celladd{Syn.: syntactic correctness; Exec.: execution validity;} TS\cellchg{ denotes}{:} Test Suite.}
 \par\smallskip
 \begin{tabular}{lrrrr}
 \toprule
@@ -574,30 +574,12 @@ We have added the triggering test cases of all detected bugs to our anonymous \h
 \reviewcomment{3.1} The ``semantic correctness'' metric means only ``executes without runtime errors,'' not result equivalence; a seed that runs but computes something different still counts. Using ``+130-450\%'' as a headline overstates what was measured.
 
 \reply
-We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~IV. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity rather than semantic correctness. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply result equivalence, and we have added a sampled result and state equivalence study, in which \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}, as shown in the first table below.
-
-\begin{center}
-\begin{minipage}{0.55\linewidth}
-\centering\scriptsize\renewcommand{\arraystretch}{1.0}
-\textbf{Source-to-target equivalence on 100 MySQL-to-DuckDB test cases.}
-\par\smallskip
-\begin{tabular}{lrr}
-\toprule
-Method & Result Eq. (\%) & State Eq. (\%) \\
-\midrule
-SQLGlot & 14.0 & 56.0 \\
-RISE & 34.0 & 65.0 \\
-\sedar{} & 38.0 & 69.0 \\
-\tool{} & \textbf{52.0} & \textbf{74.0} \\
-\bottomrule
-\end{tabular}
-\end{minipage}
-\end{center}
+We have renamed ``Semantic Correctness'' to ``Execution Validity'' throughout the paper, including the abstract, the introduction, and Table~IV. The headline improvements (e.g., 130\% over \sedar{} and 100\%--450\% over the baselines) are therefore reported as gains in execution validity, and the improvement over each baseline is computed only on the target DBMSs supported by both methods. We have also clarified in Section~IV (Evaluation) that execution validity measures executability on the target DBMS and does not imply semantic equivalence. In a sampled equivalence study on 100 MySQL-to-DuckDB test cases, \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 38.0\% and 69.0\% for \sedar{}. The revised Table~IV is shown below.
 
 \begin{center}
 \begin{minipage}{0.85\linewidth}
 \centering\scriptsize\renewcommand{\arraystretch}{1.0}
-\textbf{TABLE IV: Syntactic correctness and execution validity of transferred seeds.}
+\textbf{TABLE IV: \cellchg{Syntactic and semantic correctness}{Syntactic correctness and execution validity} of transferred seeds.}
 \par\smallskip
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{l|cc|cc|cc|cc}
@@ -617,7 +599,7 @@ vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \
 \bottomrule
 \end{tabular}
 \par\smallskip
-{\scriptsize\raggedright Syn./Exec.: syntactic correctness/execution validity; ``-'': unsupported dialects.\par}
+{\scriptsize\raggedright Syn./\cellchg{Sem.}{Exec.}: \cellchg{syntactic/semantic correctness}{syntactic correctness/execution validity}; ``-'': unsupported dialects.\par}
 \end{minipage}
 \end{center}
 
