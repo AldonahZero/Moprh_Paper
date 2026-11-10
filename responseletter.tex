@@ -448,7 +448,9 @@ RISE & 34.0 & 65.0 \\
 
 % Source: Reviewer B, Detailed 1.
 
-\reviewcomment{2.1} \textbf{Contribution of AQT and compositional baselines.} The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). More importantly, the evaluation lacks compositional baselines such as ``existing SQL translator + SEDAR/GRIFFIN'' or ``AST-based translation + GRIFFIN''.
+\reviewcomment{2.1} Limited novelty. The paper positions AQT as a key contribution, but AQT largely resembles an existing SQL AST or intermediate representation augmented with abstract labels, read/write sets, dependency edges, and schema context. The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). The distinction from these systems is insufficiently developed.
+
+More importantly, the evaluation lacks compositional baselines such as ``existing SQL translator + SEDAR/GRIFFIN'' or ``AST-based translation + GRIFFIN''. Without such ablations, it is difficult to determine whether the contribution is a fundamentally new transfer technique or mainly an engineering integration of existing components. The authors should add such baselines or provide a clearer theoretical argument for why AQT enables capabilities that prior representations cannot achieve.
 
 \reply
 We have clarified in Sections~II (Background and Motivation), III (Approach), and VI (Related Work) that AQT's novelty lies in \textit{jointly modeling cross-statement dependencies and cumulative schema/type context for coordinated translation/repair}. Unlike statement-level representations (e.g., SQLGlot's AST), which primarily represent individual SQL statements, AQT models the evolving state of an entire test sequence; unlike query-level translation systems (e.g., CrackSQL/RISE/QTRAN), AQT uses preceding statements to guide the \mbox{translation/repair of subsequent statements.}
@@ -474,7 +476,7 @@ RISE + \griffin{} & 124,147 & 0 \\
 \end{center}
 
 % Source: Reviewer B, Detailed 2.
-\reviewcomment{2.2} \textbf{Incomplete discussion of closely related work.} SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
+\reviewcomment{2.2} Incomplete discussion of closely related work. SmartFuzz (OOPSLA 2026) also studies high-quality seed generation for DBMS fuzzing and is directly relevant to the problem addressed by this paper. However, the paper neither discusses it sufficiently nor compares against it experimentally. The authors should add a discussion of SmartFuzz in Section VI (Related Work), clarify the differences in approach, and ideally include it as a baseline in the evaluation if feasible.
 
 \reply
 We have clarified the differences in goal and methodology between SmartFuzz and \tool{} in Section~VI (Related Work).
@@ -486,7 +488,7 @@ We have clarified the differences in goal and methodology between SmartFuzz and 
 We have also extended the comparison in Section~IV (Evaluation). Across the four target DBMSs, \tool{} covers 7\% more branches in total and detects 5 more bugs than SmartFuzz. Details can be found in \metareviewref{3}.
 
 % Source: Reviewer B, Detailed 3.
-\reviewcomment{2.3} \textbf{Potentially inaccurate characterization of SEDAR.} The paper characterizes SEDAR's comment-and-restore mechanism as ``destructive sanitization'' that ``sacrifices semantic depth.'' However, SEDAR's mechanism is designed to temporarily hide target-specific constructs from downstream fuzzers' strict parsers during mutation and restore them afterward. This is a pragmatic compatibility strategy, not a destructive removal of query logic.
+\reviewcomment{2.3} Potentially inaccurate characterization of SEDAR. The paper characterizes SEDAR's comment-and-restore mechanism as ``destructive sanitization'' that ``sacrifices semantic depth.'' However, SEDAR's mechanism is designed to temporarily hide target-specific constructs from downstream fuzzers' strict parsers during mutation and restore them afterward. This is a pragmatic compatibility strategy, not a destructive removal of query logic.
 
     The authors should revise their characterization to accurately reflect SEDAR's design intent and clarify the actual difference: MORPH performs pre-migration repair to make seeds parser-compatible, whereas SEDAR defers some compatibility handling until after mutation. A fairer comparison would evaluate both approaches under the same downstream fuzzer (e.g., GRIFFIN) and measure the net effect of each strategy on mutation effectiveness.
 
@@ -496,7 +498,7 @@ We have revised the description of \sedar{} in Sections~I (Introduction), II (Ba
 We have added a controlled comparison in Section~IV (Evaluation) to evaluate the two mutation-handling strategies. For each of the four target DBMSs, we applied both strategies to the same 300 translated seeds and ran \griffin{} for 24 hours in five independent repetitions. Compared with \sedar{}'s strategy, \tool{}'s strategy achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively.
 
 % Source: Reviewer B, Detailed 4.
-\reviewcomment{2.4} \textbf{Questionable classification in Table I.} The classification of SQLGlot and jOOQ as entirely lacking ``Test Case Migration'' and ``Cross-stmt Deps.'' support is overly absolute. In practice:
+\reviewcomment{2.4} Questionable classification in Table I. The classification of SQLGlot and jOOQ as entirely lacking ``Test Case Migration'' and ``Cross-stmt Deps.'' support is overly absolute. In practice:
 
 SQLGlot can parse and transpile multi-statement SQL scripts.
 
@@ -535,13 +537,15 @@ We have clarified the criteria for the three symbols in Table~I in Section~II (B
 \end{center}
 
 % Source: Reviewer B, Detailed 5.
-\reviewcomment{2.5} \textbf{Unclear source of the improvement.} The reported coverage and bug-finding improvements may stem from a larger or more diverse effective seed corpus rather than the AQT-based translation technique itself. The authors should: (a) report the number of valid seeds generated by each method before fuzzing, (b) normalize the corpus size across baselines, or (c) conduct an experiment where seed counts are equalized.
+\reviewcomment{2.5} Unclear source of the improvement. The reported coverage and bug-finding improvements may stem from a larger or more diverse effective seed corpus rather than the AQT-based translation technique itself. For a fair comparison with SEDAR, GRIFFIN, and SQUIRREL, all approaches should use exactly the same source seed corpus and produce comparable numbers of final seeds that pass the target parser.
+
+The current experimental setup does not control for seed corpus size. The authors should: (a) report the number of valid seeds generated by each method before fuzzing, (b) normalize the corpus size across baselines, or (c) conduct an experiment where seed counts are equalized. This controlled setting is necessary to isolate the contribution of MORPH's SQL translation technique and demonstrate that improvements are not simply due to differences in seed quantity or diversity.
 
 \reply
 We have conducted an experiment where seed counts are equalized in Section~IV (Evaluation). \tool{} and \sedar{} transfer the same source test cases, and both use the same number of initial seeds (100, 200, and 300) for \griffin{}. Under the same seed count, \tool{} achieves 17.2\%--92.4\% higher coverage than \sedar{} across the four target DBMSs. Details can be found in \questionref{2.1}.
 
 % Source: Reviewer B, Detailed 6.
-\reviewcomment{2.6} \textbf{Translation overhead is unclear.} Table VIII reports ``Cost/TS'' and ``Time/TS'' but does not specify the unit of measurement (e.g., USD per test suite? seconds per test suite?) or the size of the test suite being translated. Additionally, the paper does not compare MORPH's end-to-end translation time and LLM cost with previous methods such as SEDAR.
+\reviewcomment{2.6} Translation overhead is unclear. Table VIII reports ``Cost/TS'' and ``Time/TS'' but does not specify the unit of measurement (e.g., USD per test suite? seconds per test suite?) or the size of the test suite being translated. Additionally, the paper does not compare MORPH's end-to-end translation time and LLM cost with previous methods such as SEDAR.
 
     The authors should: (a) clearly define the units for cost and time, (b) report the average number of statements per test suite, (c) report per-seed translation time and cost, and (d) compare these overhead metrics against SEDAR and other baselines to demonstrate the practical feasibility of MORPH in real-world deployment.
 
