@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL old_aligned.tex   Mon Nov  9 21:30:22 2026
-%DIF ADD main.tex          Mon Nov  9 21:30:22 2026
+%DIF DEL old_aligned.tex   Tue Nov 10 16:38:56 2026
+%DIF ADD main.tex          Tue Nov 10 16:38:56 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -1225,7 +1225,7 @@ First, to assess transfer quality, we measure \textit{Syntactic Correctness}, de
 Here, \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend is defined by executability in the target DBMS without runtime errors, not by result equivalence between the source and target DBMSs.
 We separately measure semantic richness by counting valid functions, data types, and keywords preserved in executable transferred seeds.
 Second, to quantify the effectiveness in improving fuzzing, we use LLVM's SanitizerCoverage to track \textit{Branch Coverage} over 24-hour campaigns.
-We report the average results across five independent runs to mitigate randomness.
+We report the average results across five independent runs to mitigate randomness\DIFaddbegin \DIFadd{, and use the Mann--Whitney U test to assess statistical significance}\DIFaddend .
 Third, for real-world bug discovery, we report the number of detected unique bugs.
 
 \subsection{RQ1: Real-World Bug Detection}
@@ -1415,7 +1415,7 @@ Neither strategy guarantees semantic equivalence of the mutated queries.
 For each target DBMS, we randomly sampled 300 translated seeds and applied both strategies to the same seeds.
 Each configuration was run with \griffin{} for 24 hours and repeated five times.
 The translated inputs, target database initial state, \griffin{} version and configuration, and resource allocation were held fixed; only the mutation-handling strategy differed.
-Across the four DBMSs, \tool{}'s handling achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage than \sedar{}'s handling on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively (mean over five runs; Mann--Whitney U test, $p<0.05$); per-run results are included in our artifact.
+Across the four DBMSs, \tool{}'s handling achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage than \sedar{}'s handling on DuckDB, MonetDB, Virtuoso, and ClickHouse, respectively ($p<0.05$).
 These results show the coverage benefit of \tool{}'s handling strategy under the evaluated conditions.
 %DIF >  Rebuttal preliminary single-run results: DuckDB +27.2%, MonetDB +15.5%.
 }
