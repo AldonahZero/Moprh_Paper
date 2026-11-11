@@ -274,7 +274,7 @@ We implement \tool{} and evaluate it on four popular DBMSs, namely \duckdb{}, \c
 Although these DBMSs have been extensively tested, \tool{} still uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed and \bugfixcnt{} already fixed.
 These bugs have received attention from developers.
 For example, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
-We further compare \tool{} with state-of-the-art DBMS fuzzing tools, including \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}.
+We further compare \tool{} with state-of-the-art DBMS fuzzing tools, including \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz.
 Across the four DBMSs under 24 hours, \tool{} achieves 7\%--528\% higher branch coverage and discovers 5--22 more bugs than others.
 To evaluate seed transfer quality, we also compare \tool{} against representative relevant techniques, including SQLGlot, jOOQ, CrackSQL, RISE, and \sedar{}.
 \tool{} outperforms these baselines by 5\%--62\% in syntax correctness, 100\%--450\% in execution validity, and 11\%--253\% in preservation of SQL functions.
