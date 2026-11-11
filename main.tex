@@ -888,8 +888,8 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
 
 
 As illustrated in Figure~\ref{fig:coverage_over_time}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
-This corresponds to overall improvements of 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
-Figure~\ref{fig:coverage_over_time} further shows continued branch gains after 12 hours, while several baselines plateau sooner. On \virtuoso{}, \tool{} grows more slowly than SmartFuzz at first due to the larger dialect gap, but reaches comparable coverage.
+This yields overall gains of 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
+Figure~\ref{fig:coverage_over_time} further shows continued branch gains after 12 hours, while several baselines plateau sooner. On MonetDB, DuckDB, and ClickHouse, \tool{} achieves the highest coverage due to smaller dialect gaps. On \virtuoso{}, \tool{} grows more slowly than SmartFuzz at first due to the larger dialect gap, but reaches comparable coverage.
 
 \begin{figure}[!htbp]
 \centering
@@ -898,7 +898,7 @@ Figure~\ref{fig:coverage_over_time} further shows continued branch gains after 1
 \label{fig:coverage_over_time}
 \end{figure}
 
-\begin{table}[!b]
+\begin{table}[!t]
 \centering
 \caption{Number of bugs detected by different tools (24h).}
 \label{tab:bugs}
