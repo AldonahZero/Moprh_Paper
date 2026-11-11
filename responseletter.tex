@@ -448,7 +448,7 @@ RISE & 34.0 & 65.0 \\
 
 \reviewcomment{2.1} Limited novelty. The paper positions AQT as a key contribution, but AQT largely resembles an existing SQL AST or intermediate representation augmented with abstract labels, read/write sets, dependency edges, and schema context. The authors do not clearly articulate what fundamentally new capability AQT provides over existing SQL representations (e.g., JOOQ's parse tree or SQLGlot's AST) or translation systems (CrackSQL, RISE, QTRAN). The distinction from these systems is insufficiently developed.
 
-More importantly, the evaluation lacks compositional baselines such as ``existing SQL translator + SEDAR/GRIFFIN'' or ``AST-based translation + GRIFFIN''. Without such ablations, it is difficult to determine whether the contribution is a fundamentally new transfer technique or mainly an engineering integration of existing components. The authors should add such baselines or provide a clearer theoretical argument for why AQT enables capabilities that prior representations cannot achieve.
+More importantly, the evaluation lacks compositional baselines such as ``existing SQL translator + SEDAR/GRIFFIN'' or ``AST-based translation + GRIFFIN''. Without such ablations, it is difficult to determine whether the contribution is a fundamentally new transfer technique or mainly an engineering integration of existing components. The authors should add such baselines or provide a clearer theoretical argument for why AQT enables capabilities that \mbox{prior representations cannot achieve.}
 
 \reply
 We have clarified in Sections~II (Background and Motivation), III (Approach), and VI (Related Work) that AQT's novelty lies in \textit{jointly modeling cross-statement dependencies and cumulative schema/type context for coordinated translation/repair}. Unlike statement-level representations (e.g., SQLGlot's AST), which primarily represent individual SQL statements, AQT models the evolving state of an entire test sequence; unlike query-level translation systems (e.g., CrackSQL/RISE/QTRAN), AQT uses preceding statements to guide the \mbox{translation/repair of subsequent statements.}
@@ -481,7 +481,7 @@ We have clarified the differences in goal and methodology between SmartFuzz and 
 
 \textit{Goal:} SmartFuzz focuses on generating new DBMS-specific seeds, whereas \tool{} focuses on transferring existing test cases across DBMSs.
 
-\textit{Methodology:} SmartFuzz extracts SQL features from the official documentation of the target DBMS and bug-relevant features from historical crash-triggering inputs, and then prompts an LLM with combinations of these features to generate new seeds. In contrast, \tool{} uses cross-statement dependencies and cumulative schema and type context to translate and repair existing test cases.
+\textit{Methodology:} SmartFuzz extracts SQL features from the official documentation of the target DBMS and bug-relevant features from historical crash-triggering inputs, and prompts an LLM with combinations of these features to generate seeds. In contrast, \tool{} uses cross-statement dependencies and cumulative schema and type context to translate and repair existing test cases.
 
 We have also extended the comparison in Section~IV (Evaluation). Across the four target DBMSs, \tool{} covers 7\% more branches in total and detects 5 more bugs than SmartFuzz. Details can be found in \metareviewref{3}.
 
