@@ -898,27 +898,7 @@ Figure~\ref{fig:coverage_over_time} further shows continued branch gains after 1
 \label{fig:coverage_over_time}
 \end{figure}
 
-\begin{table}[!t]
-\centering
-\caption{Number of bugs detected by different tools (24h).}
-\label{tab:bugs}
-{\scriptsize
-\setlength{\tabcolsep}{1pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
-    \toprule
-    \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
-    \midrule
-    MonetDB    & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
-    Virtuoso   & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
-    DuckDB     & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
-    ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
-    \midrule
-    Total      & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
-    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
-    \bottomrule
-\end{tabular*}
-}
-\end{table}
+
 
 The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} and 5 more bugs than SmartFuzz across the four DBMSs. 
@@ -952,6 +932,29 @@ These results show the coverage benefit of \tool{}'s handling strategy under the
 \textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 22, 22, 16, and 5 more bugs, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
+
+\suppressfloats[t]
+\begin{table}[t]
+\centering
+\caption{Number of bugs detected by different tools (24h).}
+\label{tab:bugs}
+{\scriptsize
+\setlength{\tabcolsep}{1pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
+    \toprule
+    \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
+    \midrule
+    MonetDB    & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
+    Virtuoso   & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
+    DuckDB     & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
+    ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
+    \midrule
+    Total      & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
+    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
+    \bottomrule
+\end{tabular*}
+}
+\end{table}
 
 \subsection{RQ3: Effectiveness of Transfer of \tool{}}
 % RQ3 写作逻辑 / Reviewer A、C 修改逻辑：
@@ -1027,7 +1030,7 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 
 \textbf{Source-to-Target Result and State Equivalence.}
 We randomly sampled 100 MySQL test cases and used the same cases to evaluate SQLGlot, RISE, \sedar{}, and \tool{} for transfer to DuckDB.
-We compared query results between the source and target executions for result equivalence, and compared the resulting database states, including schemas and table contents, for state equivalence.
+We compared source and target query results for result equivalence, and database states, including schemas and table contents, for state equivalence.
 \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}.
 
 \textbf{Semantic Richness of the Transferred Test Cases.}

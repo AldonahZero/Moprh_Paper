@@ -1292,12 +1292,18 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
   \label{fig:casestudy}
 \end{figure}
 
+
+
+
+
 \tool{}’s effectiveness stems from its structure-aware transfer. Take the case as an example, in \pg{}, nested joins involving a table with \texttt{DOUBLE PRECISION} and a subquery are well tested, whereas \duckdb{} lacks sufficient coverage for such combinations. Conventional approaches often simplify schemas (e.g., converting \texttt{DOUBLE} to \texttt{INT}) or flatten nested queries to ensure compatibility, sacrificing semantic fidelity. In contrast, \tool{} preserves the full structural complexity of the original seed, forcing DuckDB to perform precise type inference and vector allocation for correlated joins and thereby exercising execution paths that simplified queries would not reach. This high-fidelity transfer exposes a critical flaw in the executor logic that remains undetected when structural complexity is removed.
 
 \begin{answerbox}
 \textbf{Answer to RQ1:} 
 \tool{} successfully exposed \bugcnt{} unknown bugs in four popular DBMSs, affecting core components including the Optimizer and Storage Engine. Among them, \bugconfirmcnt{} bugs have been confirmed, and \bugfixcnt{} bugs have already been fixed by DBMS vendors.
 \end{answerbox}
+
+
 
 \subsection{RQ2: Comparison with Other Fuzzing Tools}
 % RQ2 写作逻辑：
@@ -1352,9 +1358,9 @@ We adapt \sqlright{} to the four target DBMSs, and the adaptation code is also i
 \DIFaddend 
 
 
-As illustrated in \DIFdelbegin \DIFdel{Table~\ref{tab:coverage}}\DIFdelend \DIFaddbegin \DIFadd{Figure~\ref{fig:coverage_over_time}}\DIFaddend , the transferred seeds lead to the highest \DIFdelbegin \DIFdel{branch coverage across all evaluated DBMSs}\DIFdelend \DIFaddbegin \DIFadd{total branch coverage}\DIFaddend , covering 422,130 branches \DIFdelbegin \DIFdel{in total}\DIFdelend \DIFaddbegin \DIFadd{across the four DBMSs}\DIFaddend .
-This corresponds to overall improvements of 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend over \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{\sedar{}, and SmartFuzz, }\DIFaddend respectively, on their supported targets.
-Figure~\ref{fig:coverage_over_time} further shows \DIFdelbegin \DIFdel{earlier coverage growth and }\DIFdelend continued branch gains after 12 hours, while several baselines plateau sooner. \DIFaddbegin \DIFadd{On \virtuoso{}, \tool{} grows more slowly than SmartFuzz at first due to the larger dialect gap, but reaches comparable coverage.
+As illustrated in \DIFdelbegin \DIFdel{Table~III}\DIFdelend \DIFaddbegin \DIFadd{Figure~\ref{fig:coverage_over_time}}\DIFaddend , the transferred seeds lead to the highest \DIFdelbegin \DIFdel{branch coverage across all evaluated DBMSs}\DIFdelend \DIFaddbegin \DIFadd{total branch coverage}\DIFaddend , covering 422,130 branches \DIFdelbegin \DIFdel{in total}\DIFdelend \DIFaddbegin \DIFadd{across the four DBMSs}\DIFaddend .
+This \DIFdelbegin \DIFdel{corresponds to overall improvements}\DIFdelend \DIFaddbegin \DIFadd{yields overall gains}\DIFaddend of 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend over \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{\sedar{}, and SmartFuzz, }\DIFaddend respectively, on their supported targets.
+Figure~\ref{fig:coverage_over_time} further shows \DIFdelbegin \DIFdel{earlier coverage growth and }\DIFdelend continued branch gains after 12 hours, while several baselines plateau sooner. \DIFaddbegin \DIFadd{On MonetDB, DuckDB, and ClickHouse, \tool{} achieves the highest coverage due to smaller dialect gaps. On \virtuoso{}, \tool{} grows more slowly than SmartFuzz at first due to the larger dialect gap, but reaches comparable coverage.
 }\DIFaddend 
 
 \begin{figure}[!htbp]
@@ -1364,30 +1370,7 @@ Figure~\ref{fig:coverage_over_time} further shows \DIFdelbegin \DIFdel{earlier c
 \label{fig:coverage_over_time}
 \end{figure}
 
-\begin{table}[!b]
-\centering
-\caption{Number of bugs detected by different tools (24h).}
-\label{tab:bugs}
-{\scriptsize
-\DIFdelbeginFL %DIFDELCMD < \setlength{\tabcolsep}{2pt}
-%DIFDELCMD < \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccc@{}}
-%DIFDELCMD <     %%%
-\DIFdelendFL \DIFaddbeginFL \setlength{\tabcolsep}{1pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
-    \toprule
-    \textbf{DBMS} & \sqlancer{} & \DIFaddFL{\sqlright{}} & \squirrel{} & \griffin{} & \sedar{} & \DIFaddFL{SmartFuzz} & \textsc{Morph} \\
-    \midrule
-    MonetDB & - & \DIFaddFL{0} & 0 & 0 & 3 & \DIFaddFL{11} & \textbf{14} \\
-    Virtuoso & - & \DIFaddFL{0} & 0 & 0 & 2 & \DIFaddFL{\textbf{3}} & \textbf{3} \\
-    DuckDB & 0 & \DIFaddFL{0} & 0 & 0 & 1 & \DIFaddFL{2} & \textbf{3} \\
-    ClickHouse & 0 & \DIFaddFL{0} & - & 0 & 0 & \DIFaddFL{1} & \textbf{2} \\
-    \midrule
-    Total & 0 & \DIFaddFL{0} & 0 & 0 & 6 & \DIFaddFL{17} & 22 \\
-    Increment & 22$\uparrow$ & \DIFaddFL{22$\uparrow$} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & \DIFaddFL{5$\uparrow$} & - \\
-    \bottomrule
-\end{tabular*}
-}
-\end{table}
+
 
 The coverage improvement also brings more detected bugs.
 As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} \DIFaddbegin \DIFadd{and 5 more bugs than SmartFuzz }\DIFaddend across the four DBMSs. 
@@ -1404,6 +1387,8 @@ We further run \griffin{} with the union of their seeds, which covers 413,021 br
 }\DIFdelend \DIFaddbegin \DIFadd{18 more bugs than \tool{} and SmartFuzz alone, respectively.
 However, its coverage is lower than that of \tool{} alone on MonetDB and DuckDB, where the additional seeds reduce the execution throughput, leaving fewer mutation opportunities for potentially more valuable seeds.
 }
+
+
 
 \DIFadd{These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
 To examine one source of this difference, we next compare the mutation-handling strategies under controlled conditions.
@@ -1428,6 +1413,32 @@ These results show the coverage benefit of \tool{}'s handling strategy under the
 \textbf{Answer to RQ2:} \tool{} covers 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend more branches than \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{\sedar{}, and SmartFuzz, }\DIFaddend respectively, and discovers 22, 22, 22, \DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{22, }\DIFaddend 16\DIFdelbegin \DIFdel{more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{, and 5 more bugs, }\DIFaddend respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
+
+\suppressfloats[t]
+\begin{table}[t]
+\centering
+\caption{Number of bugs detected by different tools (24h).}
+\label{tab:bugs}
+{\scriptsize
+\DIFdelbeginFL %DIFDELCMD < \setlength{\tabcolsep}{2pt}
+%DIFDELCMD < \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccc@{}}
+%DIFDELCMD <     %%%
+\DIFdelendFL \DIFaddbeginFL \setlength{\tabcolsep}{1pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
+    \toprule
+    \textbf{DBMS} & \sqlancer{} & \DIFaddFL{\sqlright{}} & \squirrel{} & \griffin{} & \sedar{} & \DIFaddFL{SmartFuzz} & \textsc{Morph} \\
+    \midrule
+    MonetDB & - & \DIFaddFL{0} & 0 & 0 & 3 & \DIFaddFL{11} & \textbf{14} \\
+    Virtuoso & - & \DIFaddFL{0} & 0 & 0 & 2 & \DIFaddFL{\textbf{3}} & \textbf{3} \\
+    DuckDB & 0 & \DIFaddFL{0} & 0 & 0 & 1 & \DIFaddFL{2} & \textbf{3} \\
+    ClickHouse & 0 & \DIFaddFL{0} & - & 0 & 0 & \DIFaddFL{1} & \textbf{2} \\
+    \midrule
+    Total & 0 & \DIFaddFL{0} & 0 & 0 & 6 & \DIFaddFL{17} & 22 \\
+    Increment & 22$\uparrow$ & \DIFaddFL{22$\uparrow$} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & \DIFaddFL{5$\uparrow$} & - \\
+    \bottomrule
+\end{tabular*}
+}
+\end{table}
 
 \subsection{RQ3: Effectiveness of Transfer of \tool{}}
 % RQ3 写作逻辑 / Reviewer A、C 修改逻辑：
@@ -1530,7 +1541,7 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 
 \DIFaddbegin \textbf{\DIFadd{Source-to-Target Result and State Equivalence.}}
 \DIFadd{We randomly sampled 100 MySQL test cases and used the same cases to evaluate SQLGlot, RISE, \sedar{}, and \tool{} for transfer to DuckDB.
-We compared query results between the source and target executions for result equivalence, and compared the resulting database states, including schemas and table contents, for state equivalence.
+We compared source and target query results for result equivalence, and database states, including schemas and table contents, for state equivalence.
 \tool{} achieves 52.0\% result equivalence and 74.0\% state equivalence, compared with 14.0\%/56.0\% for SQLGlot, 34.0\%/65.0\% for RISE, and 38.0\%/69.0\% for \sedar{}.
 }
 

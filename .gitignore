@@ -34,3 +34,4 @@ Thumbs.db
 .vscode/
 output/pdf/
 tmp/*.ttf
+tmp/*
