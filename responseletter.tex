@@ -372,7 +372,7 @@ We have documented these details in the revised paper. (1) \textit{Baseline adap
 \reviewquestion{2.1} Could the authors clarify whether the reported coverage/bug-finding improvements primarily stem from AQT-based translation or from a larger/richer effective seed corpus? In a controlled experiment where all baselines use exactly the same number and source of initial seeds, how much of the 14\% coverage gain over SEDAR remains attributable to AQT?
 
 \reply
-\textit{Same number of initial seeds.} In the comparison in Section~IV (Evaluation), we use the same number of initial seeds for \tool{} and \sedar{}, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. As shown in the table below, \tool{} covers 14.5\% more branches and detects 16 more bugs than \sedar{}, indicating that the observed improvement comes from AQT rather than the number of initial seeds.
+\textit{Initial Seed Settings.} In the comparison in Section~IV (Evaluation), we use the same number of initial seeds for \tool{} and \sedar{}, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. As shown in the table below, \tool{} covers 14.5\% more branches and detects 16 more bugs than \sedar{}, indicating that the observed improvement comes from AQT rather than the number of initial seeds.
 
 \begin{center}
 \begin{minipage}{0.6\linewidth}
