@@ -260,7 +260,7 @@ We have revised Sections~I (Introduction), II (Background and Motivation), III (
 \reviewcomment{1.2} These works show that structural decomposition, localized translation, and dialect-aware retrieval are not individually new. However, none of them models an independently executed stateful fuzzing test sequence, maintains target-side context across its statements, or integrates the result with coverage-guided seed mutation in the manner proposed by MORPH.
 
 \reply
-We have adopted this suggestion and further emphasized the contributions of \tool{} in Section~VI (Related Work). Specifically, \tool{} maintains evolving target-side context across an ordered test sequence and produces seeds that remain parsable and mutable by downstream fuzzers.
+We have adopted this suggestion and further emphasized the contributions of \tool{} in Section~VI (Related Work). \tool{} maintains evolving target-side context across an ordered test sequence and produces seeds that remain parsable and mutable by downstream fuzzers.
 
 % Source: Reviewer A, Detailed 1 (paragraph 4).
 \reviewcomment{1.3} The related-work discussion contains several details that should be corrected. In particular, the paper states that CrackSQL employs genetic algorithms to mine mutation patterns, but the cited work instead uses functionality-based query processing, cross-dialect syntax embedding with contrastive learning, and local-to-global translation. In addition, describing RISE as strictly processing a single SQL statement is too narrow because it also evaluates complete stored procedures containing control flow and multiple DML statements. A more accurate distinction is that RISE processes one self-contained query or procedural artifact at a time rather than a test file containing an ordered sequence of independently executed statements.
@@ -330,15 +330,15 @@ We have clarified in Section~IV (Evaluation) that our experiments use the \sedar
 \reviewcomment{1.9} The paper reports average coverage over five runs, but Tables III and VII provide no variance, confidence intervals, or statistical tests. Such information is important for stochastic fuzzing experiments. It is also unclear whether the reported bug counts are unions across the five runs or results from a particular run.
 
 \reply
-We have reported the statistics of the coverage results in Section~IV (Evaluation). (1) \textit{Statistical tests}: the 8\%--39\% coverage gains from enabling the feedback-driven sanitizer (Table~VII) and the 4.0\%--27.2\% coverage gains of \tool{}'s mutation handling over that of \sedar{} are statistically significant (Mann--Whitney U test, $p<0.05$). (2) \textit{Variability}: all coverage results are averaged over five independent runs; for \tool{}, the variance is $5.4\times10^{6}$, the standard deviation is 2,324, and the 95\% confidence interval is $\pm2,900$. (3) \textit{Bug counts}: the reported bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
+We have reported the statistics of the coverage results in Section~IV (Evaluation). (1) \textit{Statistical tests}: the 8\%--39\% coverage gains from enabling the feedback-driven sanitizer (Table~VII) and the 4.0\%--27.2\% coverage gains of \tool{}'s mutation handling over that of \sedar{} are statistically significant (Mann--Whitney U test, $p<0.05$). (2) \textit{Variability}: all coverage results are averaged over five independent runs; for \tool{}, the variance is $5.4\times10^{6}$, the standard deviation is 2,324, and the 95\% confidence interval is $\pm2,900$. (3) \textit{Bug counts}: the bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
 
 We have also revised Figure~7 to display the means and the 95\% confidence intervals of the five runs, shown below, and stated in Section~IV (Evaluation) how the coverage results and bug counts are aggregated.
 
-\begin{center}
-\includegraphics[width=0.6\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
+\par\smallskip\noindent\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\linewidth]{media/coverage_over_time_griffin_2x2.pdf}
 
 {\footnotesize Figure 7: Coverage growth over 24-hour fuzzing campaigns. Displayed are the means and the 95\% confidence intervals of five runs.}
-\end{center}
+\end{minipage}\par
 
 % Source: Reviewer A, Detailed 4 (paragraph 5).
 \reviewcomment{1.10} The full bug-finding campaign discovers 28 bugs, whereas the 24-hour comparison reports 22. The duration and computational budget of the full campaign should be reported. Similarly, Table VIII should specify the currency of the cost, the unit of time, and the total offline cost of processing all test files.
