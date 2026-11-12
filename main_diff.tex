@@ -552,7 +552,7 @@ Built-in test suites are commonly used for this purpose, yet many DBMSs lack the
 Consequently, test cases from mature systems are often reused, but this process is hindered by SQL dialect incompatibilities.
 Traditional SQL translation techniques primarily operate at statement-level and are not designed for complete test-case transfer for DBMS fuzzing.
 Recent fuzzing-oriented approaches instead employ LLMs for end-to-end test-case transfer.
-However, limited knowledge of SQL structures and dialects often introduces syntactic and semantic errors, while direct transfer may simplify SQL structures and cross-statement dependencies, reducing the diversity of generated seeds.
+However, limited knowledge of SQL structures and dialects often introduces syntactic and semantic errors, while direct transfer may \DIFdelbegin \DIFdel{simplify}\DIFdelend \DIFaddbegin \DIFadd{fail to preserve}\DIFaddend SQL structures and cross-statement dependencies, reducing the diversity of generated seeds.
 % structural and behavioral 
 
 To address these limitations, we propose \tool{} to construct fuzzing seeds with structure-aware cross-dialect SQL transfer.
@@ -1296,7 +1296,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 
 
 
-\tool{}’s effectiveness stems from its structure-aware transfer. Take the case as an example, in \pg{}, nested joins involving a table with \texttt{DOUBLE PRECISION} and a subquery are well tested, whereas \duckdb{} lacks sufficient coverage for such combinations. Conventional approaches often simplify schemas (e.g., converting \texttt{DOUBLE} to \texttt{INT}) or flatten nested queries to ensure compatibility, sacrificing semantic fidelity. In contrast, \tool{} preserves the full structural complexity of the original seed, forcing DuckDB to perform precise type inference and vector allocation for correlated joins and thereby exercising execution paths that simplified queries would not reach. This high-fidelity transfer exposes a critical flaw in the executor logic that remains undetected when structural complexity is removed.
+\tool{}’s effectiveness stems from its structure-aware transfer. Take the case as an example, in \pg{}, nested joins involving a table with \texttt{DOUBLE PRECISION} and a subquery are well tested, whereas \duckdb{} lacks sufficient coverage for such combinations. Conventional approaches often simplify schemas (e.g., converting \texttt{DOUBLE} to \texttt{INT}) or flatten nested queries to ensure compatibility, \DIFdelbegin \DIFdel{sacrificing semantic fidelity}\DIFdelend \DIFaddbegin \DIFadd{losing this combination}\DIFaddend. In contrast, \tool{} preserves the full structural complexity of the original seed, forcing DuckDB to perform precise type inference and vector allocation for correlated joins and thereby exercising execution paths that simplified queries would not reach. This \DIFdelbegin \DIFdel{high-fidelity}\DIFdelend \DIFaddbegin \DIFadd{structure-preserving}\DIFaddend transfer exposes a critical flaw in the executor logic that remains undetected when structural complexity is removed.
 
 \begin{answerbox}
 \textbf{Answer to RQ1:} 
