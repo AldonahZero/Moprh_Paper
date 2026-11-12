@@ -35,3 +35,4 @@ Thumbs.db
 output/pdf/
 tmp/*.ttf
 tmp/*
+Claude outputs/*

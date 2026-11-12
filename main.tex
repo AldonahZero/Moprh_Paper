@@ -307,7 +307,7 @@ Compared to the state-of-the-art method \sedar{}, \tool{} improves the overall e
 % - Basic Idea  AQT：把 logical intent 从 dialect-specific syntax 中抽离，再实例化到目标 DBMS。
 \textbf{SQL Dialects.} 
 \textit{Database Management Systems (DBMSs)} underpin modern data-driven applications and expose high-level declarative query languages for data interaction. Although SQL is standardized, real-world DBMSs implement diverse \textit{SQL dialects} with substantial syntactic and semantic variations.
-For example, PostgreSQL parses timestamp with \texttt{to\_timestamp} and the format \texttt{\textquotesingle{}MMDD\textquotesingle{}}, whereas DuckDB uses \texttt{strptime} with the format \texttt{\textquotesingle{}\%m\%d\textquotesingle{}}. 
+For example, PostgreSQL parses strings with \texttt{to\_timestamp} and the format \texttt{\textquotesingle{}MMDD\textquotesingle{}}, whereas DuckDB uses \texttt{strptime} with the format \texttt{\textquotesingle{}\%m\%d\textquotesingle{}}.
 These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
 
 

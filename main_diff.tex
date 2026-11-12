@@ -1,7 +1,7 @@
 
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL old_aligned.tex   Tue Nov 10 17:14:12 2026
-%DIF ADD main.tex          Tue Nov 10 17:14:12 2026
+%DIF DEL old_aligned.tex   Thu Nov 12 21:44:34 2026
+%DIF ADD main.tex          Thu Nov 12 21:44:34 2026
 
 %%
 %% This is file `sample-acmsmall-submission.tex',
@@ -699,7 +699,7 @@ We implement \tool{} and evaluate it on four popular DBMSs, namely \duckdb{}, \c
 Although these DBMSs have been extensively tested, \tool{} still uncovers \bugcnt{} previously unknown bugs, including \bugconfirmcnt{} confirmed and \bugfixcnt{} already fixed.
 These bugs have received attention from developers.
 For example, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
-We further compare \tool{} with state-of-the-art DBMS fuzzing tools, including \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and }\DIFdelend \sedar{}\DIFaddbegin \DIFadd{, and SmartFuzz}\DIFaddend .
+We further compare \tool{} with state-of-the-art DBMS fuzzing tools, including \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and \sedar{}}\DIFdelend \DIFaddbegin \DIFadd{\sedar{}, and SmartFuzz}\DIFaddend .
 Across the four DBMSs under 24 hours, \tool{} achieves \DIFdelbegin \DIFdel{14}\DIFdelend \DIFaddbegin \DIFadd{7}\DIFaddend \%--528\% higher branch coverage and discovers \DIFdelbegin \DIFdel{16--22 }\DIFdelend \DIFaddbegin \DIFadd{5--22 }\DIFaddend more bugs than others.
 To evaluate seed transfer quality, we also compare \tool{} against representative relevant techniques, including SQLGlot, jOOQ, CrackSQL, RISE, and \sedar{}.
 \tool{} outperforms these baselines by 5\%--62\% in syntax correctness, 100\%--450\% in \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend , and 11\%--253\% in preservation of SQL functions.
@@ -732,11 +732,13 @@ Compared to the state-of-the-art method \sedar{}, \tool{} improves the overall \
 % - Basic Idea  AQT：把 logical intent 从 dialect-specific syntax 中抽离，再实例化到目标 DBMS。
 \textbf{SQL Dialects.} 
 \textit{Database Management Systems (DBMSs)} underpin modern data-driven applications and expose high-level declarative query languages for data interaction. Although SQL is standardized, real-world DBMSs implement diverse \textit{SQL dialects} with substantial syntactic and semantic variations.
-For example, PostgreSQL \DIFdelbegin \DIFdel{uses }\texttt{\DIFdel{AGE(timestamp)}} %DIFAUXCMD
-\DIFdel{for date arithmetic}\DIFdelend \DIFaddbegin \DIFadd{parses date strings with }\texttt{\DIFadd{TO\_DATE}} \DIFadd{and the format }\texttt{\DIFadd{\textquotesingle{}YYYY-MM-DD\textquotesingle{}}}\DIFaddend , whereas DuckDB \DIFdelbegin \DIFdel{requires }\DIFdelend \DIFaddbegin \DIFadd{does not provide }\DIFaddend \texttt{\DIFdelbegin \DIFdel{date}\DIFdelend \DIFaddbegin \DIFadd{TO}\DIFaddend \_\DIFdelbegin \DIFdel{diff()}%DIFDELCMD < \MBLOCKRIGHTBRACE%%%
-\DIFdel{. Similarly, type casting syntax varies between }\texttt{\DIFdel{::INTERVAL}} %DIFAUXCMD
-\DIFdel{in PostgreSQL and }\DIFdelend \DIFaddbegin \DIFadd{DATE}} \DIFadd{and instead uses }\DIFaddend \texttt{\DIFdelbegin \DIFdel{CAST(... AS INTERVAL)}\DIFdelend \DIFaddbegin \DIFadd{STRPTIME}\DIFaddend } \DIFdelbegin \DIFdel{in standard SQL}\DIFdelend \DIFaddbegin \DIFadd{with the format }\texttt{\DIFadd{\textquotesingle{}\%Y-\%m-\%d\textquotesingle{}}}\DIFaddend . 
-These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
+For example, PostgreSQL \DIFdelbegin \DIFdel{uses }\DIFdelend \DIFaddbegin \DIFadd{parses strings with }\DIFaddend \texttt{\DIFdelbegin \DIFdel{AGE(}\DIFdelend \DIFaddbegin \DIFadd{to\_}\DIFaddend timestamp\DIFdelbegin \DIFdel{)}\DIFdelend } \DIFdelbegin \DIFdel{for date arithmetic}\DIFdelend \DIFaddbegin \DIFadd{and the format }\texttt{\DIFadd{\textquotesingle{}MMDD\textquotesingle{}}}\DIFaddend , whereas DuckDB \DIFdelbegin \DIFdel{requires }\DIFdelend \DIFaddbegin \DIFadd{uses }\DIFaddend \texttt{\DIFdelbegin \DIFdel{date\_diff()}%DIFDELCMD < \MBLOCKRIGHTBRACE%%%
+\DIFdel{.
+Similarly, type casting syntax varies between }\texttt{\DIFdel{::INTERVAL}} %DIFAUXCMD
+\DIFdel{in PostgreSQL and }\texttt{\DIFdel{CAST(... AS INTERVAL)}} %DIFAUXCMD
+\DIFdel{in standard SQL. 
+}\DIFdelend \DIFaddbegin \DIFadd{strptime}} \DIFadd{with the format }\texttt{\DIFadd{\textquotesingle{}\%m\%d\textquotesingle{}}}\DIFadd{.
+}\DIFaddend These dialect gaps pose substantial barriers for reusing test assets across different DBMSs.
 
 
 
@@ -824,9 +826,9 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
   \DIFdelbeginFL %DIFDELCMD < \includegraphics[width=\linewidth]{media/motivating_71.pdf}
 %DIFDELCMD <   %%%
 %DIF <  \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
-  \DIFdelendFL \DIFaddbeginFL \includegraphics[width=\linewidth]{media/motivating_rc1_v2.pdf}
-  \DIFaddendFL \caption{\DIFdelbeginFL \DIFdelFL{Conventional end-to-end translation methods like }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Motivating example of running }\DIFaddendFL \sedar{} \DIFdelbeginFL \DIFdelFL{suffer from semantic error and structural simplification }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{on a \pg{} seed }\DIFaddendFL (Left)\DIFaddbeginFL \DIFaddFL{: the incompatible fragment is commented out during mutation and restored before execution, leaving the translation error unrepaired}\DIFaddendFL . \tool{} \DIFdelbeginFL \DIFdelFL{decouples intent }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{abstracts dialect-specific logic }\DIFaddendFL via AQT \DIFdelbeginFL \DIFdelFL{, successfully instantiating }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{and instantiates it in }\DIFaddendFL the \DIFdelbeginFL \DIFdelFL{equivalent }\texttt{\DIFdelFL{date\_diff}} %DIFAUXCMD
-\DIFdelFL{logic }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{target dialect }\DIFaddendFL (Right).}
+  \DIFdelendFL \DIFaddbeginFL \includegraphics[width=\linewidth]{media/motivating_rc2.pdf}
+  \DIFaddendFL \caption{\DIFdelbeginFL \DIFdelFL{Conventional end-to-end translation methods like }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Motivating example of running }\DIFaddendFL \sedar{} \DIFdelbeginFL \DIFdelFL{suffer from semantic error and structural simplification }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{on a \pg{} seed }\DIFaddendFL (Left)\DIFaddbeginFL \DIFaddFL{: S2$'$ is inconsistent with the target-side type in S1$'$, and the incompatible fragment in S3$'$ is commented out during mutation and restored before execution, leaving the translation error unrepaired}\DIFaddendFL . \tool{} \DIFdelbeginFL \DIFdelFL{decouples intent }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{abstracts dialect-specific logic }\DIFaddendFL via AQT \DIFdelbeginFL \DIFdelFL{, successfully instantiating }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{and instantiates it with }\DIFaddendFL the \DIFdelbeginFL \DIFdelFL{equivalent }\texttt{\DIFdelFL{date\_diff}} %DIFAUXCMD
+\DIFdelFL{logic }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{target-side context in the target dialect }\DIFaddendFL (Right).}
   \label{fig:motivation}
 \end{figure}
 
@@ -847,27 +849,31 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
   \label{fig:workflow}
 \end{figure*}
 
-\textit{Limitations of Existing Approaches.} Figure\DIFdelbegin \DIFdel{\ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring }\DIFdelend \DIFaddbegin \DIFadd{~\ref{fig:motivation} shows }\DIFaddend a test case \DIFaddbegin \DIFadd{transferred by \sedar{} }\DIFaddend from \pg{} to \duckdb{}, which contains dialect-specific features \DIFdelbegin \DIFdel{like the }\DIFdelend \DIFaddbegin \DIFadd{such as }\DIFaddend \texttt{\DIFdelbegin \DIFdel{AGE}%DIFDELCMD < \MBLOCKRIGHTBRACE %%%
+\textit{Limitations of Existing Approaches.} Figure\DIFdelbegin \DIFdel{\ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring }\DIFdelend \DIFaddbegin \DIFadd{~\ref{fig:motivation} shows }\DIFaddend a test case \DIFaddbegin \DIFadd{transferred by \sedar{} }\DIFaddend from \pg{} to \duckdb{}, which contains dialect-specific features \DIFdelbegin \DIFdel{like the }\DIFdelend \DIFaddbegin \DIFadd{such as the }\DIFaddend \texttt{\DIFdelbegin \DIFdel{AGE}%DIFDELCMD < \MBLOCKRIGHTBRACE %%%
 \DIFdel{function in the }\texttt{\DIFdel{WHERE}} %DIFAUXCMD
 \DIFdel{clause and the }\texttt{\DIFdel{::INTERVAL}} %DIFAUXCMD
 \DIFdel{type cast.
-With limited knowledge of \duckdb{}’s syntax}\DIFdelend \DIFaddbegin \DIFadd{TO\_DATE}} \DIFadd{and its format string.
-In this example}\DIFaddend , the LLM \DIFdelbegin \DIFdel{hallucinates and preserves }\DIFdelend \DIFaddbegin \DIFadd{retains }\DIFaddend \texttt{\DIFdelbegin \DIFdel{AGE}\DIFdelend \DIFaddbegin \DIFadd{TO\_DATE}\DIFaddend } \DIFdelbegin \DIFdel{, causing syntax and semantic errors}\DIFdelend \DIFaddbegin \DIFadd{in the translated predicate}\DIFaddend .
-To satisfy \DIFdelbegin \DIFdel{parsing constraints, \sedar{} comments out }\texttt{\DIFdel{AGE}} %DIFAUXCMD
-\DIFdelend \DIFaddbegin \DIFadd{the fuzzer's parser, \sedar{} temporarily comments out this fragment }\DIFaddend and replaces the \DIFdelbegin \texttt{\DIFdel{WHERE}} %DIFAUXCMD
-\DIFdel{condition with }\DIFdelend \DIFaddbegin \DIFadd{predicate with }\DIFaddend \texttt{\DIFdelbegin \DIFdel{True}%DIFDELCMD < \MBLOCKRIGHTBRACE%%%
+With limited knowledge of \duckdb{} ’s syntax}\DIFdelend \DIFaddbegin \DIFadd{MONEY}} \DIFadd{type and }\texttt{\DIFadd{to\_timestamp}}\DIFadd{.
+\sedar{} maps }\texttt{\DIFadd{MONEY}} \DIFadd{in S1 to }\texttt{\DIFadd{DECIMAL(18,2)}} \DIFadd{but translates S2 without this type, so S2$'$ keeps the literal }\texttt{\DIFadd{\textquotesingle{}\$12.50\textquotesingle{}}}\DIFadd{, which \duckdb{} cannot convert.
+In S3$'$}\DIFaddend , the LLM \DIFdelbegin \DIFdel{hallucinates and preserves }\DIFdelend \DIFaddbegin \DIFadd{replaces }\DIFaddend \texttt{\DIFdelbegin \DIFdel{AGE}%DIFDELCMD < \MBLOCKRIGHTBRACE%%%
+\DIFdel{, causing syntax and semantic errors.
+To satisfy parsing constraints, \sedar{} comments out }\texttt{\DIFdel{AGE}} %DIFAUXCMD
+\DIFdel{and replaces the }\texttt{\DIFdel{WHERE}} %DIFAUXCMD
+\DIFdel{condition with }\texttt{\DIFdel{True}}%DIFAUXCMD
 \DIFdel{, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states.
-As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing}\DIFdelend \DIFaddbegin \DIFadd{TRUE}} \DIFadd{during mutation, then restores the fragment before execution.
-Since the restored fragment still contains }\texttt{\DIFadd{TO\_DATE}}\DIFadd{, the mutated test case fails on \duckdb{}}\DIFaddend .
+As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
+}\DIFdelend \DIFaddbegin \DIFadd{to\_timestamp}} \DIFadd{with }\texttt{\DIFadd{to\_date}}\DIFadd{, which \duckdb{} does not provide.
+\sedar{} temporarily comments out this fragment during mutation and restores it before execution, so the restored statement still fails on \duckdb{}.
+}\DIFaddend 
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
-As shown in Figure~\ref{fig:motivation}, \tool{} \DIFdelbegin \DIFdel{does not perform erroneous syntactic translation, but instead }\DIFdelend abstracts the dialect-specific \texttt{\DIFdelbegin \DIFdel{AGE}\DIFdelend \DIFaddbegin \DIFadd{TO\_DATE}\DIFaddend } \DIFdelbegin \DIFdel{function into a generic }\DIFdelend \DIFaddbegin \DIFadd{operation into an AQT node labeled }\DIFaddend $<$\texttt{\DIFdelbegin \DIFdel{TimeDiff}\DIFdelend \DIFaddbegin \DIFadd{StrToDate}\DIFaddend }$>$\DIFdelbegin \DIFdel{intent.
+As shown in Figure~\ref{fig:motivation}, \tool{} \DIFdelbegin \DIFdel{does not perform erroneous syntactic translation, but instead abstracts the dialect-specific }\DIFdelend \DIFaddbegin \DIFadd{abstracts }\DIFaddend \texttt{\DIFdelbegin \DIFdel{AGE}\DIFdelend \DIFaddbegin \DIFadd{to\_timestamp}\DIFaddend } \DIFdelbegin \DIFdel{function into a generic }\DIFdelend \DIFaddbegin \DIFadd{and its format string into an AQT node labeled }\DIFaddend $<$\texttt{\DIFdelbegin \DIFdel{TimeDiff}\DIFdelend \DIFaddbegin \DIFadd{StrToTimestamp}\DIFaddend }$>$\DIFdelbegin \DIFdel{intent.
 It then performs a high-fidelity instantiation into \duckdb{}’s equivalent syntax. By ensuring the type casting and window function partition logic are preserved, \tool{} generates a high-fidelity seed that retains the original filtering complexity.
-By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}}\DIFdelend .
-\DIFaddbegin \DIFadd{For multi-statement test cases, it propagates target-side schema and type context in statement order and uses this context together with target-dialect information to instantiate AQT nodes.
+By maintaining these complex semantics during transfer, \tool{} ensures the generated seeds are effective for validation, enabling them to reach deeper code paths within the DBMS and uncover intricate logic bugs that might be unreachable by \sedar{}. }\DIFdelend \DIFaddbegin \DIFadd{.
+For multi-statement test cases, it propagates target-side schema and type context in statement order and uses this context together with target-dialect information to instantiate AQT nodes.
 Parser and execution feedback guide the repair of remaining incompatibilities before mutation.
-In this example, \tool{} instantiates $<$}\texttt{\DIFadd{StrToDate}}\DIFadd{$>$ with }\texttt{\DIFadd{STRPTIME}} \DIFadd{and converts the format string, producing an executable seed that retains the date predicate.
+In this example, the context from S1$'$ records that }\texttt{\DIFadd{amt}} \DIFadd{is }\texttt{\DIFadd{DECIMAL(18,2)}}\DIFadd{, so \tool{} instantiates the literal in S2$'$ as }\texttt{\DIFadd{12.50}}\DIFadd{; it then instantiates $<$}\texttt{\DIFadd{StrToTimestamp}}\DIFadd{$>$ with }\texttt{\DIFadd{strptime}} \DIFadd{and converts its format. All statements execute on \duckdb{}, and S3$'$ retains the timestamp predicate.
 }\DIFaddend \section{Approach}
 \label{sec:approach}
 % Approach 写作逻辑：
@@ -1292,18 +1298,12 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
   \label{fig:casestudy}
 \end{figure}
 
-
-
-
-
-\tool{}’s effectiveness stems from its structure-aware transfer. Take the case as an example, in \pg{}, nested joins involving a table with \texttt{DOUBLE PRECISION} and a subquery are well tested, whereas \duckdb{} lacks sufficient coverage for such combinations. Conventional approaches often simplify schemas (e.g., converting \texttt{DOUBLE} to \texttt{INT}) or flatten nested queries to ensure compatibility, \DIFdelbegin \DIFdel{sacrificing semantic fidelity }\DIFdelend \DIFaddbegin \DIFadd{losing this combination}\DIFaddend. In contrast, \tool{} preserves the full structural complexity of the original seed, forcing DuckDB to perform precise type inference and vector allocation for correlated joins and thereby exercising execution paths that simplified queries would not reach. This \DIFdelbegin \DIFdel{high-fidelity }\DIFdelend \DIFaddbegin \DIFadd{structure-preserving }\DIFaddend transfer exposes a critical flaw in the executor logic that remains undetected when structural complexity is removed.
+\tool{}’s effectiveness stems from its structure-aware transfer. Take the case as an example, in \pg{}, nested joins involving a table with \texttt{DOUBLE PRECISION} and a subquery are well tested, whereas \duckdb{} lacks sufficient coverage for such combinations. Conventional approaches often simplify schemas (e.g., converting \texttt{DOUBLE} to \texttt{INT}) or flatten nested queries to ensure compatibility, \DIFdelbegin \DIFdel{sacrificing semantic fidelity}\DIFdelend \DIFaddbegin \DIFadd{losing this combination}\DIFaddend . In contrast, \tool{} preserves the full structural complexity of the original seed, forcing DuckDB to perform precise type inference and vector allocation for correlated joins and thereby exercising execution paths that simplified queries would not reach. This \DIFdelbegin \DIFdel{high-fidelity }\DIFdelend \DIFaddbegin \DIFadd{structure-preserving }\DIFaddend transfer exposes a critical flaw in the executor logic that remains undetected when structural complexity is removed.
 
 \begin{answerbox}
 \textbf{Answer to RQ1:} 
 \tool{} successfully exposed \bugcnt{} unknown bugs in four popular DBMSs, affecting core components including the Optimizer and Storage Engine. Among them, \bugconfirmcnt{} bugs have been confirmed, and \bugfixcnt{} bugs have already been fixed by DBMS vendors.
 \end{answerbox}
-
-
 
 \subsection{RQ2: Comparison with Other Fuzzing Tools}
 % RQ2 写作逻辑：
@@ -1358,8 +1358,9 @@ We adapt \sqlright{} to the four target DBMSs, and the adaptation code is also i
 \DIFaddend 
 
 
-As illustrated in \DIFdelbegin \DIFdel{Table~III}\DIFdelend \DIFaddbegin \DIFadd{Figure~\ref{fig:coverage_over_time}}\DIFaddend , the transferred seeds lead to the highest \DIFdelbegin \DIFdel{branch coverage across all evaluated DBMSs}\DIFdelend \DIFaddbegin \DIFadd{total branch coverage}\DIFaddend , covering 422,130 branches \DIFdelbegin \DIFdel{in total}\DIFdelend \DIFaddbegin \DIFadd{across the four DBMSs}\DIFaddend .
-This \DIFdelbegin \DIFdel{corresponds to overall improvements}\DIFdelend \DIFaddbegin \DIFadd{yields overall gains}\DIFaddend of 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend over \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{\sedar{}, and SmartFuzz, }\DIFaddend respectively, on their supported targets.
+As illustrated in \DIFdelbegin \DIFdel{Table~\ref{tab:coverage}}\DIFdelend \DIFaddbegin \DIFadd{Figure~\ref{fig:coverage_over_time}}\DIFaddend , the transferred seeds lead to the highest \DIFdelbegin \DIFdel{branch coverage across all evaluated DBMSs}\DIFdelend \DIFaddbegin \DIFadd{total branch coverage}\DIFaddend , covering 422,130 branches \DIFdelbegin \DIFdel{in total.
+This corresponds to overall improvements }\DIFdelend \DIFaddbegin \DIFadd{across the four DBMSs.
+This yields overall gains }\DIFaddend of 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend over \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{\sedar{}, and SmartFuzz, }\DIFaddend respectively, on their supported targets.
 Figure~\ref{fig:coverage_over_time} further shows \DIFdelbegin \DIFdel{earlier coverage growth and }\DIFdelend continued branch gains after 12 hours, while several baselines plateau sooner. \DIFaddbegin \DIFadd{On MonetDB, DuckDB, and ClickHouse, \tool{} achieves the highest coverage due to smaller dialect gaps. On \virtuoso{}, \tool{} grows more slowly than SmartFuzz at first due to the larger dialect gap, but reaches comparable coverage.
 }\DIFaddend 
 
@@ -1372,31 +1373,28 @@ Figure~\ref{fig:coverage_over_time} further shows \DIFdelbegin \DIFdel{earlier c
 
 
 
-The coverage improvement also brings more detected bugs.
-As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} \DIFaddbegin \DIFadd{and 5 more bugs than SmartFuzz }\DIFaddend across the four DBMSs. 
-\DIFdelbegin \DIFdel{This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
-Unlike \sedar{} }\DIFdelend \DIFaddbegin \DIFadd{Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
+\DIFdelbegin %DIFDELCMD < \begin{table}[!b]
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \DIFaddFL{The coverage improvement also brings more detected bugs.
+As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} and 5 more bugs than SmartFuzz across the four DBMSs. 
+Bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification.
 We further pair existing translators with the same downstream fuzzer on DuckDB: \tool{} covers 33.6\% and 16.7\% more branches than SQLGlot+\griffin{} and RISE+\griffin{}, respectively, and detects 3 more bugs than each.
-To control for seed quantity, we also randomly sample 100}\DIFaddend , \DIFdelbegin \DIFdel{which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases.
-By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper code logic, }\DIFdelend \DIFaddbegin \DIFadd{200, and 300 seeds generated by \tool{} and \sedar{} as the initial seeds of \griffin{}.
+To control for seed quantity, we also randomly sample 100, 200, and 300 seeds generated by \tool{} and \sedar{} as the initial seeds of \griffin{}.
 Under the same seed count, \tool{} achieves 17.2\%--92.4\% higher coverage than \sedar{} across the four DBMSs, which indicates that the improvement does not stem from a larger seed corpus.
 }
 
-\textbf{\DIFadd{Complementarity with SmartFuzz.}} \DIFadd{SmartFuzz and \tool{} construct seeds from different sources (Section~\ref{sec:related_work}).
-We further run \griffin{} with the union of their seeds, which covers 413,021 branches and detects 35 bugs in total, i.e., 13 }\DIFaddend and \DIFdelbegin \DIFdel{trigger more bugs.
-}\DIFdelend \DIFaddbegin \DIFadd{18 more bugs than \tool{} and SmartFuzz alone, respectively.
+\textbf{\DIFaddFL{Complementarity with SmartFuzz.}} \DIFaddFL{SmartFuzz and \tool{} construct seeds from different sources (Section~\ref{sec:related_work}).
+We further run \griffin{} with the union of their seeds, which covers 413,021 branches and detects 35 bugs in total, i.e., 13 and 18 more bugs than \tool{} and SmartFuzz alone, respectively.
 However, its coverage is lower than that of \tool{} alone on MonetDB and DuckDB, where the additional seeds reduce the execution throughput, leaving fewer mutation opportunities for potentially more valuable seeds.
 }
 
-
-
-\DIFadd{These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
+\DIFaddFL{These results demonstrate the practical utility of the transferred seeds for downstream fuzzing, yielding higher branch coverage and more detected bugs in the evaluated campaigns.
 To examine one source of this difference, we next compare the mutation-handling strategies under controlled conditions.
 }
 
 %DIF >  Four-DBMS mutation-handling comparison with five repetitions.
-\textbf{\DIFadd{Controlled Comparison of Mutation Handling.}}
-\DIFadd{\tool{} repairs incompatibilities before mutation, whereas \sedar{} uses comment-and-restore handling (Section~\ref{sec:background}).
+\textbf{\DIFaddFL{Controlled Comparison of Mutation Handling.}}
+\DIFaddFL{\tool{} repairs incompatibilities before mutation, whereas \sedar{} uses comment-and-restore handling (Section~\ref{sec:background}).
 Neither strategy guarantees semantic equivalence of the mutated queries.
 For each target DBMS, we randomly sampled 300 translated seeds and applied both strategies to the same seeds.
 Each configuration was run with \griffin{} for 24 hours.
@@ -1406,17 +1404,17 @@ These results show the coverage benefit of \tool{}'s handling strategy under the
 %DIF >  Rebuttal preliminary single-run results: DuckDB +27.2%, MonetDB +15.5%.
 }
 
-\DIFaddend % optimizer and executor
+%DIF >  optimizer and executor
 
 
 \begin{answerbox}
-\textbf{Answer to RQ2:} \tool{} covers 528\%, \DIFaddbegin \DIFadd{518\%, }\DIFaddend 60\%, 54\%, \DIFdelbegin \DIFdel{and }\DIFdelend 14\%\DIFaddbegin \DIFadd{, and 7\% }\DIFaddend more branches than \sqlancer{}, \DIFaddbegin \DIFadd{\sqlright{}, }\DIFaddend \squirrel{}, \griffin{}, \DIFdelbegin \DIFdel{and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{\sedar{}, and SmartFuzz, }\DIFaddend respectively, and discovers 22, 22, 22, \DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{22, }\DIFaddend 16\DIFdelbegin \DIFdel{more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, }\DIFdelend \DIFaddbegin \DIFadd{, and 5 more bugs, }\DIFaddend respectively. 
+\textbf{\DIFaddFL{Answer to RQ2:}} \DIFaddFL{\tool{} covers 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 22, 22, 16, and 5 more bugs, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
-\end{answerbox}
+}\end{answerbox}
 
 \suppressfloats[t]
 \begin{table}[t]
-\centering
+\DIFaddendFL \centering
 \caption{Number of bugs detected by different tools (24h).}
 \label{tab:bugs}
 {\scriptsize
@@ -1440,7 +1438,24 @@ The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 }
 \end{table}
 
-\subsection{RQ3: Effectiveness of Transfer of \tool{}}
+\DIFdelbegin \DIFdel{The coverage improvement also brings more detected bugs.
+As shown in Table~\ref{tab:bugs}, the campaign exposes significantly more unique bugs than the baselines, including 16 more bugs than \sedar{} across the four DBMSs. 
+This proves that coverage gains are not merely statistical but functionally impactful, enabling the detection of bugs that remain unreachable to baselines.
+Unlike \sedar{} , which sacrifices semantic depth through destructive sanitization, \tool{} employs structure-aware transfer to retain the full logical complexity of source test cases.
+By preserving executable semantics during transfer, \tool{} enables fuzzers to bypass early engine rejections, exercise deeper code logic, and trigger more bugs.
+%DIF <  optimizer and executor
+}%DIFDELCMD < 
+
+%DIFDELCMD < \begin{answerbox}
+%DIFDELCMD < %%%
+\textbf{\DIFdel{Answer to RQ2:}} %DIFAUXCMD
+\DIFdel{\tool{} covers 528\%, 60\%, 54\%, and 14\% more branches than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively, and discovers 22, 22, 22, and 16 more bugs than \sqlancer{}, \squirrel{}, \griffin{}, and \sedar{}, respectively. 
+The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
+}%DIFDELCMD < \end{answerbox}
+%DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\DIFdelend \subsection{RQ3: Effectiveness of Transfer of \tool{}}
 % RQ3 写作逻辑 / Reviewer A、C 修改逻辑：
 % Review C-Q2/C-Q3 回应位置：Table 5/6 加入 SQLGlot、jOOQ、CrackSQL、RISE；unsupported target dialects 用 ``-'' 如实标注。
 % Review C-Presentation 回应位置：Table 6 前后正文使用 +411 functions / +34 data types / +496 keywords，修正旧版 +633 的计算问题。
