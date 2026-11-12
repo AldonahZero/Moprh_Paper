@@ -418,7 +418,7 @@ The core idea of \tool{} is to thoroughly decouple logical intent from syntactic
 As shown in Figure~\ref{fig:motivation}, \tool{} abstracts \texttt{to\_timestamp} and its format string into an AQT node labeled $<$\texttt{StrToTimestamp}$>$.
 For multi-statement test cases, it propagates target-side schema and type context in statement order and uses this context together with target-dialect information to instantiate AQT nodes.
 Parser and execution feedback guide the repair of remaining incompatibilities before mutation.
-In this example, \tool{} uses the type of \texttt{amt} in S1$'$ to instantiate the literal in S2$'$ as \texttt{12.50}, and instantiates $<$\texttt{StrToTimestamp}$>$ with \texttt{strptime} and converts the format string, producing an executable seed that retains the timestamp predicate.
+In this example, the context from S1$'$ records that \texttt{amt} is \texttt{DECIMAL(18,2)}, so \tool{} instantiates the literal in S2$'$ as \texttt{12.50}; it then instantiates $<$\texttt{StrToTimestamp}$>$ with \texttt{strptime} and converts its format. All statements execute on \duckdb{}, and S3$'$ retains the timestamp predicate.
 \section{Approach}
 \label{sec:approach}
 % Approach 写作逻辑：
