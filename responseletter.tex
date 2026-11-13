@@ -80,7 +80,7 @@ We have revised the description of \sedar{} and the motivating example in Sectio
 \textit{Description of \sedar{}.} \sedar{} translates each statement with the source-side sub-schema referenced by that statement. During mutation, it temporarily comments out fragments that the downstream fuzzer cannot parse and restores them before execution. However, the commented-out fragments are not mutated, and a fragment with a translation error still fails on the target DBMS after restoration. In addition, later statements are translated without the target-side schema and types produced by the translation of preceding statements. Figure~1 below shows both limitations on a test case transferred by \sedar{} from \textsc{PostgreSQL} to DuckDB. \sedar{} translates \texttt{MONEY} in S1 to \texttt{DECIMAL(18,2)}, but S2$'$ keeps the money literal \texttt{\textquotesingle{}\$12.50\textquotesingle{}}, which DuckDB cannot convert to \texttt{DECIMAL}. In S3$'$, the \texttt{to\_date} fragment is commented out during mutation and restored before execution, and still fails because DuckDB does not provide \texttt{to\_date}.
 
 \par\smallskip\noindent\begin{minipage}{\linewidth}\centering
-\includegraphics[width=0.6\linewidth]{media/motivating_rc2.pdf}
+\includegraphics[width=0.6\linewidth]{media/motivating_rc3.pdf}
 
 {\footnotesize Figure 1: Motivating example of running \sedar{} on a \textsc{PostgreSQL} seed (Left): S2$'$ is inconsistent with the target-side type in S1$'$, and the incompatible fragment in S3$'$ is commented out during mutation and restored before execution, leaving the translation error unrepaired. \tool{} abstracts dialect-specific logic via AQT and instantiates it with the target-side context in the target dialect (Right).}
 \end{minipage}\par\medskip
