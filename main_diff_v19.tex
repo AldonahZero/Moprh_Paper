@@ -1315,11 +1315,13 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 RQ2 evaluates \tool{}'s effectiveness by comparing it to other fuzzing tools under the same setting. 
 We compared \tool{} against \DIFdelbegin \DIFdel{four }\DIFdelend \DIFaddbegin \DIFadd{six }\DIFaddend state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \DIFaddbegin \DIFadd{\sqlright{}~\mbox{%DIFAUXCMD
 \cite{sqlright} }\hskip0pt%DIFAUXCMD
-(coverage-guided logic-bug fuzzer), }\DIFaddend \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), \DIFdelbegin \DIFdel{and }\DIFdelend \sedar{}~\cite{fu2024sedar}\DIFaddbegin \DIFadd{, and SmartFuzz~\mbox{%DIFAUXCMD
+(coverage-guided logic-bug fuzzer), }\DIFaddend \squirrel{}~\cite{zhong2020squirrel} (\DIFdelbegin \DIFdel{default built-in seed corpus~\mbox{%DIFAUXCMD
+\cite{Squirrel_git}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{IR-based mutation fuzzer}\DIFaddend ), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), \DIFdelbegin \DIFdel{and }\DIFdelend \sedar{}~\cite{fu2024sedar}\DIFaddbegin \DIFadd{, and SmartFuzz~\mbox{%DIFAUXCMD
 \cite{lin2026smartfuzz} }\hskip0pt%DIFAUXCMD
 (LLM-based seed generation)}\DIFaddend .
 % After fuzzing, we normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
-\DIFaddbegin \DIFadd{For \sqlancer{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
+\DIFaddbegin \DIFadd{For \sqlancer{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations and command lines from their official repositories, which are included in our artifact.
 We adapt \sqlright{} to the four target DBMSs, and the adaptation code is also included in our artifact.
 }\DIFaddend After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes using stack-trace hashing followed by manual inspection for verification.
 %DIF >  Table III (coverage) is commented out: it duplicates Figure~\ref{fig:coverage_over_time}.
@@ -1916,7 +1918,7 @@ However, these methods largely rely on direct text generation or post-generation
 }\DIFdelend \DIFaddbegin \DIFadd{; its compatibility mechanism is described in Section~\ref{sec:background}.
 }\DIFaddend 
 
-\DIFdelbegin \DIFdel{In contrast, }\DIFdelend \DIFaddbegin \DIFadd{Unlike \sedar{}, which translates each statement of a test case individually under its referenced source-side sub-schema, }\DIFaddend \tool{} performs AQT-guided \DIFdelbegin \DIFdel{whole-test-case instantiation }\DIFdelend \DIFaddbegin \DIFadd{instantiation that maintains target-side context across statements}\DIFaddend , where explicit \DIFdelbegin \DIFdel{schema }\DIFdelend dependencies, nested structures, and clause-level relationships support local repair \DIFdelbegin \DIFdel{while preserving context}\DIFdelend \DIFaddbegin \DIFadd{with parser and execution feedback before mutation}\DIFaddend .
+\DIFdelbegin \DIFdel{In contrast, }\DIFdelend \DIFaddbegin \DIFadd{Unlike \sedar{}, which transfers complete test cases but translates each statement under its referenced source-side sub-schema, }\DIFaddend \tool{} performs AQT-guided \DIFdelbegin \DIFdel{whole-test-case instantiation }\DIFdelend \DIFaddbegin \DIFadd{instantiation that maintains target-side context across statements}\DIFaddend , where explicit \DIFdelbegin \DIFdel{schema }\DIFdelend dependencies, nested structures, and clause-level relationships support local repair \DIFdelbegin \DIFdel{while preserving context}\DIFdelend \DIFaddbegin \DIFadd{with parser and execution feedback before mutation}\DIFaddend .
 
 
 % \subsection{Cross-Dialect SQL Translation}

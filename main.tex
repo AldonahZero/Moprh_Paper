@@ -1349,7 +1349,7 @@ In contrast, \tool{} transfers existing test cases across DBMSs and uses cross-s
 The two approaches construct seeds from different sources and can be combined to construct initial seeds for DBMS fuzzing.
 \sedar{}~\cite{fu2024sedar} is the closest work to \tool{} because it also transfers existing DBMS test cases into fuzzing seeds; its compatibility mechanism is described in Section~\ref{sec:background}.
 
-Unlike \sedar{}, which translates each statement of a test case individually under its referenced source-side sub-schema, \tool{} performs AQT-guided instantiation that maintains target-side context across statements, where explicit dependencies, nested structures, and clause-level relationships support local repair with parser and execution feedback before mutation.
+Unlike \sedar{}, which transfers complete test cases but translates each statement under its referenced source-side sub-schema, \tool{} performs AQT-guided instantiation that maintains target-side context across statements, where explicit dependencies, nested structures, and clause-level relationships support local repair with parser and execution feedback before mutation.\looseness=-1
 
 
 % \subsection{Cross-Dialect SQL Translation}
