@@ -850,9 +850,9 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 % - 对比对象分三类：generation/oracle fuzzer SQLancer、mutation fuzzer SQUIRREL、seed-transfer SOTA SedaR。
 % - 解释逻辑：branch coverage 提升 -> 更多 unique bugs -> structure-aware transfer 保留复杂语义，使 fuzzer 能绕过早期 rejection。
 RQ2 evaluates \tool{}'s effectiveness by comparing it to other fuzzing tools under the same setting. 
-We compared \tool{} against six state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \sqlright{}~\cite{sqlright} (coverage-guided logic-bug fuzzer), \squirrel{}~\cite{zhong2020squirrel} (default built-in seed corpus~\cite{Squirrel_git}), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), \sedar{}~\cite{fu2024sedar}, and SmartFuzz~\cite{lin2026smartfuzz} (LLM-based seed generation).
+We compared \tool{} against six state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \sqlright{}~\cite{sqlright} (coverage-guided logic-bug fuzzer), \squirrel{}~\cite{zhong2020squirrel} (IR-based mutation fuzzer), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), \sedar{}~\cite{fu2024sedar}, and SmartFuzz~\cite{lin2026smartfuzz} (LLM-based seed generation).
 % After fuzzing, we normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
-For \sqlancer{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations, seed corpora, and command lines from their official repositories, which are included in our artifact.
+For \sqlancer{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations and command lines from their official repositories, which are included in our artifact.
 We adapt \sqlright{} to the four target DBMSs, and the adaptation code is also included in our artifact.
 After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes using stack-trace hashing followed by manual inspection for verification.
 % Table III (coverage) is commented out: it duplicates Figure~\ref{fig:coverage_over_time}.
