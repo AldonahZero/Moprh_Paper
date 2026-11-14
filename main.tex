@@ -769,7 +769,7 @@ Here, execution validity is defined by executability in the target DBMS without 
 We separately measure semantic richness by counting valid functions, data types, and keywords preserved in executable transferred seeds.
 Second, to quantify the effectiveness in improving fuzzing, we use LLVM's SanitizerCoverage to track \textit{Branch Coverage} over 24-hour campaigns.
 We report the average results across five independent runs to mitigate randomness, and use the Mann--Whitney U test to assess statistical significance.
-Third, for real-world bug discovery, we report the number of detected unique bugs.
+Third, for real-world bug discovery, we count unique bugs.
 
 \subsection{RQ1: Real-World Bug Detection}
 % RQ1 写作逻辑：
