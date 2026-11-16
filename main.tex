@@ -409,7 +409,7 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
 \end{figure*}
 
 \textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a test case transferred by \sedar{} from \pg{} to \duckdb{}, which contains dialect-specific features such as the \texttt{MONEY} type and \texttt{to\_timestamp}.
-\sedar{} maps \texttt{MONEY} in S1 to \texttt{DECIMAL(18,2)} but translates S2 without this type, so S2$'$ keeps the literal \texttt{\textquotesingle{}\$12.50\textquotesingle{}}, which \duckdb{} cannot convert.
+\sedar{} maps \texttt{MONEY} in S1 to \texttt{DECIMAL(10,2)} but translates S2 without this type, so S2$'$ keeps the literal \texttt{\textquotesingle{}\$12.50\textquotesingle{}}, which \duckdb{} cannot convert.
 In S3$'$, the LLM replaces \texttt{to\_timestamp} with \texttt{to\_date}, which \duckdb{} does not provide.
 \sedar{} temporarily comments out this fragment during mutation and restores it before execution, so the restored statement still fails on \duckdb{}.
 
