@@ -196,7 +196,7 @@ Existing SQL translation techniques~\cite{sqlglot,jooq} primarily focus on state
 
 Recent fuzzing-oriented approaches instead leverage large language models (LLMs) for end-to-end test-case transfer~\cite{fu2024sedar}. For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations: 
 (i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
-(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, parser-incompatible fragments are handled after translation rather than resolved during it. For example, \sedar{} temporarily comments them out during mutation and restores them before execution on the target DBMS, which retains the original query logic but leaves translation errors in these fragments unrepaired.
+(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, parser-incompatible fragments are handled after translation rather than resolved during it. For example, \sedar{} temporarily comments them out before mutation and restores them after mutation, which retains the original query logic but leaves translation errors in these fragments unrepaired.
 
 % (i)  syntactic or semantic errors due to limited understanding of target SQL dialects, (ii) structural simplification, where complex multi-statement interactions are reduced or flattened, resulting in less diverse execution behaviors, and (iii)
 % transferred seeds may violate the strict grammar subset supported by downstream fuzzers.
@@ -387,7 +387,7 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{media/motivating_rc3.pdf}
-  \caption{Motivating example of running \sedar{} on a \pg{} seed (Left): S2$'$ is inconsistent with the target-side type in S1$'$, and the incompatible fragment in S3$'$ is commented out during mutation and restored before execution, leaving the translation error unrepaired. \tool{} abstracts dialect-specific logic via AQT and instantiates it with the target-side context in the target dialect (Right).}
+  \caption{Motivating example. LLM-based seed transfer (e.g., \sedar{}) introduces syntax and semantic errors during translation, and these errors persist after commenting and restoration (Left). \tool{} abstracts dialect-specific logic via AQT and instantiates it with the target-side context in the target dialect, preserving the tested structure (Right).}
   \label{fig:motivation}
 \end{figure}
 
@@ -408,10 +408,10 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
   \label{fig:workflow}
 \end{figure*}
 
-\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a test case transferred by \sedar{} from \pg{} to \duckdb{}, which contains dialect-specific features such as the \texttt{MONEY} type and \texttt{to\_timestamp}.
-\sedar{} maps \texttt{MONEY} in S1 to \texttt{DECIMAL(10,2)} but translates S2 without this type, so S2$'$ keeps the literal \texttt{\textquotesingle{}\$12.50\textquotesingle{}}, which \duckdb{} cannot convert.
-In S3$'$, the LLM replaces \texttt{to\_timestamp} with \texttt{to\_date}, which \duckdb{} does not provide.
-\sedar{} temporarily comments out this fragment during mutation and restores it before execution, so the restored statement still fails on \duckdb{}.
+\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a real failure case observed in our experiments, in which \sedar{} transfers a test case from \pg{} to \duckdb{} that contains dialect-specific features such as the \texttt{MONEY} type and \texttt{to\_timestamp}.
+First, due to LLM hallucination, \sedar{} replaces \texttt{to\_timestamp} in S3 with \texttt{to\_date}, which \duckdb{} does not provide, resulting in a syntax error.
+Second, due to the lack of target-side context, \sedar{} maps \texttt{MONEY} in S1 to \texttt{DECIMAL(10,2)} but translates S2 without this type, so S2$'$ keeps the literal \texttt{\textquotesingle{}\$12.50\textquotesingle{}}, which \duckdb{} cannot convert, resulting in a semantic error.
+Although \sedar{} comments out the \texttt{to\_date} fragment before mutation and restores it after mutation, both errors persist, so the test case still fails on \duckdb{}.
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
