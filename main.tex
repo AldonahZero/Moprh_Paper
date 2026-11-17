@@ -387,7 +387,7 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{media/motivating_rc3.pdf}
-  \caption{Motivating example. LLM-based seed transfer (e.g., \sedar{}) introduces syntax and semantic errors during translation, and these errors persist after commenting and restoration (Left). \tool{} abstracts dialect-specific logic via AQT and instantiates it with the target-side context in the target dialect, preserving the tested structure (Right).}
+  \caption{Conventional end-to-end translation methods like \sedar{} suffer from syntax and semantic errors, which persist after commenting and restoration (Left). \tool{} decouples intent via AQT, successfully instantiating the \texttt{strptime} logic with the target-side context (Right).}
   \label{fig:motivation}
 \end{figure}
 
