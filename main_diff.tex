@@ -621,7 +621,7 @@ Recent fuzzing-oriented approaches instead leverage large language models (LLMs)
 \cite{fu2024sedar}}\hskip0pt%DIFAUXCMD
 }\DIFaddend . For example, \sedar{}~\cite{fu2024sedar} combines schema information and raw SQL text as input to an LLM to generate target-dialect seeds. However, such approaches still suffer from two fundamental limitations: 
 (i) First, due to limited understanding of target SQL dialects and weak structural awareness of multi-statement programs, LLM-based translation may introduce syntactic or semantic errors during generation, leading to invalid or inconsistent query behaviors.
-(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, \DIFdelbegin \DIFdel{generated test cases are often sanitized by removing or commenting out unsupported constructs, which may simplify complex SQL structures and weaken execution behaviors}\DIFdelend \DIFaddbegin \DIFadd{parser-incompatible fragments are handled after translation rather than resolved during it. For example, \sedar{} temporarily comments them out during mutation and restores them before execution on the target DBMS, which retains the original query logic but leaves translation errors in these fragments unrepaired}\DIFaddend .
+(ii) Second, to satisfy strict grammar constraints imposed by downstream fuzzers, \DIFdelbegin \DIFdel{generated test cases are often sanitized by removing or commenting out unsupported constructs, which may simplify complex SQL structures and weaken execution behaviors}\DIFdelend \DIFaddbegin \DIFadd{parser-incompatible fragments are handled after translation rather than resolved during it. For example, \sedar{} temporarily comments them out before mutation and restores them after mutation, which retains the original query logic but leaves translation errors in these fragments unrepaired}\DIFaddend .
 
 % (i)  syntactic or semantic errors due to limited understanding of target SQL dialects, (ii) structural simplification, where complex multi-statement interactions are reduced or flattened, resulting in less diverse execution behaviors, and (iii)
 % transferred seeds may violate the strict grammar subset supported by downstream fuzzers.
@@ -827,8 +827,8 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
 %DIFDELCMD <   %%%
 %DIF <  \caption{Motivating example: \sedar{} causes semantic deviation and logic loss, while \tool{} preserves intent via AQT.}
   \DIFdelendFL \DIFaddbeginFL \includegraphics[width=\linewidth]{media/motivating_rc3.pdf}
-  \DIFaddendFL \caption{\DIFdelbeginFL \DIFdelFL{Conventional end-to-end translation methods like }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Motivating example of running }\DIFaddendFL \sedar{} \DIFdelbeginFL \DIFdelFL{suffer from semantic error and structural simplification }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{on a \pg{} seed }\DIFaddendFL (Left)\DIFaddbeginFL \DIFaddFL{: S2$'$ is inconsistent with the target-side type in S1$'$, and the incompatible fragment in S3$'$ is commented out during mutation and restored before execution, leaving the translation error unrepaired}\DIFaddendFL . \tool{} \DIFdelbeginFL \DIFdelFL{decouples intent }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{abstracts dialect-specific logic }\DIFaddendFL via AQT \DIFdelbeginFL \DIFdelFL{, successfully instantiating }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{and instantiates it with }\DIFaddendFL the \DIFdelbeginFL \DIFdelFL{equivalent }\texttt{\DIFdelFL{date\_diff}} %DIFAUXCMD
-\DIFdelFL{logic }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{target-side context in the target dialect }\DIFaddendFL (Right).}
+  \DIFaddendFL \caption{Conventional end-to-end translation methods like \sedar{} suffer from \DIFaddbeginFL \DIFaddFL{syntax and }\DIFaddendFL semantic \DIFdelbeginFL \DIFdelFL{error and structural simplification }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{errors, which persist after commenting and restoration }\DIFaddendFL (Left). \tool{} decouples intent via AQT, successfully instantiating the \DIFdelbeginFL \DIFdelFL{equivalent }\texttt{\DIFdelFL{date\_diff}} %DIFAUXCMD
+\DIFdelendFL \DIFaddbeginFL \texttt{\DIFaddFL{strptime}} \DIFaddendFL logic \DIFaddbeginFL \DIFaddFL{with the target-side context }\DIFaddendFL (Right).}
   \label{fig:motivation}
 \end{figure}
 
@@ -849,22 +849,18 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
   \label{fig:workflow}
 \end{figure*}
 
-\textit{Limitations of Existing Approaches.} Figure\DIFdelbegin \DIFdel{\ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring }\DIFdelend \DIFaddbegin \DIFadd{~\ref{fig:motivation} shows }\DIFaddend a test case \DIFaddbegin \DIFadd{transferred by \sedar{} }\DIFaddend from \pg{} to \duckdb{}, which contains dialect-specific features \DIFdelbegin \DIFdel{like the }\DIFdelend \DIFaddbegin \DIFadd{such as the }\DIFaddend \texttt{\DIFdelbegin \DIFdel{AGE}%DIFDELCMD < \MBLOCKRIGHTBRACE %%%
-\DIFdel{function in the }\texttt{\DIFdel{WHERE}} %DIFAUXCMD
-\DIFdel{clause and the }\texttt{\DIFdel{::INTERVAL}} %DIFAUXCMD
-\DIFdel{type cast.
-With limited knowledge of \duckdb{} ’s syntax}\DIFdelend \DIFaddbegin \DIFadd{MONEY}} \DIFadd{type and }\texttt{\DIFadd{to\_timestamp}}\DIFadd{.
-\sedar{} maps }\texttt{\DIFadd{MONEY}} \DIFadd{in S1 to }\texttt{\DIFadd{DECIMAL(18,2)}} \DIFadd{but translates S2 without this type, so S2$'$ keeps the literal }\texttt{\DIFadd{\textquotesingle{}\$12.50\textquotesingle{}}}\DIFadd{, which \duckdb{} cannot convert.
-In S3$'$}\DIFaddend , the LLM \DIFdelbegin \DIFdel{hallucinates and preserves }\DIFdelend \DIFaddbegin \DIFadd{replaces }\DIFaddend \texttt{\DIFdelbegin \DIFdel{AGE}%DIFDELCMD < \MBLOCKRIGHTBRACE%%%
-\DIFdel{, causing syntax and semantic errors.
-To satisfy parsing constraints, \sedar{} comments out }\texttt{\DIFdel{AGE}} %DIFAUXCMD
-\DIFdel{and replaces the }\texttt{\DIFdel{WHERE}} %DIFAUXCMD
-\DIFdel{condition with }\texttt{\DIFdel{True}}%DIFAUXCMD
-\DIFdel{, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states.
-As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.
-}\DIFdelend \DIFaddbegin \DIFadd{to\_timestamp}} \DIFadd{with }\texttt{\DIFadd{to\_date}}\DIFadd{, which \duckdb{} does not provide.
-\sedar{} temporarily comments out this fragment during mutation and restores it before execution, so the restored statement still fails on \duckdb{}.
-}\DIFaddend 
+\textit{Limitations of Existing Approaches.} Figure \DIFdelbegin \DIFdel{\ref{fig:motivation} illustrates the semantic deviation and logic loss \sedar{} experiences when transferring a test case from \pg{} to \duckdb{}, which contains dialect-specific features like the }\texttt{\DIFdel{AGE}}%DIFAUXCMD
+\DIFdel{ function in the }\texttt{\DIFdel{WHERE}}%DIFAUXCMD
+\DIFdel{ clause and the }\texttt{\DIFdel{::INTERVAL}}%DIFAUXCMD
+\DIFdel{ type cast. With limited knowledge of \duckdb{}’s syntax, the LLM hallucinates and preserves }\texttt{\DIFdel{AGE}}%DIFAUXCMD
+\DIFdel{, causing syntax and semantic errors. To satisfy parsing constraints, \sedar{} comments out }\texttt{\DIFdel{AGE}}%DIFAUXCMD
+\DIFdel{ and replaces the }\texttt{\DIFdel{WHERE}}%DIFAUXCMD
+\DIFdel{ condition with }\texttt{\DIFdel{True}}%DIFAUXCMD
+\DIFdel{, producing a syntactically valid but simplified query that loses the original verification intent and fails to exercise deep internal states. 
+As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.}\DIFdelend \DIFaddbegin \DIFadd{~\ref{fig:motivation} shows a real failure case in which \sedar{} transfers a test case from \pg{} to \duckdb{} that contains dialect-specific features such as the }\texttt{\DIFadd{MONEY}}\DIFadd{ type and }\texttt{\DIFadd{to\_timestamp}}\DIFadd{.
+First, due to hallucination, \sedar{} replaces }\texttt{\DIFadd{to\_timestamp}}\DIFadd{ in S3 with }\texttt{\DIFadd{to\_date}}\DIFadd{, which \duckdb{} does not provide, resulting in a syntax error.
+Second, due to the lack of target-side context, \sedar{} maps }\texttt{\DIFadd{MONEY}}\DIFadd{ in S1 to }\texttt{\DIFadd{DECIMAL(10,2)}}\DIFadd{ but translates S2 without this type, so S2$'$ keeps the literal }\texttt{\DIFadd{\textquotesingle{}\$12.50\textquotesingle{}}}\DIFadd{, which \duckdb{} cannot convert, resulting in a semantic error.
+Although \sedar{} comments out the }\texttt{\DIFadd{to\_date}}\DIFadd{ fragment before mutation and restores it after mutation, both errors persist, so the test case still fails on \duckdb{}.}\DIFaddend
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
