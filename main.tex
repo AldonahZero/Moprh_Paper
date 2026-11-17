@@ -408,8 +408,8 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
   \label{fig:workflow}
 \end{figure*}
 
-\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a real failure case observed in our experiments, in which \sedar{} transfers a test case from \pg{} to \duckdb{} that contains dialect-specific features such as the \texttt{MONEY} type and \texttt{to\_timestamp}.
-First, due to LLM hallucination, \sedar{} replaces \texttt{to\_timestamp} in S3 with \texttt{to\_date}, which \duckdb{} does not provide, resulting in a syntax error.
+\textit{Limitations of Existing Approaches.} Figure~\ref{fig:motivation} shows a real failure case in which \sedar{} transfers a test case from \pg{} to \duckdb{} that contains dialect-specific features such as the \texttt{MONEY} type and \texttt{to\_timestamp}.
+First, due to hallucination, \sedar{} replaces \texttt{to\_timestamp} in S3 with \texttt{to\_date}, which \duckdb{} does not provide, resulting in a syntax error.
 Second, due to the lack of target-side context, \sedar{} maps \texttt{MONEY} in S1 to \texttt{DECIMAL(10,2)} but translates S2 without this type, so S2$'$ keeps the literal \texttt{\textquotesingle{}\$12.50\textquotesingle{}}, which \duckdb{} cannot convert, resulting in a semantic error.
 Although \sedar{} comments out the \texttt{to\_date} fragment before mutation and restores it after mutation, both errors persist, so the test case still fails on \duckdb{}.
 
