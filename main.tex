@@ -1171,11 +1171,11 @@ The sanitizer achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage t
 % \textbf{Answer to RQ4:} All components are critical: $\tool{}_{\textit{abs}}$ improves syntactic correctness by 35\%, $\tool{}_{\textit{rag}}$ boosts semantic correctness by 21\%, cross-statement context propagation raises semantic correctness from 52.4\% to 65.1\%, and the sanitizer further increases branch coverage by up to 39\%.
 % \end{answerbox}
 
+\raggedbottom % local: avoid stretched glue in the left column on this page
 \begin{answerbox}
-\textbf{Answer to RQ4:} All components contribute to \tool{}. Structure-Preserving Abstraction and Dialect-Aware AQT Instantiation improve syntactic correctness by 30.5\% and execution validity by 26.7\%, respectively, and together by 44.0\% and 36.4\%.
-The dependency graph achieves the highest execution validity with 72.3\% fewer input tokens than the full context.
-The \textit{Feedback-Driven Sanitizer} increases branch coverage by up to 39\%, and by 4.0\%--27.2\% over comment-and-restore handling.
+\textbf{Answer to RQ4:} All components contribute to \tool{}: abstraction and instantiation together improve syntactic correctness by 44.0\% and execution validity by 36.4\%, the dependency graph uses 72.3\% fewer input tokens than the full context, and the sanitizer increases branch coverage by up to 39\%.
 \end{answerbox}
+\flushbottom
 
 \begin{table}[!t]
 \centering
