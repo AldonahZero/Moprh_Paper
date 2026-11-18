@@ -1709,6 +1709,26 @@ Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more bran
 When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
 In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and be used for fuzzers to explore more state space of target DBMSs.
 
+\begin{table}[!h]
+\centering
+\footnotesize
+\caption{\DIFdelbeginFL \DIFdelFL{Sanitizer ablation on branch coverage }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Branch coverage with and without the adaptive sanitizer }\DIFaddendFL (24h).}
+\label{tab:ablation_sanitizer}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+\textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
+\midrule
+MonetDB    & 67,620 & \textbf{81,486}  & \textbf{+21\%} \\
+Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
+DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
+ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
+\bottomrule
+\end{tabular*}
+\DIFdelbeginFL %DIFDELCMD < \vspace{-0.8em}
+%DIFDELCMD < %%%
+\DIFdelendFL \end{table}
+
 \DIFaddbegin \textbf{\DIFadd{Comparison with Comment-and-Restore Handling.}}
 \DIFadd{The sanitizer repairs incompatibilities before mutation, whereas \sedar{} comments out incompatible fragments before mutation and restores them after mutation (Section~\ref{sec:background}); neither guarantees semantic equivalence of the mutated queries.
 For each target DBMS, we randomly sampled 300 translated seeds, applied both strategies to the same seeds, and ran \griffin{} for 24 hours with five repetitions, keeping all other settings fixed.
@@ -1983,24 +2003,6 @@ Compared with the state-of-the-art approach \sedar{}, \tool{} covers 14\% more b
 \end{document}
 \endinput
 %%
-\begin{table}[!h]
-\centering
-\footnotesize
-\caption{\DIFdelbeginFL \DIFdelFL{Sanitizer ablation on branch coverage }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Branch coverage with and without the adaptive sanitizer }\DIFaddendFL (24h).}
-\label{tab:ablation_sanitizer}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
-\toprule
-\textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
-\midrule
-MonetDB    & 67,620 & \textbf{81,486}  & \textbf{+21\%} \\
-Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
-DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
-ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
-\bottomrule
-\end{tabular*}
-\DIFdelbeginFL %DIFDELCMD < \vspace{-0.8em}
-%DIFDELCMD < %%%
-\DIFdelendFL \end{table}
+
 
 %% End of file `sample-acmsmall-submission.tex'.
