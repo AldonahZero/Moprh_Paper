@@ -1229,7 +1229,7 @@ Here, \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd
 We separately measure semantic richness by counting valid functions, data types, and keywords preserved in executable transferred seeds.
 Second, to quantify the effectiveness in improving fuzzing, we use LLVM's SanitizerCoverage to track \textit{Branch Coverage} over 24-hour campaigns.
 We report the average results across five independent runs to mitigate randomness\DIFaddbegin \DIFadd{, and use the Mann--Whitney U test to assess statistical significance}\DIFaddend .
-Third, for real-world bug discovery, we report the number of detected unique bugs.
+Third, for real-world bug discovery, we \DIFdelbegin \DIFdel{report the number of detected}\DIFdelend \DIFaddbegin \DIFadd{count}\DIFaddend{} unique bugs.
 
 \subsection{RQ1: Real-World Bug Detection}
 % RQ1 写作逻辑：
@@ -1898,7 +1898,7 @@ However, these methods largely rely on direct text generation or post-generation
 }\DIFdelend \DIFaddbegin \DIFadd{; its compatibility mechanism is described in Section~\ref{sec:background}.
 }\DIFaddend 
 
-\DIFdelbegin \DIFdel{In contrast, }\DIFdelend \DIFaddbegin \DIFadd{Unlike \sedar{}, which transfers complete test cases but translates each statement under its referenced source-side sub-schema, }\DIFaddend \tool{} performs AQT-guided \DIFdelbegin \DIFdel{whole-test-case instantiation }\DIFdelend \DIFaddbegin \DIFadd{instantiation that maintains target-side context across statements}\DIFaddend , where explicit \DIFdelbegin \DIFdel{schema }\DIFdelend dependencies, nested structures, and clause-level relationships support local repair \DIFdelbegin \DIFdel{while preserving context}\DIFdelend \DIFaddbegin \DIFadd{with parser and execution feedback before mutation}\DIFaddend .
+\DIFdelbegin \DIFdel{In contrast, }\DIFdelend \DIFaddbegin \DIFadd{Unlike \sedar{}, which transfers complete test cases but translates each statement under its referenced source-side sub-schema, }\DIFaddend \tool{} performs AQT-guided \DIFdelbegin \DIFdel{whole-test-case instantiation }\DIFdelend \DIFaddbegin \DIFadd{instantiation that maintains target-side context across statements}\DIFaddend , where explicit \DIFdelbegin \DIFdel{schema }\DIFdelend dependencies, nested structures, and clause-level relationships support local repair \DIFdelbegin \DIFdel{while preserving context}\DIFdelend \DIFaddbegin \DIFadd{with parser and execution feedback before mutation}\DIFaddend .\looseness=-1
 
 
 % \subsection{Cross-Dialect SQL Translation}
