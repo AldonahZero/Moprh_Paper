@@ -145,13 +145,13 @@ To compare them under the same setting, we use the seeds released by SmartFuzz a
 \toprule
 DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \tool{} \\
 \midrule
-MonetDB & - & 11,108 & 43,747 & 61,981 & 76,142 & 75,242 & \textbf{81,486} \\
-Virtuoso & - & 9,207 & 26,302 & 28,017 & 36,583 & \textbf{40,773} & 40,183 \\
-DuckDB & 22,188 & 25,624 & 96,434 & 96,512 & 114,876 & 130,966 & \textbf{144,822} \\
-ClickHouse & 25,618 & 22,383 & - & 87,388 & 141,215 & 147,844 & \textbf{155,639} \\
+MonetDB & - & 11,108 & 56,054 & 65,492 & 76,142 & 75,242 & \textbf{81,486} \\
+Virtuoso & - & 9,207 & 20,082 & 27,115 & 36,583 & \textbf{40,773} & 40,183 \\
+DuckDB & 22,188 & 25,624 & 101,899 & 109,632 & 114,876 & 130,966 & \textbf{144,822} \\
+ClickHouse & 25,618 & 22,383 & 73,027 & 77,034 & 141,215 & 147,844 & \textbf{155,639} \\
 \midrule
-Total & 47,806 & 68,322 & 166,483 & 273,898 & 368,816 & 394,825 & 422,130 \\
-Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
+Total & 47,806 & 68,322 & 251,062 & 279,273 & 368,816 & 394,825 & 422,130 \\
+Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 68\%$\uparrow$ & 51\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
 \bottomrule
 \end{tabular}
 \par\smallskip{\scriptsize\raggedright * Calculated only for commonly supported DBMSs.\par}
@@ -373,7 +373,7 @@ We have extended the entire component ablation in RQ4 from the \textsc{PostgreSQ
 For full reproducibility, the paper should additionally document the baseline adaptations, source-target test allocation, repeated-run aggregation procedure, full campaign duration, and validation procedure for automatically generated translation rules. Table IX reports that 136 rules required correction.
 
 \reply
-We have documented these details in the revised paper. (1) \textit{Baseline adaptations:} Section~IV (Evaluation) describes the dialect knowledge used by each baseline and how statement-level translators are applied to complete test cases (\commentref{1.7}). (2) \textit{Source-target test allocation:} the experimental setup reports that all methods transfer the same collected test files and use the same number of initial seeds for each target DBMS, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. (3) \textit{Repeated-run aggregation:} coverage is averaged over five independent runs, Figure~7 displays the means and the 95\% confidence intervals, and bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification (\commentref{1.9}). (4) \textit{Full campaign duration:} RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 consists of five independent 24-hour runs (\commentref{1.10}). (5) \textit{Validation of generated rules:} Section~V (Discussion) now describes that the generated rules are applied to translated test cases and checked for errors, and that rules producing incorrect translations are manually inspected and corrected, which accounts for the 136 corrected rules in Table~IX.
+We have documented these details in the revised paper. (1) \textit{Baseline adaptations:} Section~IV (Evaluation) describes the dialect knowledge used by each baseline and how statement-level translators are applied to complete test cases (\commentref{1.7}). (2) \textit{Source-target test allocation:} the experimental setup reports that all translation methods transfer the same collected test files, and all mutation-based methods use the same initial seeds for each target DBMS, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. (3) \textit{Repeated-run aggregation:} coverage is averaged over five independent runs, Figure~7 displays the means and the 95\% confidence intervals, and bug counts are the union of unique bugs across the five runs after stack-trace deduplication and manual verification (\commentref{1.9}). (4) \textit{Full campaign duration:} RQ1 runs \tool{} for seven days on each target DBMS, whereas RQ2 consists of five independent 24-hour runs (\commentref{1.10}). (5) \textit{Validation of generated rules:} Section~V (Discussion) now describes that the generated rules are applied to translated test cases and checked for errors, and that rules producing incorrect translations are manually inspected and corrected, which accounts for the 136 corrected rules in Table~IX.
 
 \needspace{8\baselineskip}
 \section*{Replies to Reviewer B}
@@ -382,7 +382,7 @@ We have documented these details in the revised paper. (1) \textit{Baseline adap
 \reviewquestion{2.1} Could the authors clarify whether the reported coverage/bug-finding improvements primarily stem from AQT-based translation or from a larger/richer effective seed corpus? In a controlled experiment where all baselines use exactly the same number and source of initial seeds, how much of the 14\% coverage gain over SEDAR remains attributable to AQT?
 
 \reply
-\textit{Initial Seed Settings.} In the comparison in Section~IV (Evaluation), we use the same number of initial seeds for \tool{} and \sedar{}, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. As shown in the table below, \tool{} covers 14.5\% more branches and detects 16 more bugs than \sedar{}, indicating that the observed improvement comes from AQT rather than the number of initial seeds.
+\textit{Seed-normalized comparison.} In Section~IV (Evaluation), all mutation-based methods use the same initial seeds from the collected test cases, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. As shown in the table below, \tool{} covers 68.1\%, 51.2\%, and 14.5\% more branches than \squirrel{}, \griffin{}, and \sedar{}, respectively, and detects 16 more bugs than \sedar{}, indicating that the observed improvement comes from AQT rather than the initial seeds.
 
 \begin{center}
 \begin{minipage}{0.6\linewidth}
@@ -398,7 +398,7 @@ Virtuoso & 36,583 & \textbf{40,183} & 9.8\% \\
 DuckDB & 114,876 & \textbf{144,822} & 26.1\% \\
 ClickHouse & 141,215 & \textbf{155,639} & 10.2\% \\
 \midrule
-Total & 368,816 & \textbf{422,130} & 14.5\% \\
+Total & 251,062 & 279,273 & 368,816 & \textbf{422,130} \\
 \bottomrule
 \end{tabular}
 \end{minipage}

@@ -741,7 +741,7 @@ All experiments were conducted on a Linux server equipped with an Intel Xeon CPU
 Following the prior methodology~\cite{fu2024sedar}, we collected built-in test cases from mature DBMS repositories (i.e., SQLite~\cite{sqlite}, MySQL~\cite{mysql}, and PostgreSQL~\cite{pg}) for transfer. 
 % Table~\ref{tab:collected_seeds} shows the statistics on collected test cases in each DBMS.
 The dataset aggregates 447,357 SQL statements across 6,875 test files, totaling 55.7 MiB of query text.
-For each target DBMS, all methods use the same number of initial seeds, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for \monetdb{}, \virtuoso{}, \duckdb{}, and \clickhouse{}, respectively.
+All mutation-based methods use the same initial seeds from the collected test cases, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for \monetdb{}, \virtuoso{}, \duckdb{}, and \clickhouse{}, respectively.
 
 % \begin{table}[t]
 % \centering
@@ -852,9 +852,9 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 RQ2 evaluates \tool{}'s effectiveness by comparing it to other fuzzing tools under the same setting. 
 We compared \tool{} against six state-of-the-art DBMS testing tools in 24 hours: \sqlancer{}~\cite{sqlancer} (logic/crash baseline~\cite{zhong2020squirrel,fu2022griffin,liang2023sequence}), \sqlright{}~\cite{sqlright} (coverage-guided logic-bug fuzzer), \squirrel{}~\cite{zhong2020squirrel} (IR-based mutation fuzzer), \griffin{}~\cite{fu2022griffin} (grammar-free mutation baseline), \sedar{}~\cite{fu2024sedar}, and SmartFuzz~\cite{lin2026smartfuzz} (LLM-based seed generation).
 % After fuzzing, we normalized coverage through a unified dry run and deduplicated crashes using stack-trace hashing plus manual inspection.
-For \sqlancer{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations and command lines from their official repositories, which are included in our artifact.
+For \sqlancer{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations and command lines from their official repositories, which are included in our artifact. SmartFuzz uses its released seeds with \griffin{} as the backend fuzzer.
 We adapt \sqlright{} to the four target DBMSs, and the adaptation code is also included in our artifact.
-After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes using stack-trace hashing followed by manual inspection for verification.
+After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes via stack-trace hashing and manual inspection.
 % Table III (coverage) is commented out: it duplicates Figure~\ref{fig:coverage_over_time}.
 \iffalse
 \begin{table}[!t]
@@ -867,13 +867,13 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
     \toprule
     \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
     \midrule
-    MonetDB    & - & 11,108 & 43,747 & 61,981 & 76,142 & 75,242 & \textbf{81,486} \\
-    Virtuoso   & - & 9,207 & 26,302 & 28,017 & 36,583 & \textbf{40,773} & 40,183 \\
-    DuckDB     & 22,188 & 25,624 & 96,434 & 96,512 & 114,876 & 130,966 & \textbf{144,822} \\
-    ClickHouse & 25,618 & 22,383 & - & 87,388 & 141,215 & 147,844 & \textbf{155,639} \\
+    MonetDB    & - & 11,108 & 56,054 & 65,492 & 76,142 & 75,242 & \textbf{81,486} \\
+    Virtuoso   & - & 9,207 & 20,082 & 27,115 & 36,583 & \textbf{40,773} & 40,183 \\
+    DuckDB     & 22,188 & 25,624 & 101,899 & 109,632 & 114,876 & 130,966 & \textbf{144,822} \\
+    ClickHouse & 25,618 & 22,383 & 73,027 & 77,034 & 141,215 & 147,844 & \textbf{155,639} \\
     \midrule
-    Total      & 47,806 & 68,322 & 166,483 & 273,898 & 368,816 & 394,825 & 422,130 \\
-    Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 60\%$\uparrow$ & 54\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
+    Total      & 47,806 & 68,322 & 251,062 & 279,273 & 368,816 & 394,825 & 422,130 \\
+    Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 68\%$\uparrow$ & 51\%$\uparrow$ & 14\%$\uparrow$ & 7\%$\uparrow$ & - \\
     \bottomrule
 \end{tabular*}
 
@@ -888,7 +888,7 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
 
 
 As illustrated in Figure~\ref{fig:coverage_over_time}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
-This yields overall gains of 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
+This yields overall gains of 528\%, 518\%, 68\%, 51\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
 Figure~\ref{fig:coverage_over_time} further shows continued branch gains after 12 hours, while several baselines plateau sooner. On MonetDB, DuckDB, and ClickHouse, \tool{} achieves the highest coverage due to smaller dialect gaps. On \virtuoso{}, \tool{} grows more slowly than SmartFuzz at first due to the larger dialect gap, but reaches comparable coverage.
 
 \begin{figure}[!htbp]
@@ -929,7 +929,7 @@ These results show the coverage benefit of \tool{}'s handling strategy under the
 
 
 \begin{answerbox}
-\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 60\%, 54\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 22, 22, 16, and 5 more bugs, respectively. 
+\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 68\%, 51\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 22, 22, 16, and 5 more bugs, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
 
