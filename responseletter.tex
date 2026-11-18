@@ -464,14 +464,14 @@ RISE & 34.0 & 65.0 \\
 More importantly, the evaluation lacks compositional baselines such as ``existing SQL translator + SEDAR/GRIFFIN'' or ``AST-based translation + GRIFFIN''. Without such ablations, it is difficult to determine whether the contribution is a fundamentally new transfer technique or mainly an engineering integration of existing components. The authors should add such baselines or provide a clearer theoretical argument for why AQT enables capabilities that \mbox{prior representations cannot achieve.}
 
 \reply
-We have clarified in Sections~II (Background and Motivation), III (Approach), and VI (Related Work) that AQT's novelty lies in \textit{jointly modeling cross-statement dependencies and cumulative schema/type context for coordinated translation/repair}. Unlike statement-level representations (e.g., SQLGlot's AST), which primarily represent individual SQL statements, AQT models the evolving state of an entire test sequence; unlike query-level translation systems (e.g., CrackSQL/RISE/QTRAN), AQT uses preceding statements to guide the \mbox{translation/repair of subsequent statements.}
+We have clarified in Sections~II (Background and Motivation), III (Approach), and VI (Related Work) that AQT's novelty lies in \textit{jointly modeling cross-statement dependencies and cumulative schema/type context for coordinated translation/repair}. Unlike statement-level representations (e.g., SQLGlot's AST), which primarily represent individual SQL statements, AQT models the evolving state of an entire test sequence; unlike query-level translation systems (e.g., CrackSQL/RISE/QTRAN), AQT uses preceding statements to guide the \mbox{translation/repair of subsequent statements.} Details can be found in \metareviewref{2}.
 
 We have further paired different translators with the same downstream fuzzer (i.e., \griffin{}) for 24 hours on DuckDB in Section~IV (Evaluation). \tool{} finds 33.6\%, 16.7\%, and 26.1\% more branches and 3, 3, and 2 more bugs than SQLGlot+\griffin{}, RISE+\griffin{}, and \sedar{}+\griffin{}, respectively, demonstrating the effectiveness of \tool{}'s translation approach.
 
 \begin{center}
 \begin{minipage}{0.6\linewidth}
 \centering\scriptsize\renewcommand{\arraystretch}{1.0}
-\textbf{Compositional baselines on DuckDB (24h).}
+\textbf{Performance of compositional baselines on DuckDB (24h).}
 \par\smallskip
 \begin{tabular}{lrr}
 \toprule
