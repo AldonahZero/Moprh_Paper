@@ -524,7 +524,7 @@
 \lstset{extendedchars=\true,inputencoding=utf8}
 
 %DIF END PREAMBLE EXTENSION ADDED BY LATEXDIFF
-\providecommand{\DIFcell}[2]{\begin{tabular}[c]{@{}c@{}}\DIFdelFL{#1}\\\DIFaddFL{#2}\end{tabular}}
+\providecommand{\DIFcell}[2]{\DIFaddFL{#2}}
 
 \begin{document}
 
@@ -1344,7 +1344,7 @@ We adapt \sqlright{} to the four target DBMSs, and the adaptation code is also i
 \DIFdelendFL \DIFaddbeginFL \setlength{\tabcolsep}{1pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccccccc@{}}
     \toprule
-    \textbf{DBMS} & \sqlancer{} & \DIFaddFL{\sqlright{}} & \squirrel{} & \griffin{} & \sedar{} & \DIFaddFL{SmartFuzz} & \textsc{Morph} \\
+    \textbf{DBMS} & \sqlancer{} & \DIFaddFL{\sqlright{}} & \DIFaddFL{\squirrel{}} & \DIFaddFL{\griffin{}} & \sedar{} & \DIFaddFL{SmartFuzz} & \textsc{Morph} \\
     \midrule
     MonetDB & - & \DIFaddFL{11,108} & \DIFcell{43,747}{56,054} & \DIFcell{61,981}{65,492} & 76,142 & \DIFaddFL{75,242} & \textbf{81,486} \\
     Virtuoso & - & \DIFaddFL{9,207} & \DIFcell{26,302}{20,082} & \DIFcell{28,017}{27,115} & 36,583 & \DIFaddFL{\textbf{40,773}} & 40,183 \\
@@ -1762,24 +1762,7 @@ Based on these results, we set $T=0.2$ for all experiments to ensure both reliab
 
 \DIFdelbegin %DIFDELCMD < \begin{table}[!t]
 %DIFDELCMD < %%%
-\DIFdelendFL \DIFaddbeginFL \begin{table}[!b]
-\DIFaddendFL \centering
-\small
-\caption{LLM comparison. \DIFaddbeginFL \DIFaddFL{Syn.: syntactic correctness; Exec.: execution validity; }\DIFaddendFL TS\DIFdelbeginFL \DIFdelFL{denotes }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{: }\DIFaddendFL Test Suite.}
-\label{tab:llm_comparison}
-\setlength{\tabcolsep}{2.5pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
-\toprule
-\textbf{Model} & \textbf{Syn.} & \textbf{\DIFdelbeginFL \DIFdelFL{Sem}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Exec}\DIFaddendFL .} & \textbf{Cost/TS \DIFaddbeginFL \DIFaddFL{(\$)}\DIFaddendFL } & \textbf{Time/TS \DIFaddbeginFL \DIFaddFL{(s)}\DIFaddendFL } \\
-\midrule
-Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
-GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
-DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
-Qwen3.5-27B\DIFaddbeginFL \DIFaddFL{$^*$ }\DIFaddendFL & 0.971 & 0.852 & 0.119 & 1395.6 \\
-\bottomrule
-\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with deep thinking mode}
-\end{tabular*}
-\end{table}
+\DIFdelendFL \DIFaddbeginFL 
 
 
 % LLM 模型依赖写作逻辑：
@@ -1799,6 +1782,25 @@ We justify the selection of Gemini 2.5-Flash-Lite for \tool{} \DIFdelbegin \DIFd
 % - 先讲两步流程：自动抽取 grammar/spec features；LLM 生成 unmapped candidate rules 后人工 review/correction。
 % - 表格给四个 target DBMS 的人工修正比例，说明人工只占少量。
 % - DuckDB 人工规则消融说明人工 review 有增益，但主体能力来自自动抽取、实例化和修复流程。
+
+\begin{table}[!h]
+\DIFaddendFL \centering
+\small
+\caption{LLM comparison. \DIFaddbeginFL \DIFaddFL{Syn.: syntactic correctness; Exec.: execution validity; }\DIFaddendFL TS\DIFdelbeginFL \DIFdelFL{denotes }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{: }\DIFaddendFL Test Suite.}
+\label{tab:llm_comparison}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\toprule
+\textbf{Model} & \textbf{Syn.} & \textbf{\DIFdelbeginFL \DIFdelFL{Sem}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Exec}\DIFaddendFL .} & \textbf{Cost/TS \DIFaddbeginFL \DIFaddFL{(\$)}\DIFaddendFL } & \textbf{Time/TS \DIFaddbeginFL \DIFaddFL{(s)}\DIFaddendFL } \\
+\midrule
+Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
+GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
+DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
+Qwen3.5-27B\DIFaddbeginFL \DIFaddFL{$^*$ }\DIFaddendFL & 0.971 & 0.852 & 0.119 & 1395.6 \\
+\bottomrule
+\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with deep thinking mode}
+\end{tabular*}
+\end{table}
 
 \textbf{Extensibility and Manual Effort.}
 To extend \tool{} to another DBMS, we first automatically extract lexical and syntactic features from grammar specifications and register the corresponding mapping rules into the Hybrid KB.

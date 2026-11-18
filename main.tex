@@ -1235,24 +1235,7 @@ Based on these results, we set $T=0.2$ for all experiments to ensure both reliab
 % This indicates that lower temperature settings help the model produce more deterministic outputs while still maintaining semantic correctness. 
 % Based on this analysis, we adopt T=0.2 for all experiments to balance reliability and flexibility, ensuring that the translated queries remain both valid and reproducible across runs.
 
-\begin{table}[!b]
-\centering
-\small
-\caption{LLM comparison. Syn.: syntactic correctness; Exec.: execution validity; TS: Test Suite.}
-\label{tab:llm_comparison}
-\setlength{\tabcolsep}{2.5pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
-\toprule
-\textbf{Model} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Cost/TS (\$)} & \textbf{Time/TS (s)} \\
-\midrule
-Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
-GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
-DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
-Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
-\bottomrule
-\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with deep thinking mode}
-\end{tabular*}
-\end{table}
+
 
 
 % LLM 模型依赖写作逻辑：
@@ -1273,6 +1256,25 @@ Under the same GPT-3.5-Turbo setting as \sedar{}, \tool{} still outperforms it i
 % - 先讲两步流程：自动抽取 grammar/spec features；LLM 生成 unmapped candidate rules 后人工 review/correction。
 % - 表格给四个 target DBMS 的人工修正比例，说明人工只占少量。
 % - DuckDB 人工规则消融说明人工 review 有增益，但主体能力来自自动抽取、实例化和修复流程。
+
+\begin{table}[!h]
+\centering
+\small
+\caption{LLM comparison. Syn.: syntactic correctness; Exec.: execution validity; TS: Test Suite.}
+\label{tab:llm_comparison}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\toprule
+\textbf{Model} & \textbf{Syn.} & \textbf{Exec.} & \textbf{Cost/TS (\$)} & \textbf{Time/TS (s)} \\
+\midrule
+Gemini 2.5-Flash-Lite & 0.929 & 0.776 & 0.003 & 146.80 \\
+GPT-3.5-Turbo         & 0.890 & 0.533 & 0.015 & 208.66 \\
+DeepSeek-V3 & 0.986 & 0.699 & 0.003 & 231.11 \\
+Qwen3.5-27B$^*$ & 0.971 & 0.852 & 0.119 & 1395.6 \\
+\bottomrule
+\multicolumn{5}{@{}l}{\footnotesize $^*$ Qwen3.5-27B with deep thinking mode}
+\end{tabular*}
+\end{table}
 
 \textbf{Extensibility and Manual Effort.}
 To extend \tool{} to another DBMS, we first automatically extract lexical and syntactic features from grammar specifications and register the corresponding mapping rules into the Hybrid KB.
