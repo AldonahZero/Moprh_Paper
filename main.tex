@@ -912,7 +912,7 @@ These results demonstrate the practical utility of the transferred seeds for dow
 
 
 \begin{answerbox}
-\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 68\%, 51\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 22, 22, 16, and 5 more bugs, respectively. 
+\textbf{Answer to RQ2:} \tool{} covers 528\%, 518\%, 68\%, 51\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 21, 20, 16, and 5 more bugs, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 \end{answerbox}
 
@@ -927,13 +927,13 @@ The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
     \toprule
     \textbf{DBMS} & \sqlancer{} & \sqlright{} & \squirrel{} & \griffin{} & \sedar{} & SmartFuzz & \textsc{Morph} \\
     \midrule
-    MonetDB    & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
+    MonetDB    & - & 0 & 1 & 2 & 3 & 11 & \textbf{14} \\
     Virtuoso   & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
     DuckDB     & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
-    ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
+    ClickHouse & 0 & 0 & 0 & 0 & 0 & 1 & \textbf{2} \\
     \midrule
-    Total      & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
-    Increment  & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
+    Total      & 0 & 0 & 1 & 2 & 6 & 17 & 22 \\
+    Increment  & 22$\uparrow$ & 22$\uparrow$ & 21$\uparrow$ & 20$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
     \bottomrule
 \end{tabular*}
 }

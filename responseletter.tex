@@ -171,13 +171,13 @@ Improvement* & 528\%$\uparrow$ & 518\%$\uparrow$ & 68\%$\uparrow$ & 51\%$\uparro
 \toprule
 DBMS & SQLancer & SQLRight & Squirrel & \griffin{} & \sedar{} & SmartFuzz & \tool{} \\
 \midrule
-MonetDB & - & 0 & 0 & 0 & 3 & 11 & \textbf{14} \\
+MonetDB & - & 0 & 1 & 2 & 3 & 11 & \textbf{14} \\
 Virtuoso & - & 0 & 0 & 0 & 2 & \textbf{3} & \textbf{3} \\
 DuckDB & 0 & 0 & 0 & 0 & 1 & 2 & \textbf{3} \\
-ClickHouse & 0 & 0 & - & 0 & 0 & 1 & \textbf{2} \\
+ClickHouse & 0 & 0 & 0 & 0 & 0 & 1 & \textbf{2} \\
 \midrule
-Total & 0 & 0 & 0 & 0 & 6 & 17 & 22 \\
-Increment & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
+Total & 0 & 0 & 1 & 2 & 6 & 17 & 22 \\
+Increment & 22$\uparrow$ & 22$\uparrow$ & 21$\uparrow$ & 20$\uparrow$ & 16$\uparrow$ & 5$\uparrow$ & - \\
 \bottomrule
 \end{tabular}
 
@@ -385,7 +385,7 @@ We have documented these details in the revised paper. (1) \textit{Baseline adap
 \reviewquestion{2.1} Could the authors clarify whether the reported coverage/bug-finding improvements primarily stem from AQT-based translation or from a larger/richer effective seed corpus? In a controlled experiment where all baselines use exactly the same number and source of initial seeds, how much of the 14\% coverage gain over SEDAR remains attributable to AQT?
 
 \reply
-\textit{Seed-normalized comparison.} In Section~IV (Evaluation), all mutation-based methods use the same initial seeds from the collected test cases, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. As shown in the table below, \tool{} covers 68.1\%, 51.2\%, and 14.5\% more branches than \squirrel{}, \griffin{}, and \sedar{}, respectively, and detects 16 more bugs than \sedar{}, indicating that the observed improvement comes from AQT rather than the initial seeds.
+\textit{Seed-normalized comparison.} In Section~IV (Evaluation), all mutation-based methods use the same initial seeds from the collected test cases, i.e., 5,879, 4,551, 5,850, and 5,990 seeds for MonetDB, Virtuoso, DuckDB, and ClickHouse, respectively. As shown in the table below, \tool{} covers 68.1\%, 51.2\%, and 14.5\% more branches than \squirrel{}, \griffin{}, and \sedar{}, respectively, and detects 21, 20, and 16 more bugs, indicating that the observed improvement comes from AQT rather than the initial seeds.
 
 \begin{center}
 \begin{minipage}{0.7\linewidth}
@@ -657,7 +657,7 @@ vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \
 \reviewcomment{3.2} RQ2 baselines are somewhat hard to believe: zero bugs in 24 hours for SQUIRREL, GRIFFIN, and SQLancer across all four DBMSs. The baseline configuration is undocumented, several cells are ``-'', for unsupported targets, and the ``528\% over SQLancer'' headline is computed over only the two DBMSs that SQLancer supports.
 
 \reply
-We have documented the configurations of the RQ2 baselines in Section~IV (Evaluation): \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{} use the default configurations and command lines from their official repositories, all mutation-based methods use the same initial seeds from the collected test cases, and SmartFuzz uses its released seeds with \griffin{} as the backend fuzzer. We have also included the configurations, command lines, and seeds used by each RQ2 baseline in our artifact. \TODO{update the bug results of Squirrel and Griffin after rerunning} The zero-bug results reflect that previously reported bugs were fixed in the newer DBMS versions, with no new bugs found. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as stated in Section~IV (Evaluation).
+We have documented the configurations of the RQ2 baselines in Section~IV (Evaluation): \textsc{SQLancer}, \textsc{Squirrel}, and \griffin{} use the default configurations and command lines from their official repositories, all mutation-based methods use the same initial seeds from the collected test cases, and SmartFuzz uses its released seeds with \griffin{} as the backend fuzzer. We have also included the configurations, command lines, and seeds used by each RQ2 baseline in our artifact. Regarding the zero-bug results, \textsc{Squirrel} and \griffin{} previously used their default seed corpora, and the bugs triggered by these corpora had already been reported and fixed in the newer DBMS versions, so they found no bugs. With the same initial seeds as the other mutation-based methods, they now detect 1 and 2 new bugs on MonetDB, respectively (Table~IV). \textsc{SQLancer} does not use initial seeds and is thus unaffected by this change; it detects no bugs because the bugs it previously reported have been fixed in the newer DBMS versions. In addition, the 528\% improvement over \textsc{SQLancer} is computed only on DuckDB and ClickHouse, the two target DBMSs it supports, as stated in Section~IV (Evaluation).
 
 % Source: Reviewer C, Weakness (unnumbered).
 \reviewcomment{3.3} Numeric inconsistency: the text claims RISE transfer improved semantic correctness ``from 0.314 to 0.776,'' but Table V's own row reads RISE 0.314 / MORPH 0.748. One of these is wrong.
