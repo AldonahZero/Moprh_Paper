@@ -861,7 +861,7 @@ Moreover, many fuzzers cover only a subset of SQL grammar.
 As a result, the migrated seed has limited utility for subsequent effective mutation in DBMS fuzzing.}\DIFdelend \DIFaddbegin \DIFadd{~\ref{fig:motivation} shows a real failure case in which \sedar{} transfers a test case from \pg{} to \duckdb{} that contains dialect-specific features such as the }\texttt{\DIFadd{MONEY}}\DIFadd{ type and }\texttt{\DIFadd{to\_timestamp}}\DIFadd{.
 First, due to hallucination, \sedar{} replaces }\texttt{\DIFadd{to\_timestamp}}\DIFadd{ in S3 with }\texttt{\DIFadd{to\_date}}\DIFadd{, which \duckdb{} does not provide, resulting in a syntax error.
 Second, due to the lack of target-side context, \sedar{} maps }\texttt{\DIFadd{MONEY}}\DIFadd{ in S1 to }\texttt{\DIFadd{DECIMAL(10,2)}}\DIFadd{ but translates S2 without this type, so S2$'$ keeps the literal }\texttt{\DIFadd{\textquotesingle{}\$12.50\textquotesingle{}}}\DIFadd{, which \duckdb{} cannot convert, resulting in a semantic error.
-Although \sedar{} comments out the }\texttt{\DIFadd{to\_date}}\DIFadd{ fragment before mutation and restores it after mutation, both errors persist, so the test case still fails on \duckdb{}.}\DIFaddend
+Although \sedar{} comments out the }\texttt{\DIFadd{to\_date}}\DIFadd{ fragment before mutation and restores it after mutation, both errors persist, so the test case still fails to execute on \duckdb{}.}\DIFaddend
 
 \textit{Basic Idea of \tool{}.}
 The core idea of \tool{} is to thoroughly decouple logical intent from syntactic representation, shifting from unstable textual translation to more robust structural recursive substitution. 
