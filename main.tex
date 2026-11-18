@@ -822,7 +822,7 @@ These bugs have received positive feedback and careful attention from the corres
 For instance, regarding the fixed bug in DuckDB (\#205xx), the developers appreciated the report exposing an intricate type inference flaw in the \textit{Executor}, which was triggered by preserving complex cross-table correlations from \pg{}. 
 They merged a fix within days, further validating that \tool{} successfully identified deep-seated bugs missed by existing test suites.
 Moreover, all reported bugs of \monetdb{} have been incorporated into its official \textsc{NextRelease} milestone~\cite{monetdb-nextrelease}.
-The detected bugs are not limited to the surface level (e.g., Parser) but penetrate deep into the DBMS kernels. As shown in the second column of Table~\ref{tab:real-world-bugs}, the bugs span critical subsystems including the Optimizer, Binder, and Storage Engine.
+The detected bugs are not limited to the surface level (e.g., Parser) but penetrate deep into the DBMS kernels. As shown in the second column of Table~\ref{tab:real-world-bugs}, the bugs span critical subsystems including the Optimizer and Binder.
 
 \textbf{Case Study: An internal error in \duckdb{}.} 
 To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} (\#205xx) triggered by a complex query involving a nested \texttt{CROSS JOIN} and specific DDL configurations. Generally, in SQL dialects, join operations and subqueries are standard; however, the structural interaction between specific join types and aliased subqueries can induce a crash bug in \duckdb{} when executing the statement shown in Figure~\ref{fig:casestudy}. In this case, the source logic was derived from a PostgreSQL test case featuring a \texttt{CREATE TABLE} statement with \texttt{DOUBLE PRECISION} and a query containing a nested \texttt{CROSS JOIN}.
@@ -839,7 +839,7 @@ To illustrate the effectiveness of \tool{}, we examine a fixed bug in \duckdb{} 
 
 \begin{answerbox}
 \textbf{Answer to RQ1:} 
-\tool{} successfully exposed \bugcnt{} unknown bugs in four popular DBMSs, affecting core components including the Optimizer and Storage Engine. Among them, \bugconfirmcnt{} bugs have been confirmed, and \bugfixcnt{} bugs have already been fixed by DBMS vendors.
+\tool{} successfully exposed \bugcnt{} unknown bugs in four popular DBMSs, affecting core components including the Optimizer and Binder. Among them, \bugconfirmcnt{} bugs have been confirmed, and \bugfixcnt{} bugs have already been fixed by DBMS vendors.
 \end{answerbox}
 
 
