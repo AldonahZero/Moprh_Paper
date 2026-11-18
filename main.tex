@@ -946,6 +946,40 @@ The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 
 
 \subsection{RQ3: Effectiveness of Transfer of \tool{}}
+
+\begin{table}[t]
+\centering
+\caption{Syntactic correctness and execution validity of transferred seeds.}
+\label{tab:validity}
+\renewcommand\arraystretch{1}
+\scriptsize
+\setlength{\tabcolsep}{1.5pt}
+\resizebox{\columnwidth}{!}{%
+    \begin{tabular}{l|cc|cc|cc|cc}
+        \toprule
+        \multirow{2}{*}{\textbf{Method}} &
+        \multicolumn{2}{c|}{\textbf{MonetDB}} &
+        \multicolumn{2}{c|}{\textbf{Virtuoso}} &
+        \multicolumn{2}{c|}{\textbf{DuckDB}} &
+        \multicolumn{2}{c}{\textbf{ClickHouse}} \\
+        & \textbf{Syn.} & \textbf{Exec.}
+        & \textbf{Syn.} & \textbf{Exec.}
+        & \textbf{Syn.} & \textbf{Exec.}
+        & \textbf{Syn.} & \textbf{Exec.} \\ \midrule
+        No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
+        SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
+        jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
+        CrackSQL & - & - & - & - & 0.740 & 0.211 & 0.717 & 0.264 \\
+        RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
+        \sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
+        \tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\ \midrule
+        vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \\ \bottomrule
+	    \end{tabular}
+	}
+\par\vspace{0.2em}
+{\footnotesize Syn./Exec.: syntactic correctness/execution validity; ``-'': unsupported dialects.}
+\end{table}
+
 % RQ3 写作逻辑 / Reviewer A、C 修改逻辑：
 % Review C-Q2/C-Q3 回应位置：Table 5/6 加入 SQLGlot、jOOQ、CrackSQL、RISE；unsupported target dialects 用 ``-'' 如实标注。
 % Review C-Presentation 回应位置：Table 6 前后正文使用 +411 functions / +34 data types / +496 keywords，修正旧版 +633 的计算问题。
@@ -983,38 +1017,7 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 % and executability.
 
 
-\begin{table}[!htbp]
-\centering
-\caption{Syntactic correctness and execution validity of transferred seeds.}
-\label{tab:validity}
-\renewcommand\arraystretch{1}
-\scriptsize
-\setlength{\tabcolsep}{1.5pt}
-\resizebox{\columnwidth}{!}{%
-    \begin{tabular}{l|cc|cc|cc|cc}
-        \toprule
-        \multirow{2}{*}{\textbf{Method}} &
-        \multicolumn{2}{c|}{\textbf{MonetDB}} &
-        \multicolumn{2}{c|}{\textbf{Virtuoso}} &
-        \multicolumn{2}{c|}{\textbf{DuckDB}} &
-        \multicolumn{2}{c}{\textbf{ClickHouse}} \\
-        & \textbf{Syn.} & \textbf{Exec.}
-        & \textbf{Syn.} & \textbf{Exec.}
-        & \textbf{Syn.} & \textbf{Exec.}
-        & \textbf{Syn.} & \textbf{Exec.} \\ \midrule
-        No translation & 0.589 & 0.236 & 0.324 & 0.097 & 0.674 & 0.284 & 0.613 & 0.182 \\
-        SQLGlot & - & - & - & - & 0.738 & 0.186 & 0.665 & 0.193 \\
-        jOOQ & - & - & - & - & 0.652 & 0.136 & 0.554 & 0.175 \\
-        CrackSQL & - & - & - & - & 0.740 & 0.211 & 0.717 & 0.264 \\
-        RISE & 0.830 & 0.266 & 0.545 & 0.178 & 0.857 & 0.314 & 0.764 & 0.278 \\
-        \sedar{} & 0.781 & 0.388 & 0.562 & 0.169 & 0.895 & 0.365 & 0.821 & 0.315 \\
-        \tool{} & \textbf{0.929} & \textbf{0.776} & \textbf{0.670} & \textbf{0.629} & \textbf{0.939} & \textbf{0.748} & \textbf{0.895} & \textbf{0.694} \\ \midrule
-        vs. \sedar{} & +19\% & +100\% & +19\% & +272\% & +5\% & +105\% & +9\% & +120\% \\ \bottomrule
-	    \end{tabular}
-	}
-\par\vspace{0.2em}
-{\footnotesize Syn./Exec.: syntactic correctness/execution validity; ``-'': unsupported dialects.}
-\end{table}
+
 
 
 \textbf{Source-to-Target Result and State Equivalence.}
@@ -1033,7 +1036,7 @@ Its dialect-guided AQT instantiation and feedback repair aim to adapt complex st
 %特别的，\tool{}相比Sedar多发现了66\% functions, 23\% data types, and 57\% more keywords.
 % 1,036 functions, 180 data types, and 1,368 keywords, exceeding \sedar{} by 411, 34, and 496, respectively (66\%, 23\%, and 57\%).
 
-\begin{table}[!htbp]
+\begin{table}[t]
 \centering
 \caption{Valid SQL features in transferred seeds.}
 \label{tab:diversity}
@@ -1161,6 +1164,24 @@ Table~\ref{tab:ablation_sanitizer} presents \tool{} covers 8\% to 39\% more bran
 When the component is disabled, \tooldisfuzzer{} experiences a high rejection rate by the fuzzer at the parser stage due to syntax mismatches.
 In contrast, by actively repairing these specific errors, $\tool{}_{\textit{full}}$ recovers these invalid seeds, allowing them to pass the frontend and be used for fuzzers to explore more state space of target DBMSs.
 
+\begin{table}[!h]
+\centering
+\footnotesize
+\caption{Sanitizer ablation on branch coverage (24h).}
+\label{tab:ablation_sanitizer}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+\textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
+\midrule
+MonetDB    & 67,620 & \textbf{81,486}  & \textbf{+21\%} \\
+Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
+DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
+ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
 \textbf{Comparison with Comment-and-Restore Handling.}
 The sanitizer repairs incompatibilities before mutation, whereas \sedar{} comments out incompatible fragments before mutation and restores them after mutation (Section~\ref{sec:background}); neither guarantees semantic equivalence of the mutated queries.
 For each target DBMS, we randomly sampled 300 translated seeds, applied both strategies to the same seeds, and ran \griffin{} for 24 hours with five repetitions, keeping all other settings fixed.
@@ -1183,23 +1204,7 @@ The sanitizer achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage t
 \end{answerbox}
 \flushbottom
 
-\begin{table}[!t]
-\centering
-\footnotesize
-\caption{Sanitizer ablation on branch coverage (24h).}
-\label{tab:ablation_sanitizer}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
-\toprule
-\textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
-\midrule
-MonetDB    & 67,620 & \textbf{81,486}  & \textbf{+21\%} \\
-Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
-DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
-ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
-\bottomrule
-\end{tabular*}
-\end{table}
+
 
 
 

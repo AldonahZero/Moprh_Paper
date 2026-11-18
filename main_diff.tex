@@ -1441,48 +1441,8 @@ The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 
 %DIFDELCMD < %%%
 \DIFdelend \subsection{RQ3: Effectiveness of Transfer of \tool{}}
-% RQ3 写作逻辑 / Reviewer A、C 修改逻辑：
-% Review C-Q2/C-Q3 回应位置：Table 5/6 加入 SQLGlot、jOOQ、CrackSQL、RISE；unsupported target dialects 用 ``-'' 如实标注。
-% Review C-Presentation 回应位置：Table 6 前后正文使用 +411 functions / +34 data types / +496 keywords，修正旧版 +633 的计算问题。
-% Review A-Presentation 回应位置：Table 5/6 保持单栏，用 \resizebox{\columnwidth}{!}、更小 tabcolsep 和简写表头控制溢出。
-% - 目标：回答 Morph 的 transfer quality，并和 DBMS 间结果等价区分开。
-% - Reviewer C：semantic correctness 指目标 DBMS 能无 runtime error 执行；semantic richness 用 functions/data types/keywords 单独衡量。
-% - Reviewer A：和 RISE 的对比强调 scope 不同，RISE 是 SELECT statement-level translation，Morph 是 fuzzing seed 的 test-case-level transfer。
-% - SQLGlot/jOOQ/CrackSQL 对 unsupported target dialects 用 ``-''，如实标注支持范围。
-For translation effectiveness, we compare \tool{} against six baselines, including No translation, SQLGlot~\cite{sqlglot}, jOOQ~\cite{jooq}, CrackSQL~\cite{zhou2025cracking}, RISE~\cite{xie2026rise}, and \sedar{}~\cite{fu2024sedar}. 
-The No translation strategy directly executes the original test cases collected from source DBMSs without modification. 
-SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
-\sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
-We \DIFdelbegin \DIFdel{reproduced \sedar{} 's complete pipeline , including schema capture, end-to-end LLM translation , and its comment-out sanitization strategy}\DIFdelend \DIFaddbegin \DIFadd{used the original \sedar{} binary obtained from the authors of \sedar{}~\mbox{%DIFAUXCMD
-\cite{fu2024sedar}}\hskip0pt%DIFAUXCMD
-, which runs its complete pipeline (Section~\ref{sec:background}).
-Our artifact includes the \sedar{} binary, its configuration, and the \sedar{}-generated seeds used in our experiments.
-Each baseline follows its original translation workflow, using the official SQL documentation of each target DBMS as dialect knowledge when required.
-CrackSQL and RISE translate each statement individually without schema context, and all methods use the same source test cases without additional manually written translation rules}\DIFaddend .
 
-% We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
-
-We evaluate these methods \DIFdelbegin \DIFdel{from two aspects: }\DIFdelend \DIFaddbegin \DIFadd{in terms of }\DIFaddend transferred-seed validity\DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend SQL-feature richness\DIFdelbegin \DIFdel{.
-This evaluation targets }\DIFdelend \DIFaddbegin \DIFadd{, and source-to-target equivalence on sampled test cases.
-Validity and richness reflect }\DIFaddend fuzzing seed quality\DIFdelbegin \DIFdel{rather than cross-DBMS result equivalence}\DIFdelend : valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. \DIFaddbegin \DIFadd{Equivalence measures whether transferred seeds preserve the query results and database states of the source test cases.
-}\DIFaddend 
-
-\textbf{Validity of the Transferred Test Cases.}
-As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods by 5\%--62\% in syntax correctness and 100\%--450\% in \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend .
-Directly executing source seeds yields low \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend , dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
-Existing translators improve syntactic acceptance but still leave \DIFdelbegin \DIFdel{a semantic }\DIFdelend \DIFaddbegin \DIFadd{an execution-validity }\DIFaddend gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend .
-
-Existing SQL translation tools \DIFdelbegin \DIFdel{primarily operate at the statement level and }\DIFdelend are designed for query migration rather than fuzzing seed transfer. For example, RISE \DIFdelbegin \DIFdel{'s statement-level design is particularly limited in seed transfer scenarios}\DIFdelend \DIFaddbegin \DIFadd{processes one self-contained query at a time and does not maintain context across the statements of a test case}\DIFaddend . \DIFdelbegin \DIFdel{In the SQLite-to-DuckDB setting}\DIFdelend \DIFaddbegin \DIFadd{On \duckdb{}}\DIFaddend , our test-case-level transfer improves \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend from 0.314 to \DIFdelbegin \DIFdel{0.776}\DIFdelend \DIFaddbegin \DIFadd{0.748}\DIFaddend .
-When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves \DIFdelbegin \DIFdel{34}\DIFdelend \DIFaddbegin \DIFadd{16.7}\DIFaddend \% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
-% Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
-
-Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend across the tested DBMSs.
-As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low \DIFdelbegin \DIFdel{semantic }\DIFdelend \DIFaddbegin \DIFadd{execution-validity }\DIFaddend scores stem from \DIFdelbegin \DIFdel{the lack of }\DIFdelend \DIFaddbegin \DIFadd{limited support for }\DIFaddend explicit cross-statement dependency preservation in \DIFdelbegin \DIFdel{statement-level translators }\DIFdelend \DIFaddbegin \DIFadd{translators that process one statement or query at a time, }\DIFaddend such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the \DIFdelbegin \DIFdel{lack of explicit schema-state propagation }\DIFdelend \DIFaddbegin \DIFadd{absence of translated target-side context across statements }\DIFaddend in \sedar{}, which can break type or reference consistency when \DIFdelbegin \DIFdel{DDL-created schema state is not propagatedto subsequent statements}\DIFdelend \DIFaddbegin \DIFadd{target-side schema changes are not propagated}\DIFaddend .
-These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability.
-% and executability.
-
-
-\begin{table}[!htbp]
+\begin{table}[t]
 \centering
 \caption{Syntactic \DIFdelbeginFL \DIFdelFL{and semantic }\DIFdelendFL correctness \DIFaddbeginFL \DIFaddFL{and execution validity }\DIFaddendFL of transferred seeds.}
 \label{tab:validity}
@@ -1538,6 +1498,49 @@ These gains confirm that Dialect-Aware AQT Instantiation maps source intent into
 {\footnotesize Syn./\DIFdelbeginFL \DIFdelFL{Sem}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Exec}\DIFaddendFL .: syntactic \DIFaddbeginFL \DIFaddFL{correctness}\DIFaddendFL /\DIFdelbeginFL \DIFdelFL{semantic correctness}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{execution validity}\DIFaddendFL ; ``-'': unsupported dialects.}
 \end{table}
 
+% RQ3 写作逻辑 / Reviewer A、C 修改逻辑：
+% Review C-Q2/C-Q3 回应位置：Table 5/6 加入 SQLGlot、jOOQ、CrackSQL、RISE；unsupported target dialects 用 ``-'' 如实标注。
+% Review C-Presentation 回应位置：Table 6 前后正文使用 +411 functions / +34 data types / +496 keywords，修正旧版 +633 的计算问题。
+% Review A-Presentation 回应位置：Table 5/6 保持单栏，用 \resizebox{\columnwidth}{!}、更小 tabcolsep 和简写表头控制溢出。
+% - 目标：回答 Morph 的 transfer quality，并和 DBMS 间结果等价区分开。
+% - Reviewer C：semantic correctness 指目标 DBMS 能无 runtime error 执行；semantic richness 用 functions/data types/keywords 单独衡量。
+% - Reviewer A：和 RISE 的对比强调 scope 不同，RISE 是 SELECT statement-level translation，Morph 是 fuzzing seed 的 test-case-level transfer。
+% - SQLGlot/jOOQ/CrackSQL 对 unsupported target dialects 用 ``-''，如实标注支持范围。
+For translation effectiveness, we compare \tool{} against six baselines, including No translation, SQLGlot~\cite{sqlglot}, jOOQ~\cite{jooq}, CrackSQL~\cite{zhou2025cracking}, RISE~\cite{xie2026rise}, and \sedar{}~\cite{fu2024sedar}. 
+The No translation strategy directly executes the original test cases collected from source DBMSs without modification. 
+SQLGlot and jOOQ represent off-the-shelf SQL dialect translators, while CrackSQL and RISE represent recent SQL translation systems.
+\sedar{} represents the current state-of-the-art LLM-based transfer tool in constructing initial seeds in fuzzing. 
+We \DIFdelbegin \DIFdel{reproduced \sedar{} 's complete pipeline , including schema capture, end-to-end LLM translation , and its comment-out sanitization strategy}\DIFdelend \DIFaddbegin \DIFadd{used the original \sedar{} binary obtained from the authors of \sedar{}~\mbox{%DIFAUXCMD
+\cite{fu2024sedar}}\hskip0pt%DIFAUXCMD
+, which runs its complete pipeline (Section~\ref{sec:background}).
+Our artifact includes the \sedar{} binary, its configuration, and the \sedar{}-generated seeds used in our experiments.
+Each baseline follows its original translation workflow, using the official SQL documentation of each target DBMS as dialect knowledge when required.
+CrackSQL and RISE translate each statement individually without schema context, and all methods use the same source test cases without additional manually written translation rules}\DIFaddend .
+
+% We evaluate \tool{} against untranslated seeds, SQL dialect translators, recent SQL translation systems, and \sedar{} 
+
+We evaluate these methods \DIFdelbegin \DIFdel{from two aspects: }\DIFdelend \DIFaddbegin \DIFadd{in terms of }\DIFaddend transferred-seed validity\DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend SQL-feature richness\DIFdelbegin \DIFdel{.
+This evaluation targets }\DIFdelend \DIFaddbegin \DIFadd{, and source-to-target equivalence on sampled test cases.
+Validity and richness reflect }\DIFaddend fuzzing seed quality\DIFdelbegin \DIFdel{rather than cross-DBMS result equivalence}\DIFdelend : valid seeds must execute on the target DBMS, and rich seeds should retain diverse SQL features for mutation. \DIFaddbegin \DIFadd{Equivalence measures whether transferred seeds preserve the query results and database states of the source test cases.
+}\DIFaddend 
+
+\textbf{Validity of the Transferred Test Cases.}
+As shown in Table~\ref{tab:validity}, \tool{} outperforms the baseline methods by 5\%--62\% in syntax correctness and 100\%--450\% in \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend .
+Directly executing source seeds yields low \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend , dropping to 0.097 on Virtuoso and reaching only 0.284 even in the best case.
+Existing translators improve syntactic acceptance but still leave \DIFdelbegin \DIFdel{a semantic }\DIFdelend \DIFaddbegin \DIFadd{an execution-validity }\DIFaddend gap; on DuckDB, SQLGlot, CrackSQL, and RISE reach at least 0.738 syntactic correctness, yet no more than 0.314 \DIFdelbegin \DIFdel{semantic correctness}\DIFdelend \DIFaddbegin \DIFadd{execution validity}\DIFaddend .
+
+Existing SQL translation tools \DIFdelbegin \DIFdel{primarily operate at the statement level and }\DIFdelend are designed for query migration rather than fuzzing seed transfer. For example, RISE \DIFdelbegin \DIFdel{'s statement-level design is particularly limited in seed transfer scenarios}\DIFdelend \DIFaddbegin \DIFadd{processes one self-contained query at a time and does not maintain context across the statements of a test case}\DIFaddend . \DIFdelbegin \DIFdel{In the SQLite-to-DuckDB setting}\DIFdelend \DIFaddbegin \DIFadd{On \duckdb{}}\DIFaddend , our test-case-level transfer improves \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend from 0.314 to \DIFdelbegin \DIFdel{0.776}\DIFdelend \DIFaddbegin \DIFadd{0.748}\DIFaddend .
+When the translated outputs are used as initial seeds for fuzzing, \tool{} further achieves \DIFdelbegin \DIFdel{34}\DIFdelend \DIFaddbegin \DIFadd{16.7}\DIFaddend \% higher branch coverage than RISE and detects three bugs in DuckDB, whereas RISE triggers none.
+% Although \tool{} does not target result equivalence, retaining structural complexity through AQT-based abstraction and instantiation can incidentally preserve source-side behavior: among executable SQLite-to-DuckDB outputs, \tool{} matches source-side results in 49.78\% of cases, compared with 14.29\% for RISE.
+
+Compared with \sedar{}, \tool{} performs better in each DBMS, with \synatxratio{} higher syntactic correctness and \translateratio{} higher \DIFdelbegin \DIFdel{semantic correctness }\DIFdelend \DIFaddbegin \DIFadd{execution validity }\DIFaddend across the tested DBMSs.
+As discussed in Section~\ref{sec:background} (Table~\ref{tab:translation-capability}), these low \DIFdelbegin \DIFdel{semantic }\DIFdelend \DIFaddbegin \DIFadd{execution-validity }\DIFaddend scores stem from \DIFdelbegin \DIFdel{the lack of }\DIFdelend \DIFaddbegin \DIFadd{limited support for }\DIFaddend explicit cross-statement dependency preservation in \DIFdelbegin \DIFdel{statement-level translators }\DIFdelend \DIFaddbegin \DIFadd{translators that process one statement or query at a time, }\DIFaddend such as SQLGlot, jOOQ, CrackSQL, and RISE, or from the \DIFdelbegin \DIFdel{lack of explicit schema-state propagation }\DIFdelend \DIFaddbegin \DIFadd{absence of translated target-side context across statements }\DIFaddend in \sedar{}, which can break type or reference consistency when \DIFdelbegin \DIFdel{DDL-created schema state is not propagatedto subsequent statements}\DIFdelend \DIFaddbegin \DIFadd{target-side schema changes are not propagated}\DIFaddend .
+These gains confirm that Dialect-Aware AQT Instantiation maps source intent into target-dialect constraints while preserving parsability.
+% and executability.
+
+
+
+
 
 \DIFaddbegin \textbf{\DIFadd{Source-to-Target Result and State Equivalence.}}
 \DIFadd{We randomly sampled 100 MySQL test cases and used the same cases to evaluate SQLGlot, RISE, \sedar{}, and \tool{} for transfer to DuckDB.
@@ -1556,7 +1559,7 @@ Its dialect-guided AQT instantiation and feedback repair aim to adapt complex st
 %特别的，\tool{}相比Sedar多发现了66\% functions, 23\% data types, and 57\% more keywords.
 % 1,036 functions, 180 data types, and 1,368 keywords, exceeding \sedar{} by 411, 34, and 496, respectively (66\%, 23\%, and 57\%).
 
-\begin{table}[!htbp]
+\begin{table}[t]
 \centering
 \caption{Valid SQL features in transferred seeds.}
 \label{tab:diversity}
@@ -1726,25 +1729,7 @@ The sanitizer achieves 27.2\%, 15.5\%, 4.0\%, and 9.4\% higher branch coverage t
 \end{answerbox}
 \flushbottom
 
-\begin{table}[!t]
-\centering
-\footnotesize
-\caption{Sanitizer ablation on branch coverage (24h).}
-\label{tab:ablation_sanitizer}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
-\toprule
-\textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
-\midrule
-MonetDB    & 67,620 & \textbf{81,486}  & \textbf{+21\%} \\
-Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
-DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
-ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
-\bottomrule
-\end{tabular*}
-\DIFdelbeginFL %DIFDELCMD < \vspace{-0.8em}
-%DIFDELCMD < %%%
-\DIFdelendFL \end{table}
+
 
 
 
@@ -1994,4 +1979,24 @@ Compared with the state-of-the-art approach \sedar{}, \tool{} covers 14\% more b
 \end{document}
 \endinput
 %%
+\begin{table}[!h]
+\centering
+\footnotesize
+\caption{Sanitizer ablation on branch coverage (24h).}
+\label{tab:ablation_sanitizer}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+\textbf{DBMS} & \tooldisfuzzer{} & $\tool{}_{\textit{full}}$ & \textbf{Improvement} \\
+\midrule
+MonetDB    & 67,620 & \textbf{81,486}  & \textbf{+21\%} \\
+Virtuoso   & 37,213 & \textbf{40,183}  & \textbf{+8\%} \\
+DuckDB     & 118,453 & \textbf{144,822} & \textbf{+22\%} \\
+ClickHouse & 112,083 & \textbf{155,639} & \textbf{+39\%} \\
+\bottomrule
+\end{tabular*}
+\DIFdelbeginFL %DIFDELCMD < \vspace{-0.8em}
+%DIFDELCMD < %%%
+\DIFdelendFL \end{table}
+
 %% End of file `sample-acmsmall-submission.tex'.
