@@ -28,6 +28,8 @@
 \usepackage[normalem]{ulem}
 \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
 \usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+\let\oldhref\href
+\renewcommand{\href}[2]{\oldhref{#1}{\uline{#2}}}
 \titleformat{\section}{\normalfont\fontsize{16}{19}\selectfont\bfseries}{}{0pt}{}
 \hypersetup{pdftitle={MORPH: Response Letter -- ICSE 2027 Paper 1111},pdfauthor={}}
 \setlength{\parindent}{1.25em}
@@ -227,7 +229,7 @@ RISE & 34.0 & 65.0 \\
 \reviewquestion{1.2} What independent benefit does the dependency graph provide beyond context propagation?
 
 \reply
-The dependency graph guides context selection during instantiation and repair. Without it, \tool{} lacks explicit links for selecting dependency-relevant statements and object-state summaries for prompting. For example, in \texttt{ALTER TABLE t ADD COLUMN b INT; SELECT b FROM t;}, the edge selects the schema update for the translation and repair of the \texttt{SELECT}. Summaries provide the content, while edges guide the selection.
+The dependency graph guides context selection during instantiation and repair. Without it, \tool{} lacks explicit links for selecting dependency-relevant statements and object-state summaries for prompting. For example, for \texttt{ALTER TABLE t ADD COLUMN b INT} followed by \texttt{SELECT b FROM t}, the edge selects the schema update for the translation and repair of the \texttt{SELECT}. Summaries provide the content, while edges guide the selection.
 
 To evaluate this benefit, we have added an ablation study in Section~IV (Evaluation). We compare four context-selection modes under the same LLM, knowledge base, source corpus, repair budget, and statement order: (1) \tool{}, which selects predecessors through the dependency graph; (2) $\tool{}_{\textit{win}}$, which replaces dependency-based selection with the five most recent successfully translated statements while keeping the same object summaries, so that it differs from \tool{} only in whether the dependency graph is used; (3) $\tool{}_{\textit{all}}$, which provides all preceding successfully translated statements together with the complete source-side and target-side context; and (4) $\tool{}_{\textit{w/o-ctx}}$, which selects the same predecessors as \tool{} but provides only their source-side statements, without their translated target-side statements or target-side object-state summaries. We measure execution validity at the statement level, the number of predecessors provided per statement, the proportion of predecessors that are dependency-relevant (i.e., connected to the current statement by a dependency edge), and input tokens per statement.
 
