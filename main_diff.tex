@@ -1387,7 +1387,7 @@ Running \griffin{} with the union of SmartFuzz and \tool{} seeds detects 35 bugs
 
 
 \begin{answerbox}
-\textbf{\DIFaddFL{Answer to RQ2:}} \DIFaddFL{\tool{} covers 528\%, 518\%, 68\%, 51\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 22, 22, 16, and 5 more bugs, respectively. 
+\textbf{\DIFaddFL{Answer to RQ2:}} \DIFaddFL{\tool{} covers 528\%, 518\%, 68\%, 51\%, 14\%, and 7\% more branches than \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, and discovers 22, 22, 21, 20, 16, and 5 more bugs, respectively. 
 The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
 }\end{answerbox}
 
@@ -1405,13 +1405,13 @@ The results demonstrate the effectiveness of \tool{} in enhancing DBMS fuzzing.
     \toprule
     \textbf{DBMS} & \sqlancer{} & \DIFaddFL{\sqlright{}} & \squirrel{} & \griffin{} & \sedar{} & \DIFaddFL{SmartFuzz} & \textsc{Morph} \\
     \midrule
-    MonetDB & - & \DIFaddFL{0} & 0 & 0 & 3 & \DIFaddFL{11} & \textbf{14} \\
+    MonetDB & - & \DIFaddFL{0} & \DIFcell{0}{1} & \DIFcell{0}{2} & 3 & \DIFaddFL{11} & \textbf{14} \\
     Virtuoso & - & \DIFaddFL{0} & 0 & 0 & 2 & \DIFaddFL{\textbf{3}} & \textbf{3} \\
     DuckDB & 0 & \DIFaddFL{0} & 0 & 0 & 1 & \DIFaddFL{2} & \textbf{3} \\
-    ClickHouse & 0 & \DIFaddFL{0} & - & 0 & 0 & \DIFaddFL{1} & \textbf{2} \\
+    ClickHouse & 0 & \DIFaddFL{0} & \DIFcell{-}{0} & 0 & 0 & \DIFaddFL{1} & \textbf{2} \\
     \midrule
-    Total & 0 & \DIFaddFL{0} & 0 & 0 & 6 & \DIFaddFL{17} & 22 \\
-    Increment & 22$\uparrow$ & \DIFaddFL{22$\uparrow$} & 22$\uparrow$ & 22$\uparrow$ & 16$\uparrow$ & \DIFaddFL{5$\uparrow$} & - \\
+    Total & 0 & \DIFaddFL{0} & \DIFcell{0}{1} & \DIFcell{0}{2} & 6 & \DIFaddFL{17} & 22 \\
+    Increment & 22$\uparrow$ & \DIFaddFL{22$\uparrow$} & \DIFcell{22$\uparrow$}{21$\uparrow$} & \DIFcell{22$\uparrow$}{20$\uparrow$} & 16$\uparrow$ & \DIFaddFL{5$\uparrow$} & - \\
     \bottomrule
 \end{tabular*}
 }
