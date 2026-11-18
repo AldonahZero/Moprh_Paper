@@ -855,8 +855,6 @@ We compared \tool{} against six state-of-the-art DBMS testing tools in 24 hours:
 For \sqlancer{}, \squirrel{}, \griffin{}, and SmartFuzz, we use the default configurations and command lines from their official repositories, which are included in our artifact. SmartFuzz uses its released seeds with \griffin{} as the backend fuzzer.
 We adapt \sqlright{} to the four target DBMSs, and the adaptation code is also included in our artifact.
 After fuzzing, we normalized coverage via a unified dry run across all configurations, and deduplicated crashes via stack-trace hashing and manual inspection.
-% Table III (coverage) is commented out: it duplicates Figure~\ref{fig:coverage_over_time}.
-\iffalse
 \begin{table}[!t]
 \centering
 \caption{Number of branches covered by different tools (24h).}
@@ -884,10 +882,9 @@ After fuzzing, we normalized coverage via a unified dry run across all configura
 % \par\vspace{0.3em}
 
 \end{table}
-\fi
 
 
-As illustrated in Figure~\ref{fig:coverage_over_time}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
+As shown in Table~\ref{tab:coverage} and Figure~\ref{fig:coverage_over_time}, the transferred seeds lead to the highest total branch coverage, covering 422,130 branches across the four DBMSs.
 This yields overall gains of 528\%, 518\%, 68\%, 51\%, 14\%, and 7\% over \sqlancer{}, \sqlright{}, \squirrel{}, \griffin{}, \sedar{}, and SmartFuzz, respectively, on their supported targets.
 Figure~\ref{fig:coverage_over_time} further shows continued branch gains after 12 hours, while several baselines plateau sooner. On MonetDB, DuckDB, and ClickHouse, \tool{} achieves the highest coverage due to smaller dialect gaps. On \virtuoso{}, \tool{} grows more slowly than SmartFuzz at first due to the larger dialect gap, but reaches comparable coverage.
 
